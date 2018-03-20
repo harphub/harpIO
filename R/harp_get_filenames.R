@@ -27,7 +27,7 @@
 #' @param member The members to be included in the file names of $\{MBRx\} is in
 #'   the template. Given as a vector of numbers.
 #' @param template The file type to generate the template for. Can be
-#'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx",
+#'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 #'   "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
 #'   "fctable". If anything else is passed, it is returned unmodified. In this
 #'   case substitutions can be used. Available substitutions are $\{YYYY\} for
@@ -54,7 +54,7 @@
 #'   template = "${experiment}/${YYYY}${MM}${DD}${HH}_mbr${MBR2}+${LDT}h")
 #'
 harp_get_filenames <- function(
-  file_path,
+  file_path     = "",
   file_date     = Sys.Date(),
   start_date    = NULL,
   end_date      = NULL,

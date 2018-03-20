@@ -4,9 +4,10 @@
 \alias{harp_get_filenames}
 \title{Get filename(s) for meteorological data}
 \usage{
-harp_get_filenames(file_path, file_date = Sys.Date(), start_date = NULL,
-  end_date = NULL, by = "6h", parameter = NULL, experiment = NULL,
-  lead_time = seq(0, 48, 3), member = seq(0, 9), template = "FCTABLE")
+harp_get_filenames(file_path = "", file_date = Sys.Date(),
+  start_date = NULL, end_date = NULL, by = "6h", parameter = NULL,
+  experiment = NULL, lead_time = seq(0, 48, 3), member = seq(0, 9),
+  template = "FCTABLE")
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -40,7 +41,7 @@ is in the template. Given as a vector of numbers.}
 the template. Given as a vector of numbers.}
 
 \item{template}{The file type to generate the template for. Can be
-"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx",
+"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
 "fctable". If anything else is passed, it is returned unmodified. In this
 case substitutions can be used. Available substitutions are $\{YYYY\} for

@@ -19,7 +19,7 @@ digits).}
 A date-time string
 }
 \description{
-Convert unix time to a date-time string
+This is a convenient wrapper for the unix2YMD... functions
 }
 \examples{
 unixtime_to_str_datetime(as.numeric(Sys.time()), YMD)

@@ -15,7 +15,7 @@ YYYYMMDDHHmm. May be passed as a character string or numeric.}
 The unix time in seconds since 01/01/1970 00:00:00
 }
 \description{
-Convert a date-time string to unix time
+This is a convenient wrapper for the YMD..2unix functions
 }
 \examples{
 str_datetime_to_unixtime("20170101")
