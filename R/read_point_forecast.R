@@ -1,3 +1,22 @@
+#' Read point forecasts from an sqlite file
+#'
+#' Reads point forecasts from an sqlite file. The forecast date column is
+#' expected to be called fcdate. Default start and end dates are set a long time
+#' in the past and future respectively so that if no dates are passed all data
+#' should be read.
+#'
+#' @param fcst_files A vector of filenames
+#' @param start_date Start date to read from. Should be numeric or character
+#'   YYYYMMDD(HH)(mm)
+#' @param end_date End date to read to. Should be numeric or character
+#'   YYYYMMDD(HH)(mm)
+#' @param gather_data Whether to convert the data from wide form to lonf form
+#'   (TRUE / FALSE)
+#'
+#' @return A data frame
+#' @export
+#'
+#' @examples
 read_point_forecast <- function(
   fcst_files,
   start_date  = 197001010000,
