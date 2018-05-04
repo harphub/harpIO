@@ -51,153 +51,161 @@
 #' model_field <- read_members(fname, "fog")
 
 read_members <- function(model_files,
-                         parameter,
-                         members   = seq(0, 9),
-                         file_type = NULL,
-                         lead_time = NULL,
-                         ...)  {
-#
-# read control and get domain info
-#
-	if (is.null(file_type)) {
-		file_type <- tolower(tools::file_ext(model_files[1]))
-		if (! file_type %in% c("grib", "grb", "nc", "nc4", "netcdf")) {
-		  if (stringr::str_detect(model_files[1], "grib")) {
-		    file_type = "grib"
-		  } else {
-			  stop("Unable to ascertain file type. Call the function with file_type = '<file_type>'",
-				  call. = FALSE
-			  )
-		  }
-		} else {
-			file_type <- switch(
-				file_type,
-				"grb" = "grib",
-				"nc"  = "netcdf",
-				"nc4" = "netcdf",
-				file_type
-			)
-		}
-	}
-#
-	if (tolower(file_type) == "grib") {
-#
-    if (!requireNamespace("Rgrib2", quietly = TRUE)) {
-  		stop("Package Rgrib2 required for read_members() - you can get it from HARP",
-  			call. = FALSE
-  		)
-  	}
-#
-	  num_perturbed_members <- length(model_files) - 1
+  parameter,
+  members   = seq(0, 9),
+  file_type = NULL,
+  lead_time = NULL,
+  ...) {
 
-	  model_file      <- model_files[1]
-	  geofield_data   <- read_grib(model_file, parameter)
-	  domain_data     <- geogrid::DomainExtent(geofield_data)
-	  x               <- seq(domain_data$x0, domain_data$x1, domain_data$dx)
-	  y               <- seq(domain_data$y0, domain_data$y1, domain_data$dy)
-	  proj4_string    <- paste0(
-	    "+", paste(
-	      geogrid::proj4.list2str(attr(geofield_data, "domain")$projection), collapse = " +"
+  #
+  # read control and get domain info
+  #
+  if (is.null(file_type)) {
+
+    file_type <- tolower(tools::file_ext(model_files[1]))
+    if (! file_type %in% c("grib", "grb", "nc", "nc4", "netcdf")) {
+
+      if (stringr::str_detect(model_files[1], "grib")) {
+        file_type = "grib"
+      } else {
+        stop("Unable to ascertain file type. Call the function with file_type = '<file_type>'",
+          call. = FALSE
+        )
+      }
+
+    } else {
+
+      file_type <- switch(
+        file_type,
+        "grb" = "grib",
+        "nc"  = "netcdf",
+        "nc4" = "netcdf",
+        file_type
       )
-	  ) %>%
-	    stringr::str_replace("latlong", "longlat")
-	  proj4_string <- proj4_string %>%
-	    stringr::str_replace_all(" = ", "=") %>%
-	    stringr::str_replace_all(" =", "=") %>%
-	    stringr::str_replace_all("= ", "=")
-	  members <- ifelse(length(model_files) > 1,
-	    model_files %>%
-	      strsplit("/") %>%
-	      purrr::map(~ stringr::str_subset(., "mbr")) %>%
-	      purrr::map_dbl(readr::parse_number),
-	    0
-	  )
 
-	  data_all        <- array(NA, c(dim(geofield_data), num_perturbed_members + 1))
-	  data_all[, , 1] <- geofield_data
-#
-	} else if (tolower(file_type) == "netcdf") {
-#
-		if (!requireNamespace("ncdf4", quietly = TRUE)) {
-			stop("Package ncdf4 required for read_members() - Please install from CRAN",
-				call. = FALSE
-			)
-		}
-#
-		if (is.null(lead_time)) stop("lead_time must be supplied for NetCDF data")
-		model_file      <- model_files[1]
-		ncID            <- ncdf4::nc_open(model_file)
-		x               <- ncdf4::ncvar_get(ncID, "x")
-		y               <- ncdf4::ncvar_get(ncID, "y")
-		proj4_string    <- ncdf4::ncatt_get(ncID, "projection_lambert", "proj4")$value
-		num_members     <- length(members)
-		nc_members      <- ncdf4::ncvar_get(ncID, "ensemble_member")
-		ncdf4::nc_close(ncID)
-		if (num_members > length(nc_members)) {
-			cat("\nWARNING: Number of members in file   =", length(nc_members))
-			cat("\n         Number of members requested =", num_members)
-			cat("\n         All members will be read from the file")
-			cat("\n")
-			members     <- nc_members
-			num_members <- length(members)
-		}
-		num_perturbed_members <- num_members - 1
-		data_all        <- array(NA, c(length(x), length(y), num_perturbed_members + 1))
-		data_all[, , 1] <- read_netcdf(model_file, parameter, members[1], lead_time, ...)
-#
-	} else {
-		stop("Unknown file type: ", file_type, ". Can only deal with netcdf or grib",
-			call. = FALSE
-		)
-	}
+    }
+
+  }
+
+  if (tolower(file_type) == "grib") {
+
+    if (!requireNamespace("Rgrib2", quietly = TRUE)) {
+      stop("Package Rgrib2 required for read_members() - you can get it from HARP",
+        call. = FALSE
+      )
+    }
+
+    num_perturbed_members <- length(model_files) - 1
+    model_file            <- model_files[1]
+    geofield_data         <- read_grib(model_file, parameter)
+    domain_data           <- geogrid::DomainExtent(geofield_data)
+    x                     <- seq(domain_data$x0, domain_data$x1, domain_data$dx)
+    y                     <- seq(domain_data$y0, domain_data$y1, domain_data$dy)
+    proj4_string          <- paste0(
+      "+", paste(
+        geogrid::proj4.list2str(attr(geofield_data, "domain")$projection), collapse = " +"
+      )
+    ) %>%
+      stringr::str_replace("latlong", "longlat") %>%
+      stringr::str_replace_all(" = ", "=") %>%
+      stringr::str_replace_all(" =", "=") %>%
+      stringr::str_replace_all("= ", "=")
+    members               <- ifelse(length(model_files) > 1,
+      model_files %>%
+        strsplit("/") %>%
+        purrr::map(~ stringr::str_subset(., "mbr")) %>%
+        purrr::map_dbl(readr::parse_number),
+      0
+    )
+
+    data_all        <- array(NA, c(dim(geofield_data), num_perturbed_members + 1))
+    data_all[, , 1] <- geofield_data
+
+  } else if (tolower(file_type) == "netcdf") {
+
+    if (!requireNamespace("ncdf4", quietly = TRUE)) {
+      stop("Package ncdf4 required for read_members() - Please install from CRAN",
+        call. = FALSE
+      )
+    }
+
+    if (is.null(lead_time)) stop("lead_time must be supplied for NetCDF data")
+    model_file      <- model_files[1]
+    ncID            <- ncdf4::nc_open(model_file)
+    x               <- ncdf4::ncvar_get(ncID, "x")
+    y               <- ncdf4::ncvar_get(ncID, "y")
+    proj4_string    <- ncdf4::ncatt_get(ncID, "projection_lambert", "proj4")$value
+    num_members     <- length(members)
+    nc_members      <- ncdf4::ncvar_get(ncID, "ensemble_member")
+
+    ncdf4::nc_close(ncID)
+
+    if (num_members > length(nc_members)) {
+      cat("\nWARNING: Number of members in file   =", length(nc_members))
+      cat("\n         Number of members requested =", num_members)
+      cat("\n         All members will be read from the file")
+      cat("\n")
+      members     <- nc_members
+      num_members <- length(members)
+    }
+
+    num_perturbed_members <- num_members - 1
+    data_all        <- array(NA, c(length(x), length(y), num_perturbed_members + 1))
+    data_all[, , 1] <- read_netcdf(model_file, parameter, members[1], lead_time, ...)
+
+  } else {
+    stop("Unknown file type: ", file_type, ". Can only deal with netcdf or grib",
+      call. = FALSE
+    )
+  }
 #
 # Get perturbed members
 #
-	if (num_perturbed_members > 0) {
-	  pb <- utils::txtProgressBar(min = 1, max = num_perturbed_members, initial = 1, style = 3)
-	  for (member in 1:num_perturbed_members) {
-  	  member_name <- paste0("mbr", formatC(member, width = 3, flag = "0"))
-  	  if (file_type == "grib") {
-  			model_file               <- model_files[member + 1]
-  		  data_all[, , member + 1] <- read_grib(model_file, parameter)
-  	  } else if (file_type == "netcdf") {
-  		  data_all[, , member + 1] <- read_netcdf(model_file, parameter, members[member], lead_time, ...)
-  	  }
-  	  utils::setTxtProgressBar(pb, member)
-	  }
-	}
+  if (num_perturbed_members > 0) {
+    pb <- utils::txtProgressBar(min = 1, max = num_perturbed_members, initial = 1, style = 3)
+    for (member in 1:num_perturbed_members) {
+      member_name <- paste0("mbr", formatC(member, width = 3, flag = "0"))
+      if (file_type == "grib") {
+        model_file               <- model_files[member + 1]
+        data_all[, , member + 1] <- read_grib(model_file, parameter)
+      } else if (file_type == "netcdf") {
+        data_all[, , member + 1] <- read_netcdf(model_file, parameter, members[member], lead_time, ...)
+      }
+      utils::setTxtProgressBar(pb, member)
+    }
+  }
 #
 # Convert units - it is assumed that when geopotential is requested, geopential
 # height is what is wanted
-
-	is_temperature <- function(x) {
-	  tolower(x) %in% c("t", "t2m", "sst") | stringr::str_detect(x, "temperature")
-	}
-	is_pressure <- function(x) {
-	  tolower(x) == "pmsl" | stringr::str_detect(x, "pressure")
-	}
-	is_geopotential <- function(x) {
-	  tolower(x) %in% c("z0m", "z") | stringr::str_detect(x, "geopotential")
-	}
-
-	if (is_temperature(parameter) & min(data_all, na.rm = TRUE) > 200) {
-		data_all <- data_all - 273.15
-	}
-	if (is_pressure(parameter) & min(data_all, na.rm = TRUE) > 2000) {
-		data_all <- data_all/100
-	}
-	if (is_geopotential(parameter)) {
-		data_all <- data_all/9.80665
-	}
-
 #
-	list(
-		model_data   = data_all,
-		x            = x,
-		y            = y,
-		member       = members,
-		proj4_string = proj4_string,
-		parameter    = parameter,
-		filename     = model_files
-	)
+  is_temperature <- function(x) {
+    tolower(x) %in% c("t", "t2m", "sst") | stringr::str_detect(x, "temperature")
+  }
+  is_pressure <- function(x) {
+    tolower(x) == "pmsl" | stringr::str_detect(x, "pressure")
+  }
+  is_geopotential <- function(x) {
+    tolower(x) %in% c("z0m", "z") | stringr::str_detect(x, "geopotential")
+  }
+
+  if (is_temperature(parameter) & min(data_all, na.rm = TRUE) > 200) {
+    data_all <- data_all - 273.15
+  }
+  if (is_pressure(parameter) & min(data_all, na.rm = TRUE) > 2000) {
+    data_all <- data_all / 100
+  }
+  if (is_geopotential(parameter)) {
+    data_all <- data_all / 9.80665
+  }
+
+  #
+  list(
+    model_data   = data_all,
+    x            = x,
+    y            = y,
+    member       = members,
+    proj4_string = proj4_string,
+    parameter    = parameter,
+    filename     = model_files
+  )
 }

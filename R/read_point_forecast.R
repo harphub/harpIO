@@ -57,20 +57,17 @@ read_point_forecast <- function(
           key = "member",
           value = "forecast"
         ) %>%
+        dplyr::group_by(member) %>%
+        tidyr::nest() %>%
         dplyr::mutate(
-          mname = stringr::str_sub(
-            member,
-            1,
-            stringr::str_locate(member, "_mbr")[1] - 1
-          )
+          splits = strsplit(member, "_")
         ) %>%
+        rowwise() %>%
         dplyr::mutate(
-          member = stringr::str_sub(
-            member,
-            stringr::str_locate(member, "_mbr")[1] + 1,
-            stringr::str_length(member)
-          )
-        )
+          mname  = paste(splits[1:(length(splits) - 1)], collapse = "_"),
+          member = splits[length(splits)]
+        ) %>%
+        unnest(data)
     }
 
     DBI::dbDisconnect(fcst_db)
@@ -87,5 +84,8 @@ read_point_forecast <- function(
     missing_files <- NULL
   }
 
-  list(fcst = dplyr::bind_rows(fcst), missing_files = missing_files)
+  fcst = dplyr::bind_rows(fcst)
+  attr(fcst, "missing_files") <- missing_files
+
+  fcst
 }
