@@ -10,7 +10,7 @@
 #'   YYYYMMDD(HH)(mm)
 #' @param end_date End date to read to. Should be numeric or character
 #'   YYYYMMDD(HH)(mm)
-#' @param gather_data Whether to convert the data from wide form to lonf form
+#' @param gather_data Whether to convert the data from wide form to long form
 #'   (TRUE / FALSE)
 #'
 #' @return A data frame
@@ -59,13 +59,9 @@ read_point_forecast <- function(
         ) %>%
         dplyr::group_by(member) %>%
         tidyr::nest() %>%
-        dplyr::mutate(
-          splits = strsplit(member, "_")
-        ) %>%
-        rowwise() %>%
-        dplyr::mutate(
-          mname  = paste(splits[1:(length(splits) - 1)], collapse = "_"),
-          member = splits[length(splits)]
+        tidyr::separate(member, "_(?=[^_]*$)",
+          into = c("mname", "member"),
+          remove = TRUE
         ) %>%
         unnest(data)
     }
