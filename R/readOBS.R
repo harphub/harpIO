@@ -38,7 +38,7 @@ readOBS <- function(
     obs_removed <- dplyr::filter(obs, !between(.data[[parameter]], min_allowed, max_allowed))
     obs         <- dplyr::filter(obs, between(.data[[parameter]], min_allowed, max_allowed))
   }
-#
+
   attr(obs, "bad_obs") <- obs_removed
   obs
 }

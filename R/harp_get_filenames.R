@@ -72,7 +72,7 @@ harp_get_filenames <- function(
   member        = seq(0,9),
   file_template = "FCTABLE"
 ) {
-#
+
   add_zeros <- function(x) {
     switch(as.character(nchar(x)),
       "8"  = paste0(x, "0000"),
@@ -98,8 +98,8 @@ harp_get_filenames <- function(
   if (is.null(start_date)) {
 
     if (lubridate::is.Date(file_date)) file_date <- lubridate::as_datetime(file_date) %>%
-      lubridate::seconds() %>%
-      unix2YMDh()
+        lubridate::seconds() %>%
+        unix2YMDh()
     file_dates <- add_zeros(file_date)
     if (is.na(file_dates)) stop(paste0("Incorrect format for file_date : ", file_date))
 
@@ -115,7 +115,7 @@ harp_get_filenames <- function(
     file_dates <- seq(YMDhm2unix(start_date), YMDhm2unix(end_date), by = by) %>%
       unix2YMDhm()
   }
-#
+
   file_dates <- tibble::tibble(
     YYYY = file_dates %>% lubridate::ymd_hm() %>% lubridate::year(),
     MM   = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% formatC(width = 2, flag = "0"),
@@ -127,18 +127,18 @@ harp_get_filenames <- function(
     H    = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% as.character(),
     m    = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% as.character()
   )
-#
+
   strings_in_template <- names(file_dates)[stringr::str_detect(template, paste0("\\{", names(file_dates), "\\}"))]
-#
+
   file_dates <- file_dates %>%
     dplyr::select(!! rlang::quo(strings_in_template)) %>%
     dplyr::distinct()
-#
+
   files <- file_path %>%
     purrr::map( ~ cbind(file_dates, file_path = .x, stringsAsFactors = FALSE)) %>%
     dplyr::bind_rows() %>%
     tibble::as_tibble()
-#
+
   if (stringr::str_detect(template, "\\{experiment\\}")) {
     if (is.null(experiment)) stop (paste0("experiment is in template, but not passed to the function\n", template))
     files <- experiment %>%
@@ -146,7 +146,7 @@ harp_get_filenames <- function(
       dplyr::bind_rows() %>%
       tibble::as_tibble()
   }
-#
+
   if (stringr::str_detect(template, "\\{LDT")) {
     files <- lead_time %>%
       purrr::map( ~ cbind(files, LDT = as.character(.x), stringsAsFactors = FALSE)) %>%
@@ -158,7 +158,7 @@ harp_get_filenames <- function(
         LDT4 = formatC(as.numeric(LDT), width = 4, flag = "0")
       )
   }
-#
+
   if (stringr::str_detect(template, "\\{MBR")) {
     files <- member %>%
       purrr::map( ~ cbind(files, MBR = as.character(.x), stringsAsFactors = FALSE)) %>%
@@ -170,17 +170,17 @@ harp_get_filenames <- function(
         MBR4 = formatC(as.numeric(MBR), width = 4, flag = "0")
       )
   }
-#
+
   if (stringr::str_detect(template, "\\{parameter\\}")) {
     if (is.null(parameter)) stop (paste0("parameter is in template, but not passed to the function\n", template))
     files <- files %>%
       dplyr::mutate(parameter = parameter)
   }
-#
+
   files <- files %>%
     purrr::transpose() %>%
     purrr::map_chr(glue::glue_data, template) %>%
     unique()
-#
+
   files
 }

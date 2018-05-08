@@ -14,22 +14,22 @@
 #' model_geofield <- read_grib(file_name, "t", level = 500)
 #' model_geofield <- read_grib(file_name, "topo")
 read_grib <- function(filename, parameter, ...) {
-#
-	param_info    <- get_grib_param_info(parameter, ...)
-	if (is.na(param_info$short_name)) {
-	  stop("Unknown parameter: ", parameter)
-	}
-#
-	grib_info     <- Rgrib2::Gopen(filename)
-#
-	grib_position <- grib_info %>%
-		dplyr::filter(
-			shortName              == param_info$short_name,
-			indicatorOfParameter   == param_info$param_number,
-			indicatorOfTypeOfLevel == param_info$level_type,
-			level                  == param_info$level_number
-		) %>%
-		dplyr::pull(position)
-#
-	Rgrib2::Gdec(filename, grib_position)
+
+  param_info    <- get_grib_param_info(parameter, ...)
+  if (is.na(param_info$short_name)) {
+    stop("Unknown parameter: ", parameter)
+  }
+
+  grib_info     <- Rgrib2::Gopen(filename)
+
+  grib_position <- grib_info %>%
+    dplyr::filter(
+      shortName              == param_info$short_name,
+      indicatorOfParameter   == param_info$param_number,
+      indicatorOfTypeOfLevel == param_info$level_type,
+      level                  == param_info$level_number
+    ) %>%
+    dplyr::pull(position)
+
+  Rgrib2::Gdec(filename, grib_position)
 }

@@ -57,9 +57,9 @@ read_members <- function(model_files,
   lead_time = NULL,
   ...) {
 
-  #
-  # read control and get domain info
-  #
+#
+# read control and get domain info
+#
   if (is.null(file_type)) {
 
     file_type <- tolower(tools::file_ext(model_files[1]))
@@ -198,7 +198,6 @@ read_members <- function(model_files,
     data_all <- data_all / 9.80665
   }
 
-  #
   list(
     model_data   = data_all,
     x            = x,
