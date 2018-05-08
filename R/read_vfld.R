@@ -1,3 +1,27 @@
+#' Read data from a vfld file
+#'
+#' \code{read_vfld} returns the content of a named vfld file as a named list of
+#' data frames - synop for the the surface data (not necessarily from synop
+#' stations, but just the content of the file), and temp for the upper air data.
+#'
+#' @param file_name Name of the vfld file
+#'
+#' @return A named list containing: \cr \code{synop}: the surface data, \cr
+#'   \code{temp}: the upper air data.
+#' @export
+#'
+#' @examples
+#' my_dir <- "/lustre/storeB/users/andrewts/HarpResults/vfld"
+#' vfld_file <- harp_get_filenames(
+#'   my_dir,
+#'   start_date = 2017052600,
+#'   end_date = 2017052600,
+#'   experiment = "MEPS_summer2017_sfcPertRef",
+#'   lead_time = 20,
+#'   member = 0,
+#'   file_template = "vfld")
+#' vfld_data <- read_vfld(vfld_file)
+#'
 read_vfld <- function(file_name) {
 
   vfld_data <- readr::read_lines(file_name) %>%
@@ -76,5 +100,5 @@ read_vfld <- function(file_name) {
     dplyr::mutate_all(as.numeric) %>%
     dplyr::mutate(SID = as.integer(SID))
 
-  list(synop_data = synop_data, temp_data = temp_data)
+  list(synop = synop_data, temp = temp_data)
 }
