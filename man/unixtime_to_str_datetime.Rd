@@ -12,7 +12,7 @@ UTC}
 
 \item{str_function}{The date-time string format to convert to. Available
 options are YMD, YMDh and YMDhm where Y is year (4 digits), M is month (2
-digits), D is day (2 digits), H is hour (2 digits) and m is minutes (2
+digits), D is day (2 digits), h is hour (2 digits) and m is minutes (2
 digits).}
 }
 \value{

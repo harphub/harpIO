@@ -15,8 +15,8 @@ anything else is passed, it is returned unmodified. The function is case
 insensitive.}
 }
 \value{
-A template that can be interpreted by \code{str_interp} from the
-  \code{stringr} package.
+A template that can be interpreted by \code{glue_data} from the
+  \code{glue} package.
 }
 \description{
 Get File Name Template

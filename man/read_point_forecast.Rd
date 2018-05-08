@@ -16,7 +16,7 @@ YYYYMMDD(HH)(mm)}
 \item{end_date}{End date to read to. Should be numeric or character
 YYYYMMDD(HH)(mm)}
 
-\item{gather_data}{Whether to convert the data from wide form to lonf form
+\item{gather_data}{Whether to convert the data from wide form to long form
 (TRUE / FALSE)}
 }
 \value{

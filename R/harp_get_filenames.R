@@ -18,40 +18,47 @@
 #' @param by The frequecny of the date range. Should be a string of a number
 #'   followed by a letter, where the letter gives the units - may be d for days,
 #'   h for hours or m for minutes.
-#' @param parameter If $\{parameter\} exists in the the template this must be
+#' @param parameter If \{parameter\} exists in the the template this must be
 #'   specified.
-#' @param experiment If $\{experiment\} exists in the the template this must be
+#' @param experiment If \{experiment\} exists in the the template this must be
 #'   specified.
-#' @param lead_time The lead times to be included in the file names if $\{LDTx\}
+#' @param lead_time The lead times to be included in the file names if \{LDTx\}
 #'   is in the template. Given as a vector of numbers.
-#' @param member The members to be included in the file names of $\{MBRx\} is in
+#' @param member The members to be included in the file names of \{MBRx\} is in
 #'   the template. Given as a vector of numbers.
 #' @param template The file type to generate the template for. Can be
 #'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 #'   "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
 #'   "fctable". If anything else is passed, it is returned unmodified. In this
-#'   case substitutions can be used. Available substitutions are $\{YYYY\} for
-#'   year, $\{MM\} for 2 digit month with leading zero, $\{M\} for month with no
-#'   leading zero, and similarly $\{DD\} or $\{D\} for day, $\{HH\} or $\{H\}
-#'   for hour, $\{mm\} or $\{m\} for minute. Also $\{LDTx\} for lead time and
-#'   $\{MBRx\} for ensemble member where x is the length of the string including
-#'   leading zeros - can be omitted or 2, 3 or 4. Note that the full path to the
-#'   file will always be file_path/template.
+#'   case substitutions can be used. Available substitutions are \{YYYY\} for
+#'   year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
+#'   leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
+#'   hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
+#'   for ensemble member where x is the length of the string including leading
+#'   zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
+#'   will always be file_path/template.
 #'
 #' @return A vector of filenames
 #' @export
 #'
 #' @examples
 #' harp_get_filenames("/my/path", experiment = "my_exp", parameter = "T2m")
-#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131,
-#'   by = "1d", experiment = "my_exp", parameter = "T2m", template = "harmonie_grib")
-#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131,
-#'   by = "1d", experiment = "my_exp", parameter = "T2m", template = "harmoneps_grib_fp")
+#'
+#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
+#' = "1d", experiment = "my_exp", parameter = "T2m", file_template =
+#' "harmonie_grib")
+#'
+#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
+#' = "1d", experiment = "my_exp", parameter = "T2m", file_template =
+#' "harmoneps_grib_fp")
+#'
 #' harp_get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
-#'   template = "harmoneps_grib_fp")
-#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105,
-#'   by = "6h", experiment = "my_exp", parameter = "T2m", member = seq(0,3), lead_time = seq(0, 24, 6),
-#'   template = "${experiment}/${YYYY}${MM}${DD}${HH}_mbr${MBR2}+${LDT}h")
+#' file_template = "harmoneps_grib_fp")
+#'
+#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
+#' = "6h", experiment = "my_exp", parameter = "T2m", member = seq(0,3),
+#' lead_time = seq(0, 24, 6), file_template =
+#' "{experiment}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 #'
 harp_get_filenames <- function(
   file_path     = "",
@@ -63,7 +70,7 @@ harp_get_filenames <- function(
   experiment    = NULL,
   lead_time     = seq(0, 48, 3),
   member        = seq(0,9),
-  template      = "FCTABLE"
+  file_template = "FCTABLE"
 ) {
 #
   add_zeros <- function(x) {
@@ -86,7 +93,7 @@ harp_get_filenames <- function(
     )
   }
 
-  template <- get_template(template)
+  template <- get_template(file_template)
 
   if (is.null(start_date)) {
 
@@ -171,9 +178,8 @@ harp_get_filenames <- function(
   }
 #
   files <- files %>%
-    dplyr::rowwise() %>%
-    dplyr::transmute(data_file = stringr::str_interp(string = template)) %>%
-    dplyr::pull() %>%
+    purrr::transpose() %>%
+    purrr::map_chr(glue::glue_data, template) %>%
     unique()
 #
   files
