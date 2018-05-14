@@ -63,17 +63,26 @@ get_template <- function(template) {
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_sfx"
     ),
 
+    "glameps_grib" = file.path(
+      "{file_path}",
+      "{eps_model}",
+      "{sub_model}",
+      "{YYYY}", "{MM}", "{DD}", "{HH}",
+      "mbr{MBR3}",
+      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib"
+    ),
+
     "fctable" = file.path(
       "{file_path}",
-      "{experiment}",
+      "{eps_model}",
       "{YYYY}", "{MM}",
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
     ),
 
     "vfld" = file.path(
       "{file_path}",
-      "{experiment}",
-      "vfld{experiment}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
+      "{sub_model}",
+      "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
     "vobs" = file.path(

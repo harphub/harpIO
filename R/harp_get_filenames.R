@@ -24,7 +24,7 @@
 #'   specified.
 #' @param lead_time The lead times to be included in the file names if \{LDTx\}
 #'   is in the template. Given as a vector of numbers.
-#' @param member The members to be included in the file names of \{MBRx\} is in
+#' @param members The members to be included in the file names of \{MBRx\} is in
 #'   the template. Given as a vector of numbers.
 #' @param template The file type to generate the template for. Can be
 #'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
@@ -56,7 +56,7 @@
 #' file_template = "harmoneps_grib_fp")
 #'
 #' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
-#' = "6h", experiment = "my_exp", parameter = "T2m", member = seq(0,3),
+#' = "6h", experiment = "my_exp", parameter = "T2m", members = seq(0,3),
 #' lead_time = seq(0, 24, 6), file_template =
 #' "{experiment}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 #'
@@ -67,9 +67,10 @@ harp_get_filenames <- function(
   end_date      = NULL,
   by            = "6h",
   parameter     = NULL,
-  experiment    = NULL,
+  eps_model     = NULL,
+  sub_model     = NULL,
   lead_time     = seq(0, 48, 3),
-  member        = seq(0,9),
+  members       = seq(0,9),
   file_template = "FCTABLE"
 ) {
 
@@ -108,30 +109,31 @@ harp_get_filenames <- function(
     if (is.null(end_date)) stop ("end_date must be passed as well as start_date")
     start_date <- add_zeros(start_date)
     end_date   <- add_zeros(end_date)
-    by         <- readr::parse_number(by) * units_multiplier(by)
+    by_secs    <- readr::parse_number(by) * units_multiplier(by)
 
-    if (is.na(by)) stop("Unable to parse units. Use d, h, m or s. e.g. by = '6h'")
+    if (is.na(by_secs)) stop("Unable to parse units. Use d, h, m or s. e.g. by = '6h'")
 
-    file_dates <- seq(YMDhm2unix(start_date), YMDhm2unix(end_date), by = by) %>%
+    file_dates <- seq(YMDhm2unix(start_date), YMDhm2unix(end_date), by = by_secs) %>%
       unix2YMDhm()
   }
 
   file_dates <- tibble::tibble(
-    YYYY = file_dates %>% lubridate::ymd_hm() %>% lubridate::year(),
-    MM   = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% formatC(width = 2, flag = "0"),
-    DD   = file_dates %>% lubridate::ymd_hm() %>% lubridate::day() %>% formatC(width = 2, flag = "0"),
-    HH   = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% formatC(width = 2, flag = "0"),
-    mm   = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% formatC(width = 2, flag = "0"),
-    M    = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% as.character(),
-    D    = file_dates %>% lubridate::ymd_hm() %>% lubridate::day() %>% as.character(),
-    H    = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% as.character(),
-    m    = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% as.character()
+    fcdate = as.numeric(file_dates),
+    YYYY   = file_dates %>% lubridate::ymd_hm() %>% lubridate::year(),
+    MM     = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% formatC(width = 2, flag = "0"),
+    DD     = file_dates %>% lubridate::ymd_hm() %>% lubridate::day() %>% formatC(width = 2, flag = "0"),
+    HH     = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% formatC(width = 2, flag = "0"),
+    mm     = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% formatC(width = 2, flag = "0"),
+    M      = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% as.character(),
+    D      = file_dates %>% lubridate::ymd_hm() %>% lubridate::day() %>% as.character(),
+    H      = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% as.character(),
+    m      = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% as.character()
   )
 
   strings_in_template <- names(file_dates)[stringr::str_detect(template, paste0("\\{", names(file_dates), "\\}"))]
 
   file_dates <- file_dates %>%
-    dplyr::select(!! rlang::quo(strings_in_template)) %>%
+    dplyr::select(fcdate, !! rlang::quo(strings_in_template)) %>%
     dplyr::distinct()
 
   files <- file_path %>%
@@ -139,13 +141,21 @@ harp_get_filenames <- function(
     dplyr::bind_rows() %>%
     tibble::as_tibble()
 
-  if (stringr::str_detect(template, "\\{experiment\\}")) {
-    if (is.null(experiment)) stop (paste0("experiment is in template, but not passed to the function\n", template))
-    files <- experiment %>%
-      purrr::map( ~ cbind(files, experiment = .x, stringsAsFactors = FALSE)) %>%
+  #if (stringr::str_detect(template, "\\{eps_model\\}")) {
+    if (is.null(eps_model)) stop (paste0("eps_model is in template, but not passed to the function\n", template))
+    files <- eps_model %>%
+      purrr::map( ~ cbind(files, eps_model = .x, stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows() %>%
       tibble::as_tibble()
-  }
+  #}
+
+  #if (stringr::str_detect(template, "\\{sub_model\\}")) {
+    if (is.null(sub_model)) stop (paste0("sub_model is in template, but not passed to the function\n", template))
+    files <- sub_model %>%
+      purrr::map( ~ cbind(files, sub_model = .x, stringsAsFactors = FALSE)) %>%
+      dplyr::bind_rows() %>%
+      tibble::as_tibble()
+  #}
 
   if (stringr::str_detect(template, "\\{LDT")) {
     files <- lead_time %>%
@@ -157,10 +167,15 @@ harp_get_filenames <- function(
         LDT3 = formatC(as.numeric(LDT), width = 3, flag = "0"),
         LDT4 = formatC(as.numeric(LDT), width = 4, flag = "0")
       )
+  } else {
+    files <- files %>%
+      mutate(
+        LDT = list(lead_time)
+      )
   }
 
   if (stringr::str_detect(template, "\\{MBR")) {
-    files <- member %>%
+    files <- members %>%
       purrr::map( ~ cbind(files, MBR = as.character(.x), stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows() %>%
       tibble::as_tibble() %>%
@@ -169,6 +184,9 @@ harp_get_filenames <- function(
         MBR3 = formatC(as.numeric(MBR), width = 3, flag = "0"),
         MBR4 = formatC(as.numeric(MBR), width = 4, flag = "0")
       )
+  } else {
+    files <- files %>%
+      mutate(MBR = list(members))
   }
 
   if (stringr::str_detect(template, "\\{parameter\\}")) {
@@ -178,9 +196,22 @@ harp_get_filenames <- function(
   }
 
   files <- files %>%
-    purrr::transpose() %>%
-    purrr::map_chr(glue::glue_data, template) %>%
-    unique()
+    dplyr::mutate(
+      file_name = purrr::map_chr(purrr::transpose(files), glue::glue_data, template)
+    )
 
-  files
+  files <- files %>% dplyr::transmute(
+    eps_model,
+    sub_model,
+    fcdate,
+    lead_time = LDT,
+    member    = MBR,
+    file_name
+  )
+
+  files %>%
+    tidyr::unnest(lead_time, .drop = FALSE) %>%
+    tidyr::unnest(member, .drop = FALSE) %>%
+    dplyr::mutate_at(vars(lead_time,member), as.numeric)
+
 }

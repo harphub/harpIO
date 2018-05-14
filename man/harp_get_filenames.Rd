@@ -6,8 +6,8 @@
 \usage{
 harp_get_filenames(file_path = "", file_date = Sys.Date(),
   start_date = NULL, end_date = NULL, by = "6h", parameter = NULL,
-  experiment = NULL, lead_time = seq(0, 48, 3), member = seq(0, 9),
-  file_template = "FCTABLE")
+  eps_model = NULL, sub_model = NULL, lead_time = seq(0, 48, 3),
+  members = seq(0, 9), file_template = "FCTABLE")
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -31,14 +31,14 @@ h for hours or m for minutes.}
 \item{parameter}{If \{parameter\} exists in the the template this must be
 specified.}
 
-\item{experiment}{If \{experiment\} exists in the the template this must be
-specified.}
-
 \item{lead_time}{The lead times to be included in the file names if \{LDTx\}
 is in the template. Given as a vector of numbers.}
 
-\item{member}{The members to be included in the file names of \{MBRx\} is in
+\item{members}{The members to be included in the file names of \{MBRx\} is in
 the template. Given as a vector of numbers.}
+
+\item{experiment}{If \{experiment\} exists in the the template this must be
+specified.}
 
 \item{template}{The file type to generate the template for. Can be
 "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
@@ -74,7 +74,7 @@ harp_get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
 file_template = "harmoneps_grib_fp")
 
 harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
-= "6h", experiment = "my_exp", parameter = "T2m", member = seq(0,3),
+= "6h", experiment = "my_exp", parameter = "T2m", members = seq(0,3),
 lead_time = seq(0, 24, 6), file_template =
 "{experiment}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 
