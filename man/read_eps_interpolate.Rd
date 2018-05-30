@@ -2,16 +2,74 @@
 % Please edit documentation in R/read_eps_interpolate.R
 \name{read_eps_interpolate}
 \alias{read_eps_interpolate}
-\title{Title}
+\title{Read EPS forecast files and interpolate to stations.}
 \usage{
-read_eps_interpolate(start_date, end_date, eps_model, parameter, file_path,
+read_eps_interpolate(start_date, end_date, eps_model, parameter,
   lead_time = seq(0, 48, 3), members_in = seq(0, 9), by = "6h",
-  file_format = "vfld", file_template = "vfld", sqlite_path = NULL, ...)
+  file_path = "", file_format = "vfld", file_template = "vfld",
+  stations = NULL, correct_t2m = TRUE, lapse_rate = 0.0065,
+  sqlite_path = NULL)
 }
 \arguments{
-\item{...}{}
+\item{start_date}{Date of the first forecast to read.}
+
+\item{end_date}{Date of the last forecast to read.}
+
+\item{eps_model}{The name of the EPS model. Maybe expressed as a vector if
+more than one EPS model is wanted, or a list for multimodel EPS.}
+
+\item{parameter}{The parametrs to read as a character vector.}
+
+\item{lead_time}{The lead times to read as a numeric vector.}
+
+\item{members_in}{The input member numbers. If only one EPS is set in
+\code{eps_model} then this is a vector. If more than one EPS is set in
+\code{eps_model}, or a multimodel EPS is wanted, then this is a list. See
+the vignette for more details.}
+
+\item{by}{The time between forecasts. Should be a string of a number followed
+by a letter, where the letter gives the units - may be d for days, h for
+hours or m for minutes.}
+
+\item{file_path}{The top level path for the forecast files to read.}
+
+\item{file_format}{The format of the files to read. Can be "vfld", "grib" or
+"netcdf_met"}
+
+\item{file_template}{The file type to generate the template for. Can be
+"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
+"harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
+"fctable". If anything else is passed, it is returned unmodified. In this
+case substitutions can be used. Available substitutions are {YYYY} for
+year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
+leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
+hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
+for ensemble member where x is the length of the string including leading
+zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
+will always be file_path/template.}
+
+\item{stations}{A data frame of stations with columns SID, lat, lon, elev. If
+this is supplied the forecasts are interpolated to these stations. In the
+case of vfld files, the common stations between the vfld files and the
+stations in this data frame are selected. In the case of gridded files
+(e.g. grib, netcdf, FA), if no data frame of stations is passed a default
+list of stations is used. This list can be accessed via
+\code{data(stations)}.}
+
+\item{sqlite_path}{If specified, SQLite files are generated and written to
+this directory.}
+
+\item{correct_T2m}{Whether to correct the 2m temperature forecast from the
+model elevation to the observation elevation.}
+}
+\value{
+A tibble with columns eps_model, sub_model, fcdate, lead_time,
+  member, SID, lat, lon, <parameter>.
 }
 \description{
-Title
+Read EPS forecast files and interpolate to stations.
+}
+\examples{
+
 }
 

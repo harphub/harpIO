@@ -1,38 +1,68 @@
-#' Title
+#' Read EPS forecast files and interpolate to stations.
 #'
-#' @param start_date
-#' @param end_date
-#' @param eps_model
-#' @param parameter
-#' @param file_path
-#' @param lead_time
-#' @param members_in
-#' @param by
-#' @param file_format
-#' @param file_template
-#' @param sqlite_path
-#' @param ...
+#' @param start_date Date of the first forecast to read.
+#' @param end_date Date of the last forecast to read.
+#' @param eps_model The name of the EPS model. Maybe expressed as a vector if
+#'   more than one EPS model is wanted, or a list for multimodel EPS.
+#' @param parameter The parametrs to read as a character vector.
+#' @param lead_time The lead times to read as a numeric vector.
+#' @param members_in The input member numbers. If only one EPS is set in
+#'   \code{eps_model} then this is a vector. If more than one EPS is set in
+#'   \code{eps_model}, or a multimodel EPS is wanted, then this is a list. See
+#'   the vignette for more details.
+#' @param by The time between forecasts. Should be a string of a number followed
+#'   by a letter, where the letter gives the units - may be d for days, h for
+#'   hours or m for minutes.
+#' @param file_path The top level path for the forecast files to read.
+#' @param file_format The format of the files to read. Can be "vfld", "grib" or
+#'   "netcdf_met"
+#' @param file_template The file type to generate the template for. Can be
+#'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
+#'   "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
+#'   "fctable". If anything else is passed, it is returned unmodified. In this
+#'   case substitutions can be used. Available substitutions are {YYYY} for
+#'   year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
+#'   leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
+#'   hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
+#'   for ensemble member where x is the length of the string including leading
+#'   zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
+#'   will always be file_path/template.
+#' @param stations A data frame of stations with columns SID, lat, lon, elev. If
+#'   this is supplied the forecasts are interpolated to these stations. In the
+#'   case of vfld files, the common stations between the vfld files and the
+#'   stations in this data frame are selected. In the case of gridded files
+#'   (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
+#'   list of stations is used. This list can be accessed via
+#'   \code{data(stations)}.
+#' @param correct_T2m Whether to correct the 2m temperature forecast from the
+#'   model elevation to the observation elevation.
+#' @param sqlite_path If specified, SQLite files are generated and written to
+#'   this directory.
 #'
-#' @return
+#' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
+#'   member, SID, lat, lon, <parameter>.
 #' @export
 #'
 #' @examples
+#'
 read_eps_interpolate <- function(
   start_date,
   end_date,
   eps_model,
   parameter,
-  file_path,
   lead_time     = seq(0, 48, 3),
   members_in    = seq(0,9),
   by            = "6h",
+  file_path     = "",
   file_format   = "vfld",
   file_template = "vfld",
-  sqlite_path   = NULL,
-  ...
+  stations      = NULL,
+  correct_t2m   = TRUE,
+  lapse_rate    = 0.0065,
+  sqlite_path   = NULL
 ) {
 
-# Sanity checks and organisation of members_in as a list
+  # Sanity checks and organisation of members_in as a list
 
   if (is.list(eps_model)) {
 
@@ -105,7 +135,7 @@ read_eps_interpolate <- function(
 
   }
 
-# Convert members_in to a tibble for easier manipulation
+  # Convert members_in to a tibble for easier manipulation
 
   members_in <- tibble::tibble(
     eps_model = names(members_in)
@@ -114,12 +144,14 @@ read_eps_interpolate <- function(
     dplyr::mutate(members   = purrr::modify_depth(members_in, 2, `[`)) %>%
     tidyr::unnest()
 
-# Get the file names
+  # Get the file names
+
+  message("Generating file names.")
 
   data_files <- members_in %>%
     dplyr::transmute(
       file_names = purrr::pmap(
-        list(eps_model = eps_model, sub_model = sub_model, members = members),
+        list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$members),
         function(eps_model, sub_model, members) harp_get_filenames(
           file_path     = file_path,
           start_date    = start_date,
@@ -133,7 +165,106 @@ read_eps_interpolate <- function(
           file_template = file_template
         )
       )
-    ) %>% unnest()
+    ) %>% tidyr::unnest()
 
-  data_files
+  # Get the data
+
+  message("Reading data.")
+
+  read_function <- get(paste("read", file_format, "interpolate", sep = "_"))
+  forecast_data <- data_files %>%
+    dplyr::mutate(
+      fcdate = str_datetime_to_unixtime(.data$fcdate),
+      member = paste0("mbr", formatC(.data$member, width = 3, flag = "0"))
+    ) %>%
+    dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
+    dplyr::group_by(file_name) %>%
+    tidyr::nest(.key = "metadata") %>%
+    dplyr::mutate(
+      forecast = purrr::map2(
+        .data$file_name,
+        .data$metadata,
+        function(x, y) read_function(
+          file_name   = x,
+          parameter   = parameter,
+          members     = y$member,
+          lead_time   = y$lead_time,
+          stations    = stations
+        )
+      )
+    )
+
+  # Remove empty rows and join the forecast data to the metadata
+
+  message("Joining data.")
+
+  forecast_data <- forecast_data %>%
+    dplyr::filter(purrr::map_lgl(.data$forecast, ~ !is.null(.x)))
+
+  forecast_data <- purrr::map2_df(
+    forecast_data$metadata,
+    forecast_data$forecast,
+    dplyr::inner_join,
+    by = c("lead_time", "member")
+  )
+
+  # Put data into tidy long format
+
+  sqlite_params <- forecast_data[1,] %>%
+    dplyr::select(
+      -dplyr::contains("model"),
+      -dplyr::contains("lead"),
+      -dplyr::contains("date"),
+      -dplyr::contains("lat"),
+      -dplyr::contains("lon"),
+      -dplyr::contains("member"),
+      -dplyr::contains("SID")
+    ) %>%
+    colnames()
+  gather_cols <- rlang::quos(sqlite_params)
+
+  forecast_data <- forecast_data %>%
+    tidyr::gather(key = "parameter", value = "forecast", !!!gather_cols) %>%
+    tidyr::drop_na(.data$forecast)
+
+# If sqlite_path is passed write data to sqlite files
+
+  if (!is.null(sqlite_path)) {
+    sqlite_data <- forecast_data %>%
+      dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
+      tidyr::nest() %>%
+      dplyr::mutate(
+        file_path = sqlite_path,
+        YYYY      = unixtime_to_str_datetime(fcdate, lubridate::year),
+        MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
+        HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
+        LDT3      = formatC(lead_time, width = 3, flag = "0")
+      ) %>%
+      dplyr::mutate(
+        file_name = purrr::map_chr(
+          purrr::transpose(.),
+          glue::glue_data,
+          get_template("fctable")
+        )
+      ) %>%
+      tidyr::unnest()
+
+    sqlite_data <- sqlite_data %>%
+      dplyr::transmute(
+        .data$SID,
+        .data$fcdate,
+        leadtime = .data$lead_time,
+        .data$validdate,
+        member   = paste(.data$sub_model, .data$member, sep = "_"),
+        .data$forecast,
+        .data$file_name
+      ) %>%
+      tidyr::spread(.data$member, .data$forecast) %>%
+      dplyr::group_by(.data$file_name) %>%
+      tidyr::nest()
+
+    purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
+
+  }
+
 }

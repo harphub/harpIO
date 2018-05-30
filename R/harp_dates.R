@@ -196,7 +196,7 @@ unixtime_to_str_datetime <- function(unixtime, str_function) {
 #' str_datetime_to_unixtime("201701011230")
 #'
 str_datetime_to_unixtime <- function(str_datetime) {
-  switch(as.character(nchar(str_datetime)),
+  switch(as.character(nchar(str_datetime[1])),
     "8"  = {message("Date assumed to be YYYYMMDD")
       date_function <- lubridate::ymd},
     "10"= {message("Date assumed to be YYYYMMDDHH")

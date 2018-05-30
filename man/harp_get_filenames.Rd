@@ -31,20 +31,22 @@ h for hours or m for minutes.}
 \item{parameter}{If \{parameter\} exists in the the template this must be
 specified.}
 
+\item{eps_model}{If \{eps_model\} exists in the the template this must be
+specified.}
+
+\item{sub_model}{If \{sub_model\} exists in the the template this must be
+specified.}
+
 \item{lead_time}{The lead times to be included in the file names if \{LDTx\}
 is in the template. Given as a vector of numbers.}
 
-\item{members}{The members to be included in the file names of \{MBRx\} is in
-the template. Given as a vector of numbers.}
+\item{members}{The members to be included in the file names of \{MBRx\} is in}
 
-\item{experiment}{If \{experiment\} exists in the the template this must be
-specified.}
-
-\item{template}{The file type to generate the template for. Can be
+\item{file_template}{The file type to generate the template for. Can be
 "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
 "fctable". If anything else is passed, it is returned unmodified. In this
-case substitutions can be used. Available substitutions are \{YYYY\} for
+case substitutions can be used. Available substitutions are {YYYY} for
 year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
 leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
 hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
@@ -53,30 +55,31 @@ zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
 will always be file_path/template.}
 }
 \value{
-A vector of filenames
+A tibble with columns eps_model, sub_model, fcdate, file_name,
+  lead_time and member.
 }
 \description{
 Given a path, a date or start date and end date, a template and other inputs
 (see Arguments) a vector of filenames is returned.
 }
 \examples{
-harp_get_filenames("/my/path", experiment = "my_exp", parameter = "T2m")
+harp_get_filenames("/my/path", eps_model = "my_eps", parameter = "T2m")
 
 harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
-= "1d", experiment = "my_exp", parameter = "T2m", file_template =
+= "1d", eps_model = "my_eps", parameter = "T2m", file_template =
 "harmonie_grib")
 
 harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
-= "1d", experiment = "my_exp", parameter = "T2m", file_template =
+= "1d", eps_model = "my_eps", parameter = "T2m", file_template =
 "harmoneps_grib_fp")
 
 harp_get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
 file_template = "harmoneps_grib_fp")
 
 harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
-= "6h", experiment = "my_exp", parameter = "T2m", members = seq(0,3),
+= "6h", eps_model = "my_eps", parameter = "T2m", members = seq(0,3),
 lead_time = seq(0, 24, 6), file_template =
-"{experiment}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
+"{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 
 }
 

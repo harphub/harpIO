@@ -3,8 +3,6 @@
 #' Given a path, a date or start date and end date, a template and other inputs
 #' (see Arguments) a vector of filenames is returned.
 #'
-#' @importFrom magrittr %>%
-#'
 #' @param file_path The static path to the data.
 #' @param file_date A single date - may be YYYYMMDD, YYYYMMDDHH, YYYYMMDDHHmm.
 #'   If it is not specified and \code{start_date} is not specified then the
@@ -20,45 +18,46 @@
 #'   h for hours or m for minutes.
 #' @param parameter If \{parameter\} exists in the the template this must be
 #'   specified.
-#' @param experiment If \{experiment\} exists in the the template this must be
+#' @param eps_model If \{eps_model\} exists in the the template this must be
+#'   specified.
+#' @param sub_model If \{sub_model\} exists in the the template this must be
 #'   specified.
 #' @param lead_time The lead times to be included in the file names if \{LDTx\}
 #'   is in the template. Given as a vector of numbers.
 #' @param members The members to be included in the file names of \{MBRx\} is in
-#'   the template. Given as a vector of numbers.
-#' @param template The file type to generate the template for. Can be
+#' @param file_template The file type to generate the template for. Can be
 #'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 #'   "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
 #'   "fctable". If anything else is passed, it is returned unmodified. In this
-#'   case substitutions can be used. Available substitutions are \{YYYY\} for
+#'   case substitutions can be used. Available substitutions are {YYYY} for
 #'   year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
 #'   leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
 #'   hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
 #'   for ensemble member where x is the length of the string including leading
 #'   zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
 #'   will always be file_path/template.
-#'
-#' @return A vector of filenames
+#' @return A tibble with columns eps_model, sub_model, fcdate, file_name,
+#'   lead_time and member.
 #' @export
 #'
 #' @examples
-#' harp_get_filenames("/my/path", experiment = "my_exp", parameter = "T2m")
+#' harp_get_filenames("/my/path", eps_model = "my_eps", parameter = "T2m")
 #'
 #' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
-#' = "1d", experiment = "my_exp", parameter = "T2m", file_template =
+#' = "1d", eps_model = "my_eps", parameter = "T2m", file_template =
 #' "harmonie_grib")
 #'
 #' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
-#' = "1d", experiment = "my_exp", parameter = "T2m", file_template =
+#' = "1d", eps_model = "my_eps", parameter = "T2m", file_template =
 #' "harmoneps_grib_fp")
 #'
 #' harp_get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
 #' file_template = "harmoneps_grib_fp")
 #'
 #' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
-#' = "6h", experiment = "my_exp", parameter = "T2m", members = seq(0,3),
+#' = "6h", eps_model = "my_eps", parameter = "T2m", members = seq(0,3),
 #' lead_time = seq(0, 24, 6), file_template =
-#' "{experiment}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
+#' "{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 #'
 harp_get_filenames <- function(
   file_path     = "",
@@ -133,7 +132,7 @@ harp_get_filenames <- function(
   strings_in_template <- names(file_dates)[stringr::str_detect(template, paste0("\\{", names(file_dates), "\\}"))]
 
   file_dates <- file_dates %>%
-    dplyr::select(fcdate, !! rlang::quo(strings_in_template)) %>%
+    dplyr::select(.data$fcdate, !! rlang::quo(strings_in_template)) %>%
     dplyr::distinct()
 
   files <- file_path %>%
@@ -141,21 +140,27 @@ harp_get_filenames <- function(
     dplyr::bind_rows() %>%
     tibble::as_tibble()
 
-  #if (stringr::str_detect(template, "\\{eps_model\\}")) {
+  if (stringr::str_detect(template, "\\{eps_model\\}")) {
     if (is.null(eps_model)) stop (paste0("eps_model is in template, but not passed to the function\n", template))
     files <- eps_model %>%
       purrr::map( ~ cbind(files, eps_model = .x, stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows() %>%
       tibble::as_tibble()
-  #}
+  } else {
+    if (is.null(eps_model)) eps_model <- NA_character_
+    files <- dplyr::mutate(files, eps_model = eps_model)
+  }
 
-  #if (stringr::str_detect(template, "\\{sub_model\\}")) {
+  if (stringr::str_detect(template, "\\{sub_model\\}")) {
     if (is.null(sub_model)) stop (paste0("sub_model is in template, but not passed to the function\n", template))
     files <- sub_model %>%
       purrr::map( ~ cbind(files, sub_model = .x, stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows() %>%
       tibble::as_tibble()
-  #}
+  } else {
+    if (is.null(sub_model)) sub_model <- NA_character_
+    files <- dplyr::mutate(files, sub_model = sub_model)
+  }
 
   if (stringr::str_detect(template, "\\{LDT")) {
     files <- lead_time %>%
@@ -163,13 +168,13 @@ harp_get_filenames <- function(
       dplyr::bind_rows() %>%
       tibble::as_tibble() %>%
       dplyr::mutate(
-        LDT2 = formatC(as.numeric(LDT), width = 2, flag = "0"),
-        LDT3 = formatC(as.numeric(LDT), width = 3, flag = "0"),
-        LDT4 = formatC(as.numeric(LDT), width = 4, flag = "0")
+        LDT2 = formatC(as.numeric(.data$LDT), width = 2, flag = "0"),
+        LDT3 = formatC(as.numeric(.data$LDT), width = 3, flag = "0"),
+        LDT4 = formatC(as.numeric(.data$LDT), width = 4, flag = "0")
       )
   } else {
     files <- files %>%
-      mutate(
+      dplyr::mutate(
         LDT = list(lead_time)
       )
   }
@@ -180,13 +185,13 @@ harp_get_filenames <- function(
       dplyr::bind_rows() %>%
       tibble::as_tibble() %>%
       dplyr::mutate(
-        MBR2 = formatC(as.numeric(MBR), width = 2, flag = "0"),
-        MBR3 = formatC(as.numeric(MBR), width = 3, flag = "0"),
-        MBR4 = formatC(as.numeric(MBR), width = 4, flag = "0")
+        MBR2 = formatC(as.numeric(.data$MBR), width = 2, flag = "0"),
+        MBR3 = formatC(as.numeric(.data$MBR), width = 3, flag = "0"),
+        MBR4 = formatC(as.numeric(.data$MBR), width = 4, flag = "0")
       )
   } else {
     files <- files %>%
-      mutate(MBR = list(members))
+      dplyr::mutate(MBR = list(members))
   }
 
   if (stringr::str_detect(template, "\\{parameter\\}")) {
@@ -201,17 +206,17 @@ harp_get_filenames <- function(
     )
 
   files <- files %>% dplyr::transmute(
-    eps_model,
-    sub_model,
-    fcdate,
-    lead_time = LDT,
-    member    = MBR,
+    .data$eps_model,
+    .data$sub_model,
+    .data$fcdate,
+    lead_time = .data$LDT,
+    member    = .data$MBR,
     file_name
   )
 
   files %>%
-    tidyr::unnest(lead_time, .drop = FALSE) %>%
-    tidyr::unnest(member, .drop = FALSE) %>%
-    dplyr::mutate_at(vars(lead_time,member), as.numeric)
+    tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
+    tidyr::unnest(.data$member, .drop = FALSE) %>%
+    dplyr::mutate_at(dplyr::vars(.data$lead_time,.data$member), as.numeric)
 
 }

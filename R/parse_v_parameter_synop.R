@@ -14,7 +14,7 @@
 parse_v_parameter_synop <- function(v_parameter_synop) {
 
   switch(v_parameter_synop,
-    "FI"="melev",  ### ATTENTION: this is MODEL elevation, not actual station
+    "FI"="model_elevation",  ### ATTENTION: this is MODEL elevation, not actual station
     "NN"="CCtot", # total cloud cover
     "DD"="D10m",
     "FF"="S10m",
