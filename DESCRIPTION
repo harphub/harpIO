@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9012
+Version: 0.0.0.9013
 Authors@R: person("Andrew", "Singleton", email = "andrewts@met.no", role = c("aut", "cre"))
 Description: Functions for reading and writing data in the HARP ecosystem.
     Readable formats include grib, netCDF, FA, vfld, vobs, SQLite FCTABLE files and

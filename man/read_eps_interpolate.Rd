@@ -7,8 +7,8 @@
 read_eps_interpolate(start_date, end_date, eps_model, parameter,
   lead_time = seq(0, 48, 3), members_in = seq(0, 9), by = "6h",
   file_path = "", file_format = "vfld", file_template = "vfld",
-  stations = NULL, correct_t2m = TRUE, lapse_rate = 0.0065,
-  sqlite_path = NULL)
+  stations = NULL, correct_t2m = TRUE, keep_model_t2m = FALSE,
+  lapse_rate = 0.0065, sqlite_path = NULL)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to read.}

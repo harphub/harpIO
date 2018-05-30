@@ -50,16 +50,17 @@ read_eps_interpolate <- function(
   end_date,
   eps_model,
   parameter,
-  lead_time     = seq(0, 48, 3),
-  members_in    = seq(0,9),
-  by            = "6h",
-  file_path     = "",
-  file_format   = "vfld",
-  file_template = "vfld",
-  stations      = NULL,
-  correct_t2m   = TRUE,
-  lapse_rate    = 0.0065,
-  sqlite_path   = NULL
+  lead_time      = seq(0, 48, 3),
+  members_in     = seq(0,9),
+  by             = "6h",
+  file_path      = "",
+  file_format    = "vfld",
+  file_template  = "vfld",
+  stations       = NULL,
+  correct_t2m    = TRUE,
+  keep_model_t2m = FALSE,
+  lapse_rate     = 0.0065,
+  sqlite_path    = NULL
 ) {
 
   # Sanity checks and organisation of members_in as a list
@@ -208,7 +209,7 @@ read_eps_interpolate <- function(
     by = c("lead_time", "member")
   )
 
-  # Put data into tidy long format
+  # Put data into tidy long format and correct T2m if required
 
   sqlite_params <- forecast_data[1,] %>%
     dplyr::select(
@@ -223,6 +224,30 @@ read_eps_interpolate <- function(
     colnames()
   gather_cols <- rlang::quos(sqlite_params)
 
+  if (any(tolower(sqlite_params)) == "t2m" && correct_t2m) {
+    t2m_param       <- sqlite_params[which(tolower(sqlite_params) == "t2m")]
+    t2m_uncorrected <- paste0(t2m_param, "_uncorrected")
+    t2m_col         <- rlang::sym(t2m_param)
+    t2m_uc_col      <- rlang::sym(t2m_uncorrected)
+
+    if (is.null(stations)) {
+      warning("No stations passed for 2m temperature correction. Using default stations")
+      stations <- station_list
+    }
+
+    forecast_data <- forecast_data %>%
+      dplyr::inner_join(station_list, by = "SID", suffix = c("", ".station")) %>%
+      dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%
+      dplyr::mutate(
+        !! t2m_param := !! t2m_uc_col + lapse_rate * (.data$model_elevation - .data$elev)
+      ) %>%
+      dplyr::select(-contains(".station"))
+
+    if (!keep_model_t2m) {
+      forecast_data <- dplyr::select(forecast_data, - !! t2m_uc_col)
+    }
+  }
+
   forecast_data <- forecast_data %>%
     tidyr::gather(key = "parameter", value = "forecast", !!!gather_cols) %>%
     tidyr::drop_na(.data$forecast)
@@ -230,6 +255,7 @@ read_eps_interpolate <- function(
 # If sqlite_path is passed write data to sqlite files
 
   if (!is.null(sqlite_path)) {
+    message("Writing data.")
     sqlite_data <- forecast_data %>%
       dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
       tidyr::nest() %>%

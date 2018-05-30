@@ -4,8 +4,8 @@
 \alias{read_vfld_interpolate}
 \title{Read data from a vfld file}
 \usage{
-read_vfld_interpolate(file_name, parameter = NULL, lead_time = NA,
-  members = NA, stations = NULL)
+read_vfld_interpolate(file_name, parameter = NULL, lead_time = NA_real_,
+  members = NA_character_, stations = NULL)
 }
 \arguments{
 \item{file_name}{Name of the vfld file}
