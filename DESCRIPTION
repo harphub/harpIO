@@ -1,13 +1,15 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9014
-Authors@R: person("Andrew", "Singleton", email = "andrewts@met.no", role = c("aut", "cre"))
+Version: 0.0.0.9015
+Authors@R: as.person(c(
+    "Andrew Singleton <andrewts@met.no> [aut, cre]", 
+    "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
+  ))
 Description: Functions for reading and writing data in the HARP ecosystem.
     Readable formats include grib, netCDF, FA, vfld, vobs, SQLite FCTABLE files and
     writeable formats are SQLite FCTABLE files.
 Depends:
-    R (>= 3.3.1),
-    Rgrib2 (>= 1.2.6)
+    R (>= 3.3.1)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -15,11 +17,10 @@ RoxygenNote: 5.0.1
 Imports: 
     DBI,
     dplyr,
-    geogrid,
+    geogrid (>= 3.5.2),
     glue,
     lubridate,
     magrittr,
-    ncdf4,
     purrr,
     readr,
     rlang,
@@ -29,3 +30,8 @@ Imports:
     tidyr,
     tools,
     utils
+Suggests:
+    ncdf4,
+    Rgrib2 (>= 1.2.8),
+    Rfa (>= 4.2.7),
+    h5
