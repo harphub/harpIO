@@ -11,7 +11,8 @@
 #' @param end_date End date to read to. Should be numeric or character
 #'   YYYYMMDD(HH)(mm)
 #' @param gather_data Whether to convert the data from wide form to long form
-#'   (TRUE / FALSE)
+#'   (TRUE / FALSE). For use in harpPoint long form is required so the default
+#'   is TRUE.
 #'
 #' @return A data frame
 #' @export

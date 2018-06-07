@@ -27,7 +27,7 @@ member and lead time. This function has only been tested on MEPS data.
 The levels argument will currently only get data on pressure levels.
 }
 \examples{
-file_name <- harp_get_filenames(file_date = 2017080100, template = "meps_met")
+file_name <- get_filenames(file_date = 2017080100, template = "meps_met")
 model_field <- read_netcdf(file_name, "air_temperature_2m", 0, 0)
 model_field <- read_netcdf(file_name, "T2m", 0, 0)
 

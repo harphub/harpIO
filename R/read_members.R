@@ -30,7 +30,7 @@
 #' @export
 #'
 #' @examples
-#' fname <- harp_get_filenames(file_date = 2017080100, template = "meps_met")
+#' fname <- get_filenames(file_date = 2017080100, template = "meps_met")
 #' model_field <- read_members(fname, "precipitation_amount_acc", lead_time = 24)
 #' model_field <- read_members(fname, "Pcp", members = c(2, 4, 6), lead_time = 24)
 #'
@@ -41,7 +41,7 @@
 #'   "${experiment}",
 #'   "mbr${MBR3}/fc${YYYY}${MM}${DD}${HH}+${LDT3}.grib"
 #' )
-#' fname <- harp_get_filenames(
+#' fname <- get_filenames(
 #'   file_path = my_static_path,
 #'   file_date = 2017052700,
 #'   experiment = my_expt,

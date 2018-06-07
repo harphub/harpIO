@@ -17,7 +17,8 @@ YYYYMMDD(HH)(mm)}
 YYYYMMDD(HH)(mm)}
 
 \item{gather_data}{Whether to convert the data from wide form to long form
-(TRUE / FALSE)}
+(TRUE / FALSE). For use in harpPoint long form is required so the default
+is TRUE.}
 }
 \value{
 A data frame

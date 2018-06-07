@@ -41,25 +41,25 @@
 #' @export
 #'
 #' @examples
-#' harp_get_filenames("/my/path", eps_model = "my_eps", parameter = "T2m")
+#' get_filenames("/my/path", eps_model = "my_eps", parameter = "T2m")
 #'
-#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
+#' get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
 #' = "1d", eps_model = "my_eps", parameter = "T2m", file_template =
 #' "harmonie_grib")
 #'
-#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
+#' get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
 #' = "1d", eps_model = "my_eps", parameter = "T2m", file_template =
 #' "harmoneps_grib_fp")
 #'
-#' harp_get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
+#' get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
 #' file_template = "harmoneps_grib_fp")
 #'
-#' harp_get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
+#' get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
 #' = "6h", eps_model = "my_eps", parameter = "T2m", members = seq(0,3),
 #' lead_time = seq(0, 24, 6), file_template =
 #' "{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 #'
-harp_get_filenames <- function(
+get_filenames <- function(
   file_path     = "",
   file_date     = Sys.Date(),
   start_date    = NULL,
