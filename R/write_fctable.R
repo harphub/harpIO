@@ -10,6 +10,8 @@
 #' @export
 #'
 #' @examples
+#'
+#### I don't think this function is needed anymore... will double check...
 write_fctable <- function(
   tableData,
   fctable_path,

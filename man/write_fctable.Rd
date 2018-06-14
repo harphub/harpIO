@@ -13,4 +13,7 @@ write_fctable(tableData, fctable_path, fcstExp, parameter,
 \description{
 Title
 }
+\examples{
+
+}
 

@@ -5,10 +5,11 @@
 \title{Read EPS forecast files and interpolate to stations.}
 \usage{
 read_eps_interpolate(start_date, end_date, eps_model, parameter,
-  lead_time = seq(0, 48, 3), members_in = seq(0, 9), by = "6h",
-  file_path = "", file_format = "vfld", file_template = "vfld",
-  stations = NULL, correct_t2m = TRUE, keep_model_t2m = FALSE,
-  lapse_rate = 0.0065, sqlite_path = NULL)
+  lead_time = seq(0, 48, 3), members_in = seq(0, 9),
+  members_out = members_in, by = "6h", file_path = "",
+  file_format = "vfld", file_template = "vfld", stations = NULL,
+  correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
+  sqlite_path = NULL)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to read.}
@@ -26,6 +27,9 @@ more than one EPS model is wanted, or a list for multimodel EPS.}
 \code{eps_model} then this is a vector. If more than one EPS is set in
 \code{eps_model}, or a multimodel EPS is wanted, then this is a list. See
 the vignette for more details.}
+
+\item{members_out}{The ouput member numbers. Must be the same form as
+members_in. If not passed, members_out is set to the same as members_in.}
 
 \item{by}{The time between forecasts. Should be a string of a number followed
 by a letter, where the letter gives the units - may be d for days, h for

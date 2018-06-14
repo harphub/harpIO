@@ -18,6 +18,9 @@ write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_ke
     if (!dir.exists(dirname(filename))) dir.create(dirname(filename), recursive = TRUE, mode = "0750")
   }
 
+  data <- data %>%
+    tidyr::spread(.data$member, .data$forecast)
+
   column_names  <- colnames(data)
   num_int_cols  <- which(!stringr::str_detect(column_names, "mbr")) %>% length()
   num_fcst_cols <- which(stringr::str_detect(column_names, "mbr")) %>% length()
