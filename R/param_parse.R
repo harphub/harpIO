@@ -1,11 +1,11 @@
 #' parse the parameter name and decide on level, accumulation...
 #'
-#' Parses a harp-style parameter name and returns accumulation time, level (if any)
-#' and the base name of the parameter
+#' Parses a harp-style parameter name and returns accumulation time, level (if
+#' any) and the base name of the parameter
 #'
 #' @param param Parameter name
-#' @return A list with \code{fullname}, \code{basename}, \code{level_type}, \code{level},
-#'              \code{accum}
+#' @return A list with \code{fullname}, \code{basename}, \code{level_type},
+#'   \code{level}, \code{accum}
 #'
 #' @examples
 #' param_parse("AccPcp1h")

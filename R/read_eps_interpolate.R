@@ -132,7 +132,7 @@ read_eps_interpolate <- function(
           !is.list(members_out) |
           !identical(eps_models, names(members_in)) |
           !identical(eps_models, names(members_out))
-        ) {
+      ) {
         stop(
           paste(
             "If more than one eps_model is specified, the members must",
@@ -205,158 +205,166 @@ read_eps_interpolate <- function(
     ) %>%
     tidyr::unnest()
 
-  # Get the file names
+  # Loop over dates to prevent excessive data volumes in memory
 
-  message("Generating file names.")
+  all_dates <- seq_dates(start_date, end_date, by)
 
-  data_files <- members_in %>%
-    dplyr::transmute(
-      file_names = purrr::pmap(
-        list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member),
-        function(eps_model, sub_model, members) get_filenames(
-          file_path     = file_path,
-          start_date    = start_date,
-          end_date      = end_date,
-          by            = by,
-          parameter     = parameter,
-          eps_model     = eps_model,
-          sub_model     = sub_model,
-          lead_time     = lead_time,
-          members       = members,
-          file_template = file_template
+  for (fcst_date in all_dates) {
+
+    # Get the file names
+
+    message("Generating file names.")
+
+    data_files <- members_in %>%
+      dplyr::transmute(
+        file_names = purrr::pmap(
+          list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member),
+          function(eps_model, sub_model, members) get_filenames(
+            file_path     = file_path,
+            start_date    = fcst_date,
+            end_date      = fcst_date,
+            by            = by,
+            parameter     = parameter,
+            eps_model     = eps_model,
+            sub_model     = sub_model,
+            lead_time     = lead_time,
+            members       = members,
+            file_template = file_template
+          )
+        )
+      ) %>%
+      tidyr::unnest() %>%
+      dplyr::left_join(tidyr::unnest(members_in), by = c("eps_model", "sub_model", "member"))
+
+    # Get the data
+
+    message("Reading data.")
+
+    read_function <- get(paste("read", file_format, "interpolate", sep = "_"))
+    forecast_data <- data_files %>%
+      dplyr::mutate(
+        fcdate = str_datetime_to_unixtime(.data$fcdate),
+        member = paste0("mbr", formatC(.data$member, width = 3, flag = "0"))
+      ) %>%
+      dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
+      dplyr::group_by(file_name) %>%
+      tidyr::nest(.key = "metadata") %>%
+      dplyr::mutate(
+        forecast = purrr::map2(
+          .data$file_name,
+          .data$metadata,
+          function(x, y) read_function(
+            file_name   = x,
+            parameter   = parameter,
+            members     = y$member,
+            lead_time   = y$lead_time,
+            stations    = stations
+          )
         )
       )
+
+    # Remove empty rows and join the forecast data to the metadata
+
+    message("Joining data.")
+
+    forecast_data <- forecast_data %>%
+      dplyr::filter(purrr::map_lgl(.data$forecast, ~ !is.null(.x)))
+
+    forecast_data <- purrr::map2_df(
+      forecast_data$metadata,
+      forecast_data$forecast,
+      dplyr::inner_join,
+      by = c("lead_time", "member")
     ) %>%
-    tidyr::unnest() %>%
-    dplyr::left_join(tidyr::unnest(members_in), by = c("eps_model", "sub_model", "member"))
-
-  # Get the data
-
-  message("Reading data.")
-
-  read_function <- get(paste("read", file_format, "interpolate", sep = "_"))
-  forecast_data <- data_files %>%
-    dplyr::mutate(
-      fcdate = str_datetime_to_unixtime(.data$fcdate),
-      member = paste0("mbr", formatC(.data$member, width = 3, flag = "0"))
-    ) %>%
-    dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
-    dplyr::group_by(file_name) %>%
-    tidyr::nest(.key = "metadata") %>%
-    dplyr::mutate(
-      forecast = purrr::map2(
-        .data$file_name,
-        .data$metadata,
-        function(x, y) read_function(
-          file_name   = x,
-          parameter   = parameter,
-          members     = y$member,
-          lead_time   = y$lead_time,
-          stations    = stations
-        )
+      dplyr::mutate(
+        members_out = paste0("mbr", formatC(.data$members_out, width = 3, flag = "0"))
       )
-    )
 
-  # Remove empty rows and join the forecast data to the metadata
+    # Put data into tidy long format and correct T2m if required
 
-  message("Joining data.")
+    sqlite_params <- forecast_data[1,] %>%
+      dplyr::select(
+        -dplyr::contains("model"),
+        -dplyr::contains("lead"),
+        -dplyr::contains("date"),
+        -dplyr::contains("lat"),
+        -dplyr::contains("lon"),
+        -dplyr::contains("member"),
+        -dplyr::contains("SID")
+      ) %>%
+      colnames()
+    gather_cols <- rlang::syms(sqlite_params)
 
-  forecast_data <- forecast_data %>%
-    dplyr::filter(purrr::map_lgl(.data$forecast, ~ !is.null(.x)))
+    if (any(tolower(sqlite_params) == "t2m") && correct_t2m) {
+      t2m_param       <- sqlite_params[which(tolower(sqlite_params) == "t2m")]
+      t2m_uncorrected <- paste0(t2m_param, "_uncorrected")
+      t2m_col         <- rlang::sym(t2m_param)
+      t2m_uc_col      <- rlang::sym(t2m_uncorrected)
 
-  forecast_data <- purrr::map2_df(
-    forecast_data$metadata,
-    forecast_data$forecast,
-    dplyr::inner_join,
-    by = c("lead_time", "member")
-  ) %>%
-    dplyr::mutate(
-      members_out = paste0("mbr", formatC(.data$members_out, width = 3, flag = "0"))
-    )
+      if (is.null(stations)) {
+        warning("No stations passed for 2m temperature correction. Using default stations")
+        stations <- station_list
+      }
 
-  # Put data into tidy long format and correct T2m if required
+      forecast_data <- forecast_data %>%
+        dplyr::inner_join(station_list, by = "SID", suffix = c("", ".station")) %>%
+        dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%
+        dplyr::mutate(
+          !! t2m_param := !! t2m_uc_col + lapse_rate * (.data$model_elevation - .data$elev)
+        ) %>%
+        dplyr::select(-dplyr::contains(".station"))
 
-  sqlite_params <- forecast_data[1,] %>%
-    dplyr::select(
-      -dplyr::contains("model"),
-      -dplyr::contains("lead"),
-      -dplyr::contains("date"),
-      -dplyr::contains("lat"),
-      -dplyr::contains("lon"),
-      -dplyr::contains("member"),
-      -dplyr::contains("SID")
-    ) %>%
-    colnames()
-  gather_cols <- rlang::syms(sqlite_params)
-
-  if (any(tolower(sqlite_params) == "t2m") && correct_t2m) {
-    t2m_param       <- sqlite_params[which(tolower(sqlite_params) == "t2m")]
-    t2m_uncorrected <- paste0(t2m_param, "_uncorrected")
-    t2m_col         <- rlang::sym(t2m_param)
-    t2m_uc_col      <- rlang::sym(t2m_uncorrected)
-
-    if (is.null(stations)) {
-      warning("No stations passed for 2m temperature correction. Using default stations")
-      stations <- station_list
+      if (keep_model_t2m) {
+        gather_cols <- rlang::syms(c(sqlite_params, t2m_uncorrected))
+      } else {
+        forecast_data <- dplyr::select(forecast_data, - !! t2m_uc_col)
+      }
     }
 
     forecast_data <- forecast_data %>%
-      dplyr::inner_join(station_list, by = "SID", suffix = c("", ".station")) %>%
-      dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%
-      dplyr::mutate(
-        !! t2m_param := !! t2m_uc_col + lapse_rate * (.data$model_elevation - .data$elev)
-      ) %>%
-      dplyr::select(-dplyr::contains(".station"))
+      tidyr::gather(key = "parameter", value = "forecast", !!!gather_cols) %>%
+      tidyr::drop_na(.data$forecast)
 
-    if (keep_model_t2m) {
-      gather_cols <- rlang::syms(c(sqlite_params, t2m_uncorrected))
-    } else {
-      forecast_data <- dplyr::select(forecast_data, - !! t2m_uc_col)
+    # If sqlite_path is passed write data to sqlite files
+
+    if (!is.null(sqlite_path)) {
+
+      message("Writing data.")
+      sqlite_data <- forecast_data %>%
+        dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
+        tidyr::nest() %>%
+        dplyr::mutate(
+          file_path = sqlite_path,
+          YYYY      = unixtime_to_str_datetime(fcdate, lubridate::year),
+          MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
+          HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
+          LDT3      = formatC(lead_time, width = 3, flag = "0")
+        ) %>%
+        dplyr::mutate(
+          file_name = purrr::map_chr(
+            purrr::transpose(.),
+            glue::glue_data,
+            get_template("fctable")
+          )
+        ) %>%
+        tidyr::unnest()
+
+      sqlite_data <- sqlite_data %>%
+        dplyr::transmute(
+          .data$SID,
+          .data$fcdate,
+          leadtime = .data$lead_time,
+          .data$validdate,
+          member   = paste(.data$sub_model, .data$members_out, sep = "_"),
+          .data$forecast,
+          .data$file_name
+        ) %>%
+        dplyr::group_by(.data$file_name) %>%
+        tidyr::nest()
+
+      purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
+
     }
-  }
-
-  forecast_data <- forecast_data %>%
-    tidyr::gather(key = "parameter", value = "forecast", !!!gather_cols) %>%
-    tidyr::drop_na(.data$forecast)
-
-# If sqlite_path is passed write data to sqlite files
-
-  if (!is.null(sqlite_path)) {
-
-    message("Writing data.")
-    sqlite_data <- forecast_data %>%
-      dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
-      tidyr::nest() %>%
-      dplyr::mutate(
-        file_path = sqlite_path,
-        YYYY      = unixtime_to_str_datetime(fcdate, lubridate::year),
-        MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
-        HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
-        LDT3      = formatC(lead_time, width = 3, flag = "0")
-      ) %>%
-      dplyr::mutate(
-        file_name = purrr::map_chr(
-          purrr::transpose(.),
-          glue::glue_data,
-          get_template("fctable")
-        )
-      ) %>%
-      tidyr::unnest()
-
-    sqlite_data <- sqlite_data %>%
-      dplyr::transmute(
-        .data$SID,
-        .data$fcdate,
-        leadtime = .data$lead_time,
-        .data$validdate,
-        member   = paste(.data$sub_model, .data$members_out, sep = "_"),
-        .data$forecast,
-        .data$file_name
-      ) %>%
-      dplyr::group_by(.data$file_name) %>%
-      tidyr::nest()
-
-    purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
 
   }
 

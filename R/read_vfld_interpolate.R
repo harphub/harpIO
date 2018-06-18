@@ -93,7 +93,8 @@ read_vfld_interpolate <- function(
   colnames(synop_data) <- c("SID", "lat", "lon", params$parameter)
   synop_data$SID <- as.integer(synop_data$SID)
 
-# Filter to stations and correct 2m temperature if required
+# Filter to stations and correct 2m temperature if required - this might not be the place to do this now
+# Shouold be taken care of in read_members_interpolate.
 
   no_sid_col <- FALSE
   if (!is.null(stations)) {

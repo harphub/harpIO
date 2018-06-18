@@ -10,12 +10,12 @@ param_parse(param)
 \item{param}{Parameter name}
 }
 \value{
-A list with \code{fullname}, \code{basename}, \code{level_type}, \code{level},
-             \code{accum}
+A list with \code{fullname}, \code{basename}, \code{level_type},
+  \code{level}, \code{accum}
 }
 \description{
-Parses a harp-style parameter name and returns accumulation time, level (if any)
-and the base name of the parameter
+Parses a harp-style parameter name and returns accumulation time, level (if
+any) and the base name of the parameter
 }
 \examples{
 param_parse("AccPcp1h")
