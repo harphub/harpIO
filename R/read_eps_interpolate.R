@@ -63,7 +63,8 @@ read_eps_interpolate <- function(
   correct_t2m    = TRUE,
   keep_model_t2m = FALSE,
   lapse_rate     = 0.0065,
-  sqlite_path    = NULL
+  sqlite_path    = NULL,
+  return_data    = FALSE
 ) {
 
   # Sanity checks and organisation of members_in as a list
@@ -209,7 +210,14 @@ read_eps_interpolate <- function(
 
   all_dates <- seq_dates(start_date, end_date, by)
 
+  if (return_data) {
+    function_output <- list()
+    list_counter    <- 0
+  }
+
   for (fcst_date in all_dates) {
+
+    if (return_data) list_counter <- list_counter + 1
 
     # Get the file names
 
@@ -366,6 +374,10 @@ read_eps_interpolate <- function(
 
     }
 
+    if (return_data) function_output[[list_counter]] <- forecast_data
+
   }
+
+  if (return_data) dplyr::bind_rows(forecast_data)
 
 }

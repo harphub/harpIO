@@ -22,20 +22,18 @@ tibble.}
 named SID.}
 }
 \value{
-A named list containing: \cr \code{synop}: the surface data, \cr
-  \code{temp}: the upper air data.
+A data frame with columns SID, lat, lon, model_elevation, and a
+  column for each parameter.
 }
 \description{
 \code{read_vfld_interpolate} returns the content of a named vfld file as a
-named list of data frames - synop for the the surface data (not necessarily
-from synop stations, but just the content of the file), and temp for the
-upper air data. Although the data in vfld files are already interpolated to
+data frame. Although the data in vfld files are already interpolated to
 points, the function is called \code{read_vfld_interpolate} for consistency
 with other harpIO functions that interpolate to points from gridded fields.
 }
 \examples{
 my_dir <- "/lustre/storeB/users/andrewts/HarpResults/vfld"
-vfld_file <- harp_get_filenames(
+vfld_file <- get_filenames(
   my_dir,
   start_date = 2017052600,
   end_date = 2017052600,

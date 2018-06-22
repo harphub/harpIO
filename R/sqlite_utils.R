@@ -10,6 +10,8 @@
 
 ### little convenience functions:
 
+# Note - these fuctions are not exported. Do they need to be? Also need some DBI namespacing.
+
 dbopen <- function(dbfile, lock) {
   require(DBI)
   if (packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only

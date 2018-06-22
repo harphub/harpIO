@@ -1,9 +1,7 @@
 #' Read data from a vfld file
 #'
 #' \code{read_vfld_interpolate} returns the content of a named vfld file as a
-#' named list of data frames - synop for the the surface data (not necessarily
-#' from synop stations, but just the content of the file), and temp for the
-#' upper air data. Although the data in vfld files are already interpolated to
+#' data frame. Although the data in vfld files are already interpolated to
 #' points, the function is called \code{read_vfld_interpolate} for consistency
 #' with other harpIO functions that interpolate to points from gridded fields.
 #'
@@ -16,13 +14,13 @@
 #' @param stations A data frame of stations to filter to. Must contain a column
 #'   named SID.
 #'
-#' @return A named list containing: \cr \code{synop}: the surface data, \cr
-#'   \code{temp}: the upper air data.
+#' @return A data frame with columns SID, lat, lon, model_elevation, and a
+#'   column for each parameter.
 #' @export
 #'
 #' @examples
 #' my_dir <- "/lustre/storeB/users/andrewts/HarpResults/vfld"
-#' vfld_file <- harp_get_filenames(
+#' vfld_file <- get_filenames(
 #'   my_dir,
 #'   start_date = 2017052600,
 #'   end_date = 2017052600,
@@ -96,17 +94,17 @@ read_vfld_interpolate <- function(
 # Filter to stations and correct 2m temperature if required - this might not be the place to do this now
 # Shouold be taken care of in read_members_interpolate.
 
-  no_sid_col <- FALSE
-  if (!is.null(stations)) {
-    if (!grepl("SID", colnames(stations))) {
-      cat(
-        "No SID column found in stations data frame. \n",
-        "All stations will be kept."
-      )
-      no_sid_col <- TRUE
-    }
-    synop_data <- dplyr::inner_join(synop_data, stations, by = "SID")
-  }
+  # no_sid_col <- FALSE
+  # if (!is.null(stations)) {
+  #   if (!grepl("SID", colnames(stations))) {
+  #     cat(
+  #       "No SID column found in stations data frame. \n",
+  #       "All stations will be kept."
+  #     )
+  #     no_sid_col <- TRUE
+  #   }
+  #   synop_data <- dplyr::inner_join(synop_data, stations, by = "SID")
+  # }
 
 ### TEMP DATA
 
@@ -156,17 +154,17 @@ read_vfld_interpolate <- function(
 
 # Filter to stations and correct 2m temperature if required
 
-  if (!is.null(stations)) {
-    if (!grepl("SID", colnames(stations))) {
-      if (!no_sid_col) {
-        cat(
-          "No SID column found in stations data frame. \n",
-          "All stations will be kept."
-        )
-      }
-    }
-    temp_data <- dplyr::inner_join(temp_data, stations, by = "SID")
-  }
+  # if (!is.null(stations)) {
+  #   if (!grepl("SID", colnames(stations))) {
+  #     if (!no_sid_col) {
+  #       cat(
+  #         "No SID column found in stations data frame. \n",
+  #         "All stations will be kept."
+  #       )
+  #     }
+  #   }
+  #   temp_data <- dplyr::inner_join(temp_data, stations, by = "SID")
+  # }
 
   ### GET THE PARAMETER(S)
 
