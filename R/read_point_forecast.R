@@ -64,7 +64,7 @@ read_point_forecast <- function(
           into = c("mname", "member"),
           remove = TRUE
         ) %>%
-        unnest(data)
+        tidyr::unnest(data)
     }
 
     DBI::dbDisconnect(fcst_db)
@@ -83,6 +83,11 @@ read_point_forecast <- function(
 
   fcst = dplyr::bind_rows(fcst)
   attr(fcst, "missing_files") <- missing_files
+  if (gather_data) {
+    attr(fcst, "dataframe_format") <- "long"
+  } else {
+    attr(fcst, "dataframe_format") <- "wide"
+  }
 
   fcst
 }
