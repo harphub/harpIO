@@ -38,7 +38,7 @@ read_point_forecast <- function(
     if (file.exists(db_file)) {
       message("Reading: ", db_file)
     } else {
-      warning("File not found: ", db_file)
+      warning("\nFile not found: ", db_file)
       missing_counter <- missing_counter + 1
       missing_files[[missing_counter]] <- db_file
       next
@@ -68,7 +68,7 @@ read_point_forecast <- function(
     }
 
     DBI::dbDisconnect(fcst_db)
-    cat (" ---> DONE\n")
+    message (" ---> DONE\n")
 
   }
 

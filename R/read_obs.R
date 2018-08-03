@@ -1,4 +1,21 @@
-readOBS <- function(
+#' Title
+#'
+#' @param obs_files A vector of observation files in sqlite format to read.
+#' @param start_date The start date of the observations to read.
+#' @param end_date The end date of the observations to read.
+#' @param parameter Which parameter to read. This will normally be a harp3
+#'   parameter name.
+#' @param gross_error_check Logical of whether to perform a gross error check.
+#' @param min_allowed The minimum value of observation to allow in the gross error
+#'   check. If set to NULL the default value for the parameter is used.
+#' @param max_allowed The maximum value of observation to allow in the gross error
+#'   check. If set to NULL the default value for the parameter is used.
+#'
+#' @return A tibble with columns for validdate, SID and the parameter.
+#' @export
+#'
+#' @examples
+read_obs <- function(
   obs_files,
   start_date,
   end_date,
@@ -20,7 +37,7 @@ readOBS <- function(
 
     message(in_file,":\n")
     message("Reading ", parameter, " obs for ", start_date, "-", end_date)
-    obs_param <- rlang::quo(parameter)
+    obs_param <- rlang::sym(parameter)
     obs[[list_counter]] <- dplyr::tbl(obs_db, "SYNOP") %>%
       dplyr::select(validdate, SID, !!obs_param) %>%
       dplyr::filter(between(validdate, date_start, date_end)) %>%
