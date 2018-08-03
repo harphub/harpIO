@@ -36,8 +36,11 @@
 #'   for ensemble member where x is the length of the string including leading
 #'   zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
 #'   will always be file_path/template.
-#' @return A tibble with columns eps_model, sub_model, fcdate, file_name,
-#'   lead_time and member.
+#' @param filenames_only Logical. Set to TRUE to return a vector of unique file
+#'   names. Set to FALSE to return a detailed data frame.
+#' @return If filenames_only is TRUE, a vector of unique file names. If
+#'   filenames_only is FALSE, a tibble with columns eps_model, sub_model,
+#'   fcdate, file_name, lead_time and member.
 #' @export
 #'
 #' @examples
@@ -60,17 +63,18 @@
 #' "{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 #'
 get_filenames <- function(
-  file_path     = "",
-  file_date     = Sys.Date(),
-  start_date    = NULL,
-  end_date      = NULL,
-  by            = "6h",
-  parameter     = NULL,
-  eps_model     = NULL,
-  sub_model     = NULL,
-  lead_time     = seq(0, 48, 3),
-  members       = seq(0,9),
-  file_template = "FCTABLE"
+  file_path      = "",
+  file_date      = Sys.Date(),
+  start_date     = NULL,
+  end_date       = NULL,
+  by             = "6h",
+  parameter      = NULL,
+  eps_model      = NULL,
+  sub_model      = NULL,
+  lead_time      = seq(0, 48, 3),
+  members        = seq(0,9),
+  file_template  = "FCTABLE",
+  filenames_only = TRUE
 ) {
 
   add_zeros <- function(x) {
@@ -214,9 +218,15 @@ get_filenames <- function(
     file_name
   )
 
-  files %>%
+  files <- files %>%
     tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
     tidyr::unnest(.data$member, .drop = FALSE) %>%
     dplyr::mutate_at(dplyr::vars(.data$lead_time,.data$member), as.numeric)
+
+  if (filenames_only) {
+    unique(files$file_name)
+  } else {
+    files
+  }
 
 }

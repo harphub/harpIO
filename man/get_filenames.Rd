@@ -7,7 +7,7 @@
 get_filenames(file_path = "", file_date = Sys.Date(), start_date = NULL,
   end_date = NULL, by = "6h", parameter = NULL, eps_model = NULL,
   sub_model = NULL, lead_time = seq(0, 48, 3), members = seq(0, 9),
-  file_template = "FCTABLE")
+  file_template = "FCTABLE", filenames_only = TRUE)
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -53,10 +53,14 @@ hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
 for ensemble member where x is the length of the string including leading
 zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
 will always be file_path/template.}
+
+\item{filenames_only}{Logical. Set to TRUE to return a vector of unique file
+names. Set to FALSE to return a detailed data frame.}
 }
 \value{
-A tibble with columns eps_model, sub_model, fcdate, file_name,
-  lead_time and member.
+If filenames_only is TRUE, a vector of unique file names. If
+  filenames_only is FALSE, a tibble with columns eps_model, sub_model,
+  fcdate, file_name, lead_time and member.
 }
 \description{
 Given a path, a date or start date and end date, a template and other inputs

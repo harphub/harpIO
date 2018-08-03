@@ -228,16 +228,17 @@ read_eps_interpolate <- function(
         file_names = purrr::pmap(
           list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member),
           function(eps_model, sub_model, members) get_filenames(
-            file_path     = file_path,
-            start_date    = fcst_date,
-            end_date      = fcst_date,
-            by            = by,
-            parameter     = parameter,
-            eps_model     = eps_model,
-            sub_model     = sub_model,
-            lead_time     = lead_time,
-            members       = members,
-            file_template = file_template
+            file_path      = file_path,
+            start_date     = fcst_date,
+            end_date       = fcst_date,
+            by             = by,
+            parameter      = parameter,
+            eps_model      = eps_model,
+            sub_model      = sub_model,
+            lead_time      = lead_time,
+            members        = members,
+            file_template  = file_template,
+            filenames_only = FALSE
           )
         )
       ) %>%
