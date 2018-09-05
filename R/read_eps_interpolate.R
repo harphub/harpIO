@@ -4,7 +4,8 @@
 #' @param end_date Date of the last forecast to read.
 #' @param eps_model The name of the EPS model. Maybe expressed as a vector if
 #'   more than one EPS model is wanted, or a list for multimodel EPS.
-#' @param parameter The parametrs to read as a character vector.
+#' @param parameter The parameters to read as a character vector. For reading
+#'   from vfld files, set to NULL to read all paramaters.
 #' @param lead_time The lead times to read as a numeric vector.
 #' @param members_in The input member numbers. If only one EPS is set in
 #'   \code{eps_model} then this is a vector. If more than one EPS is set in

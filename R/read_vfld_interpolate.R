@@ -75,8 +75,8 @@ read_vfld_interpolate <- function(
   synop_end_row   <- synop_start_row + num_synop - 1
 
 # The following num_param rows are parameter, accum_hours
-  params <- t(data.frame(vfld_data[3:(synop_start_row - 1)])) %>%
-    tibble::as.tibble()
+  params <- t(dplyr::bind_cols(vfld_data[3:(synop_start_row - 1)])) %>%
+    tibble::as_tibble()
   colnames(params) <- c("parameter", "accum_hours")
   params <- params %>%
     dplyr::mutate(
@@ -85,8 +85,8 @@ read_vfld_interpolate <- function(
     )
 
 # The next num_synop rows are the synop data
-  synop_data <- t(data.frame(vfld_data[synop_start_row:synop_end_row])) %>%
-    tibble::as.tibble() %>%
+  synop_data <- t(dplyr::bind_cols(vfld_data[synop_start_row:synop_end_row])) %>%
+    tibble::as_tibble() %>%
     dplyr::mutate_all(as.numeric)
   colnames(synop_data) <- c("SID", "lat", "lon", params$parameter)
   synop_data$SID <- as.integer(synop_data$SID)
@@ -114,7 +114,7 @@ read_vfld_interpolate <- function(
   temp_start_row  <- synop_end_row + 3 + num_param
 
 # The following num_param rows are parameter, accum_hours
-  params <- t(data.frame(vfld_data[(synop_end_row + 3):(temp_start_row - 1)])) %>%
+  params <- t(dplyr::bind_cols(vfld_data[(synop_end_row + 3):(temp_start_row - 1)])) %>%
     tibble::as.tibble()
   colnames(params) <- c("parameter", "accum_hours")
   params <- params %>%
@@ -125,32 +125,40 @@ read_vfld_interpolate <- function(
 
 # Loop over the temp stations
   temp_data <- list()
-  for (temp_station in 1:num_temp) {
+  if (num_temp < 1) {
 
-    temp_data[[temp_station]] <- tibble::tibble(
-      SID             = rep(vfld_data[[temp_start_row]][1], num_temp_levels),
-      lat             = rep(vfld_data[[temp_start_row]][2], num_temp_levels),
-      lon             = rep(vfld_data[[temp_start_row]][3], num_temp_levels),
-      model_elevation = rep(vfld_data[[temp_start_row]][4], num_temp_levels)
-    )
+    temp_data <- empty_data
 
-    temp_values <- t(
-      data.frame(
-        vfld_data[(temp_start_row + 1):(temp_start_row + num_temp_levels)]
+  } else {
+
+    for (temp_station in 1:num_temp) {
+
+      temp_data[[temp_station]] <- tibble::tibble(
+        SID             = rep(vfld_data[[temp_start_row]][1], num_temp_levels),
+        lat             = rep(vfld_data[[temp_start_row]][2], num_temp_levels),
+        lon             = rep(vfld_data[[temp_start_row]][3], num_temp_levels),
+        model_elevation = rep(vfld_data[[temp_start_row]][4], num_temp_levels)
       )
-    ) %>%
-      tibble::as_tibble()
-    colnames(temp_values) <- params$parameter
 
-    temp_data[[temp_station]] <- temp_data[[temp_station]] %>%
-      dplyr::bind_cols(temp_values)
+      temp_values <- t(
+        dplyr::bind_cols(
+          vfld_data[(temp_start_row + 1):(temp_start_row + num_temp_levels)]
+        )
+      ) %>%
+        tibble::as_tibble()
+      colnames(temp_values) <- params$parameter
 
-    temp_start_row <- temp_start_row + num_temp_levels + 1
+      temp_data[[temp_station]] <- temp_data[[temp_station]] %>%
+        dplyr::bind_cols(temp_values)
+
+      temp_start_row <- temp_start_row + num_temp_levels + 1
+    }
+
+    temp_data <- dplyr::bind_rows(temp_data) %>%
+      dplyr::mutate_all(as.numeric) %>%
+      dplyr::mutate(SID = as.integer(.data$SID))
+
   }
-
-  temp_data <- dplyr::bind_rows(temp_data) %>%
-    dplyr::mutate_all(as.numeric) %>%
-    dplyr::mutate(SID = as.integer(.data$SID))
 
 # Filter to stations and correct 2m temperature if required
 
@@ -191,12 +199,16 @@ read_vfld_interpolate <- function(
       colnames() %>%
       purrr::map(parse_harp_parameter)
 
-    temp_parameters <- temp_data %>%
-      dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation, -.data$p) %>%
-      colnames() %>%
-      purrr::map(~ paste0(.x, unique(temp_data$p))) %>%
-      unlist() %>%
-      purrr::map(parse_harp_parameter)
+    if (num_temp < 1) {
+      temp_parameters <- NULL
+    } else {
+      temp_parameters <- temp_data %>%
+        dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation, -.data$p) %>%
+        colnames() %>%
+        purrr::map(~ paste0(.x, unique(temp_data$p))) %>%
+        unlist() %>%
+        purrr::map(parse_harp_parameter)
+    }
 
   }
 

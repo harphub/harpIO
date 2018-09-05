@@ -19,7 +19,8 @@ read_eps_interpolate(start_date, end_date, eps_model, parameter,
 \item{eps_model}{The name of the EPS model. Maybe expressed as a vector if
 more than one EPS model is wanted, or a list for multimodel EPS.}
 
-\item{parameter}{The parametrs to read as a character vector.}
+\item{parameter}{The parameters to read as a character vector. For reading
+from vfld files, set to NULL to read all paramaters.}
 
 \item{lead_time}{The lead times to read as a numeric vector.}
 
