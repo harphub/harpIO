@@ -380,6 +380,6 @@ read_eps_interpolate <- function(
 
   }
 
-  if (return_data) dplyr::bind_rows(forecast_data)
+  if (return_data) dplyr::bind_rows(function_output)
 
 }
