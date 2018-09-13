@@ -35,3 +35,5 @@ Suggests:
     Rgrib2 (>= 1.2.8),
     Rfa (>= 4.2.7),
     h5
+URL: https://github.com/andrew-MET/harpIO
+BugReports: https://github.com/andrew-MET/harpIO/issues
