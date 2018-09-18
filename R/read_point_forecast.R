@@ -50,8 +50,14 @@ read_point_forecast <- function(
       dplyr::filter(between(fcdate, start_date, end_date)) %>%
       dplyr::collect(n = Inf)
     fcst[[list_counter]] <- fcst[[list_counter]] %>% tidyr::drop_na()
+    if (any(grepl("_mbr", names(fcst[[list_counter]])))) {
+      l_gather_data <- gather_data
+    } else {
+      l_gather_data <- FALSE
+      names(fcst[[list_counter]][ncol(fcst[[list_counter]])]) <- "forecast"
+    }
 
-    if (gather_data) {
+    if (l_gather_data) {
       fcst[[list_counter]] <- fcst[[list_counter]] %>%
         tidyr::gather(
           dplyr::contains("mbr"),
@@ -83,7 +89,7 @@ read_point_forecast <- function(
 
   fcst = dplyr::bind_rows(fcst)
   attr(fcst, "missing_files") <- missing_files
-  if (gather_data) {
+  if (l_gather_data) {
     attr(fcst, "dataframe_format") <- "long"
   } else {
     attr(fcst, "dataframe_format") <- "wide"
