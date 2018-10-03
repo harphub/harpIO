@@ -114,11 +114,13 @@ read_point_forecast <- function(
     if (length(sub_models) == 1) {
       df
     } else {
-      purrr::map(
+      df <- purrr::map(
         sub_models,
         ~ dplyr::select(df, !!! meta_cols, dplyr::contains(.x))
       ) %>%
         rlang::set_names(sub_models)
+      class(df) <- "harp_fcst"
+      df
     }
 
   }
