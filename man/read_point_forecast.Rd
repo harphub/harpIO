@@ -4,29 +4,73 @@
 \alias{read_point_forecast}
 \title{Read point forecasts from an sqlite file}
 \usage{
-read_point_forecast(fcst_files, start_date = 197001010000,
-  end_date = 300001010000, gather_data = TRUE)
+read_point_forecast(start_date, end_date, fcst_model, parameter,
+  lead_time = seq(0, 48, 3), by = "1d", file_path = ".",
+  file_template = "fctable", stations = NULL, members = NULL,
+  member_regexp = "[[:graph:]]+(?=_mbr[[:digit:]]+)")
 }
 \arguments{
-\item{fcst_files}{A vector of filenames}
-
-\item{start_date}{Start date to read from. Should be numeric or character
+\item{start_date}{Start date to read from. Should be numeric or character.
 YYYYMMDD(HH)(mm)}
 
-\item{end_date}{End date to read to. Should be numeric or character
-YYYYMMDD(HH)(mm)}
+\item{end_date}{End date to read to. Should be numeric or character.}
 
-\item{gather_data}{Whether to convert the data from wide form to long form
-(TRUE / FALSE). For use in harpPoint long form is required so the default
-is TRUE.}
+\item{fcst_model}{The forecast model to read - this is typically used to
+construct the file name. Can be a character vector of model names.}
+
+\item{parameter}{The forecast parameter to read. This is usually only used to
+construct the filename.}
+
+\item{lead_time}{The lead times to be retrieved. Can be used to construct the
+file names and to set which lead times are retrieved.}
+
+\item{by}{Used in constructing the file names. A string of a number followed
+by a letter, where the letter can be "d" for days, "h" for hours, "m" for
+minutes and "s" for seconds. Should be set to the fastest varying time
+dimension in the desired file names.}
+
+\item{file_path}{The path to the data.}
+
+\item{file_template}{The file type to generate the template for. Can be
+"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
+"harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
+"fctable". If anything else is passed, it is returned unmodified. In this
+case substitutions can be used. Available substitutions are {YYYY} for
+year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
+leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
+hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
+for ensemble member where x is the length of the string including leading
+zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
+will always be file_path/file_template.}
+
+\item{stations}{The stations to retrieve forecasts for. This should be a
+vector of station ID numbers.}
+
+\item{members}{The members to retrieve if reading an EPS forecast. Normally a
+vector of a member numbers. For multi model ensembles this can be a named
+list with sub model name followed by the desired members, e.g. \cr
+\code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}}
+
+\item{member_regexp}{A regular expression to describe the column headings for
+ensemble forecasts. This shouldn't normally need changing.}
 }
 \value{
-A data frame
+A list with an element for each forecast model, or in the case of a
+  multi model ensemble, another list with an element for each sub model. The
+  list elements each contain a data frame with columns for station ID (SID),
+  the forecast initialisation time (fcdate), the lead time (leadtime), the
+  time for which the forecast is valid (validdate), and a column for the
+  forecast with a heading of the model name in the case of a deterministic
+  forecast, or multiple columns with heading names usually of the form
+  \code{<model_name>_mbrXXX}, where XXX is the member number, in the case of
+  an ensemble forecast.
 }
 \description{
-Reads point forecasts from an sqlite file. The forecast date column is
-expected to be called fcdate. Default start and end dates are set a long time
-in the past and future respectively so that if no dates are passed all data
-should be read.
+Reads point forecasts from an sqlite file produced by
+\link{read_eps_interpolate} or \link{read_det_interpolate}. The function
+generates the file names from the start date, end date, forecast model(s),
+parameter, lead time etc. supplied as arguments. The members, stations,
+forecast dates and lead times to be retrieved from the files can also be
+passed as arguments.
 }
 
