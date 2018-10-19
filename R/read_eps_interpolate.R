@@ -317,7 +317,7 @@ read_eps_interpolate <- function(
       }
 
       forecast_data <- forecast_data %>%
-        dplyr::inner_join(station_list, by = "SID", suffix = c("", ".station")) %>%
+        dplyr::inner_join(stations, by = "SID", suffix = c("", ".station")) %>%
         dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%
         dplyr::mutate(
           !! t2m_param := !! t2m_uc_col + lapse_rate * (.data$model_elevation - .data$elev)
