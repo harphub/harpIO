@@ -19,8 +19,11 @@ read_netcdf_interpolate <- function(
   is_ensemble = FALSE
 ) {
 
+  members   <- readr::parse_number(unique(members))
+  lead_time <- unique(lead_time)
+
   if (is.null(stations)) {
-    warning("No stations specified. Used default station list.", call. = FALSE)
+    warning("No stations specified for interpolating to. Default station list used.", call. = FALSE)
     stations <- station_list
   }
 
@@ -64,6 +67,7 @@ read_netcdf_interpolate <- function(
       dplyr::select(-dplyr::starts_with("TIME")) %>%
       tibble::as_tibble()
 
+
     if (.is_ensemble) {
 
       netcdf_data <- netcdf_data %>%
@@ -72,9 +76,9 @@ read_netcdf_interpolate <- function(
           key   = "member",
           value = !!rlang::sym(.param)
         ) %>%
-        dplyr::mutate(
-          member = paste0("mbr", formatC(as.numeric(unlist(strsplit(.data$member, "\\."))[2]), width = 3, flag = "0"))
-        )
+        tidyr::separate(.data$member, c("param", "member"), "\\.") %>%
+        dplyr::mutate(member = paste0("mbr", formatC(as.numeric(.data$member), width = 3, flag = "0"))) %>%
+        dplyr::select(-.data$param)
 
     }
 

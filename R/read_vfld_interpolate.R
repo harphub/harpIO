@@ -36,7 +36,8 @@ read_vfld_interpolate <- function(
   parameter   = NULL,
   lead_time   = NA_real_,
   members     = NA_character_,
-  stations    = NULL
+  stations    = NULL,
+  is_ensemble = FALSE
 ) {
 
   empty_data <- tibble::tibble(

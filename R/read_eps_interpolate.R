@@ -268,7 +268,8 @@ read_eps_interpolate <- function(
             parameter   = parameter,
             members     = y$member,
             lead_time   = y$lead_time,
-            stations    = stations
+            stations    = stations,
+            is_ensemble = TRUE
           )
         )
       )
@@ -312,7 +313,10 @@ read_eps_interpolate <- function(
       t2m_uc_col      <- rlang::sym(t2m_uncorrected)
 
       if (is.null(stations)) {
-        warning("No stations passed for 2m temperature correction. Using default stations")
+        warning(
+          "No stations specified for 2m temperature correction. Default station list used.",
+          call. = FALSE
+        )
         stations <- station_list
       }
 
