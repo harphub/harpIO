@@ -1,18 +1,12 @@
-#' Read EPS forecast files and interpolate to stations.
+#' Read deterministic forecast files and interpolate to stations.
 #'
 #' @param start_date Date of the first forecast to read.
 #' @param end_date Date of the last forecast to read.
-#' @param eps_model The name of the EPS model. Maybe expressed as a vector if
-#'   more than one EPS model is wanted, or a list for multimodel EPS.
+#' @param det_model The name of the deterministic model. Maybe expressed as a vector if
+#'   more than onemodel is wanted.
 #' @param parameter The parameters to read as a character vector. For reading
 #'   from vfld files, set to NULL to read all parameters.
 #' @param lead_time The lead times to read as a numeric vector.
-#' @param members_in The input member numbers. If only one EPS is set in
-#'   \code{eps_model} then this is a vector. If more than one EPS is set in
-#'   \code{eps_model}, or a multimodel EPS is wanted, then this is a list. See
-#'   the vignette for more details.
-#' @param members_out The ouput member numbers. Must be the same form as
-#'   members_in. If not passed, members_out is set to the same as members_in.
 #' @param by The time between forecasts. Should be a string of a number followed
 #'   by a letter, where the letter gives the units - may be d for days, h for
 #'   hours or m for minutes.
@@ -48,14 +42,12 @@
 #'
 #' @examples
 #'
-read_eps_interpolate <- function(
+read_det_interpolate <- function(
   start_date,
   end_date,
-  eps_model,
+  det_model,
   parameter,
   lead_time      = seq(0, 48, 3),
-  members_in     = seq(0,9),
-  members_out    = members_in,
   by             = "6h",
   file_path      = "",
   file_format    = "vfld",
@@ -67,145 +59,6 @@ read_eps_interpolate <- function(
   sqlite_path    = NULL,
   return_data    = FALSE
 ) {
-
-  # Sanity checks and organisation of members_in as a list
-
-  if (is.list(eps_model)) {
-
-    multimodel <- TRUE
-    eps_models <- names(eps_model)
-
-    if (!is.list(members_in) | !identical(eps_models, names(members_in))) {
-      stop(
-        paste(
-          "For multimodel, members_in must be a list with the",
-          "same names as in the eps_model argument.",
-          sep = "\n  "
-        )
-      )
-    }
-
-    for (eps in eps_models) {
-      if (!identical(eps_model[[eps]], names(members_in[[eps]]))) {
-        stop(
-          paste(
-            "Model names specified in members_in do not match those in eps_model.",
-            paste0("eps_model = ", eps, ": ", paste0(eps_model[[eps]], collapse = ", ")),
-            paste0("members_in = ", eps, ": ", paste0(names(members_in[[eps]]), collapse = ", ")),
-            sep = "\n  "
-          )
-        )
-      }
-    }
-
-    for (eps in eps_models) {
-      if (!identical(names(members_out[[eps]]), names(members_in[[eps]]))) {
-        stop(
-          paste(
-            "Model names specified in members_out do not match those in members_in.",
-            paste0("members_in = ", eps, ": ", paste0(names(members_in[[eps]]), collapse = ", ")),
-            paste0("members_out = ", eps, ": ", paste0(names(members_out[[eps]]), collapse = ", ")),
-            sep = "\n "
-          )
-        )
-      }
-      for (sub_eps in names(members_in[[eps]])) {
-        if (length(members_out[[eps]][[sub_eps]]) != length(members_in[[eps]][[sub_eps]])) {
-          stop(
-            paste(
-              "Number of members specified in members_out is not the same as in members_in.",
-              paste0("members_in = ", eps, ": ", sub_eps, ": ", length(members_in[[eps]][[sub_eps]]), " members"),
-              paste0("members_out = ", eps, ": ", sub_eps, ": ", length(members_out[[eps]][[sub_eps]]), " members"),
-              sep = "\n "
-            )
-          )
-        }
-      }
-    }
-
-  } else {
-
-    multimodel <- FALSE
-    eps_models <- eps_model
-
-    if (length(eps_models) > 1) {
-
-      if (!is.list(members_in) |
-          !is.list(members_out) |
-          !identical(eps_models, names(members_in)) |
-          !identical(eps_models, names(members_out))
-      ) {
-        stop(
-          paste(
-            "If more than one eps_model is specified, the members must",
-            "be passed as a named list with the names as those specified",
-            "in eps_model",
-            sep = "\n  "
-          )
-        )
-      }
-
-    } else {
-
-      if (!is.list(members_in)) {
-        members_temp <- list()
-        members_temp[[eps_models]] <- members_in
-        members_in <- members_temp
-      }
-      if (!is.list(members_out)) {
-        members_temp <- list()
-        members_temp[[eps_models]] <- members_out
-        members_out <- members_temp
-      }
-      if (!identical(eps_models, names(members_in)) | !identical(eps_models, names(members_out))) {
-        stop(
-          paste(
-            "If specifying members as a named list for a single eps, the",
-            "name in the list for members_in must match that specified",
-            "in eps_model.",
-            sep = "\n  "
-          )
-        )
-      }
-
-    }
-
-    members_in_temp <- list()
-    members_out_temp <- list()
-    for (eps in eps_models) {
-      if (length(members_out[[eps]]) != length(members_in[[eps]])) {
-        stop(
-          paste(
-            "Number of members specified in members_out is not the same as in members_in.",
-            paste0("members_in = ", eps, ": ", length(members_in[[eps]]), " members"),
-            paste0("members_out = ", eps, ": ", length(members_out[[eps]]), " members"),
-            sep = "\n "
-          )
-        )
-      }
-      members_in_temp[[eps]]         <- list()
-      members_out_temp[[eps]]        <- list()
-      members_in_temp[[eps]][[eps]]  <- members_in[[eps]]
-      members_out_temp[[eps]][[eps]] <- members_out[[eps]]
-    }
-    members_in  <- members_in_temp
-    members_out <- members_out_temp
-
-  } # end of input checks
-
-  ########################### THE ACTUAL WORK STARTS HERE! ##################################
-
-  # Convert members_in to a tibble for easier manipulation
-
-  members_in <- tibble::tibble(
-    eps_model = names(members_in)
-  ) %>%
-    dplyr::mutate(sub_model = purrr::map(members_in, names)) %>%
-    dplyr::mutate(
-      member      = purrr::modify_depth(members_in, 2, `[`),
-      members_out = purrr::modify_depth(members_out, 2, `[`)
-    ) %>%
-    tidyr::unnest()
 
   # Loop over dates to prevent excessive data volumes in memory
 
@@ -220,31 +73,25 @@ read_eps_interpolate <- function(
 
     if (return_data) list_counter <- list_counter + 1
 
-    # Get the file names
+    # Get the file names NEEED TO TEST FROM HERE!
 
     message("Generating file names.")
 
-    data_files <- members_in %>%
-      dplyr::transmute(
-        file_names = purrr::pmap(
-          list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member),
-          function(eps_model, sub_model, members) get_filenames(
-            file_path      = file_path,
-            start_date     = fcst_date,
-            end_date       = fcst_date,
-            by             = by,
-            parameter      = parameter,
-            eps_model      = eps_model,
-            sub_model      = sub_model,
-            lead_time      = lead_time,
-            members        = members,
-            file_template  = file_template,
-            filenames_only = FALSE
-          )
-        )
-      ) %>%
-      tidyr::unnest() %>%
-      dplyr::left_join(tidyr::unnest(members_in), by = c("eps_model", "sub_model", "member"))
+    data_files <- purrr::map2(
+      det_model, file_template,
+      ~ get_filenames(
+        file_path      = file_path,
+        start_date     = fcst_date,
+        end_date       = fcst_date,
+        by             = by,
+        parameter      = parameter,
+        det_model      = .x,
+        lead_time      = lead_time,
+        file_template  = .y,
+        filenames_only = FALSE
+      )
+    ) %>%
+    dplyr::bind_rows()
 
     # Get the data
 
@@ -253,8 +100,7 @@ read_eps_interpolate <- function(
     read_function <- get(paste("read", file_format, "interpolate", sep = "_"))
     forecast_data <- data_files %>%
       dplyr::mutate(
-        fcdate = str_datetime_to_unixtime(.data$fcdate),
-        member = paste0("mbr", formatC(.data$member, width = 3, flag = "0"))
+        fcdate = str_datetime_to_unixtime(.data$fcdate)
       ) %>%
       dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
       dplyr::group_by(file_name) %>%
@@ -266,10 +112,9 @@ read_eps_interpolate <- function(
           function(x, y) read_function(
             file_name   = x,
             parameter   = parameter,
-            members     = y$member,
             lead_time   = y$lead_time,
             stations    = stations,
-            is_ensemble = TRUE
+            is_ensemble = FALSE
           )
         )
       )
@@ -285,11 +130,8 @@ read_eps_interpolate <- function(
       forecast_data$metadata,
       forecast_data$forecast,
       dplyr::inner_join,
-      by = c("lead_time", "member")
-    ) %>%
-      dplyr::mutate(
-        members_out = paste0("mbr", formatC(.data$members_out, width = 3, flag = "0"))
-      )
+      by = "lead_time"
+    )
 
     # Put data into tidy long format and correct T2m if required
 
@@ -300,7 +142,6 @@ read_eps_interpolate <- function(
         -dplyr::contains("date"),
         -dplyr::contains("lat"),
         -dplyr::contains("lon"),
-        -dplyr::contains("member"),
         -dplyr::contains("SID")
       ) %>%
       colnames()
@@ -345,7 +186,7 @@ read_eps_interpolate <- function(
 
       message("Writing data.")
       sqlite_data <- forecast_data %>%
-        dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
+        dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$det_model) %>%
         tidyr::nest() %>%
         dplyr::mutate(
           file_path = sqlite_path,
@@ -358,7 +199,7 @@ read_eps_interpolate <- function(
           file_name = purrr::map_chr(
             purrr::transpose(.),
             glue::glue_data,
-            get_template("fctable")
+            get_template("fctable_det")
           )
         ) %>%
         tidyr::unnest()
@@ -369,7 +210,7 @@ read_eps_interpolate <- function(
           .data$fcdate,
           leadtime = .data$lead_time,
           .data$validdate,
-          member   = paste(.data$sub_model, .data$members_out, sep = "_"),
+          member   = paste(.data$det_model, "det", sep = "_"),
           .data$forecast,
           .data$file_name
         ) %>%

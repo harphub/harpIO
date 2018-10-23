@@ -5,9 +5,9 @@
 \title{Get filename(s) for meteorological data}
 \usage{
 get_filenames(file_path = "", file_date = Sys.Date(), start_date = NULL,
-  end_date = NULL, by = "6h", parameter = NULL, eps_model = NULL,
-  sub_model = NULL, lead_time = seq(0, 48, 3), members = seq(0, 9),
-  file_template = "FCTABLE", filenames_only = TRUE)
+  end_date = NULL, by = "6h", parameter = NULL, det_model = NULL,
+  eps_model = NULL, sub_model = NULL, lead_time = seq(0, 48, 3),
+  members = NULL, file_template = "FCTABLE", filenames_only = TRUE)
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -29,6 +29,9 @@ followed by a letter, where the letter gives the units - may be d for days,
 h for hours or m for minutes.}
 
 \item{parameter}{If \{parameter\} exists in the the template this must be
+specified.}
+
+\item{det_model}{If \{det_model\} exists in the the template this must be
 specified.}
 
 \item{eps_model}{If \{eps_model\} exists in the the template this must be

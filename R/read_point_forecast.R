@@ -12,6 +12,8 @@
 #' @param end_date End date to read to. Should be numeric or character.
 #' @param fcst_model The forecast model to read - this is typically used to
 #'   construct the file name. Can be a character vector of model names.
+#' @param fcst_type The type of forecast to read. Set to "det" for deterministic
+#'   or "eps" for ensemble.
 #' @param parameter The forecast parameter to read. This is usually only used to
 #'   construct the filename.
 #' @param lead_time The lead times to be retrieved. Can be used to construct the
@@ -21,25 +23,12 @@
 #'   minutes and "s" for seconds. Should be set to the fastest varying time
 #'   dimension in the desired file names.
 #' @param file_path The path to the data.
-#' @param file_template The file type to generate the template for. Can be
-#'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
-#'   "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
-#'   "fctable". If anything else is passed, it is returned unmodified. In this
-#'   case substitutions can be used. Available substitutions are {YYYY} for
-#'   year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
-#'   leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
-#'   hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
-#'   for ensemble member where x is the length of the string including leading
-#'   zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
-#'   will always be file_path/file_template.
 #' @param stations The stations to retrieve forecasts for. This should be a
 #'   vector of station ID numbers.
 #' @param members The members to retrieve if reading an EPS forecast. Normally a
 #'   vector of a member numbers. For multi model ensembles this can be a named
 #'   list with sub model name followed by the desired members, e.g. \cr
 #'   \code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}
-#' @param member_regexp A regular expression to describe the column headings for
-#'   ensemble forecasts. This shouldn't normally need changing.
 #' @return A list with an element for each forecast model, or in the case of a
 #'   multi model ensemble, another list with an element for each sub model. The
 #'   list elements each contain a data frame with columns for station ID (SID),
@@ -56,15 +45,33 @@ read_point_forecast <- function(
   start_date,
   end_date,
   fcst_model,
+  fcst_type,
   parameter,
   lead_time     = seq(0, 48, 3),
   by            = "1d",
   file_path     = ".",
-  file_template = "fctable",
   stations      = NULL,
-  members       = NULL,
-  member_regexp = "[[:graph:]]+(?=_mbr[[:digit:]]+)"
+  members       = NULL
 ) {
+
+  switch(tolower(fcst_type),
+    "eps" = {
+      file_template <- "fctable_eps"
+      member_regexp <- "[[:graph:]]+(?=_mbr[[:digit:]]+)"
+    },
+    "det" = {
+      file_template <- "fctable_det"
+      member_regexp <- "[[:graph:]]+(?=_det)"
+    },
+    {
+      file_template <- NULL
+      member_regexp <- NULL
+    }
+  )
+  if (is.null(member_regexp)) {
+    stop("Unknown fcst_type argument:", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
+  }
+
 
   file_names <- purrr::map(
     fcst_model,
@@ -101,12 +108,12 @@ read_point_forecast <- function(
     members   = members
   )
 
-  split_sub_models <- function(df) {
+  split_sub_models <- function(df, .member_regexp) {
 
     meta_cols  <- rlang::syms(c("SID", "fcdate", "leadtime", "validdate"))
     sub_models <- stringr::str_extract(
       names(df),
-      member_regexp
+      .member_regexp
     ) %>%
       na.omit() %>%
       unique()
@@ -125,7 +132,7 @@ read_point_forecast <- function(
 
   }
 
-  fcst <- purrr::map(fcst, split_sub_models) %>%
+  fcst <- purrr::map(fcst, split_sub_models, member_regexp) %>%
     rlang::set_names(fcst_model)
 
   attr(fcst, "missing_files") <- missing_files

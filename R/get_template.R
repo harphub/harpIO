@@ -43,6 +43,20 @@ get_template <- function(template) {
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
     ),
 
+    "fctable_det" = file.path(
+      "{file_path}",
+      "{det_model}",
+      "{YYYY}", "{MM}",
+      "FCTABLE_{parameter}_{YYYY}{MM}_{HH}.sqlite"
+    ),
+
+    "fctable_eps" = file.path(
+      "{file_path}",
+      "{eps_model}",
+      "{YYYY}", "{MM}",
+      "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
+    ),
+
     "glameps_grib" = file.path(
       "{file_path}",
       "{eps_model}",
@@ -91,6 +105,18 @@ get_template <- function(template) {
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_sfx"
     ),
 
+    "meps_cntrl_extracted" =  file.path(
+      "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
+      "{YYYY}", "{MM}", "{DD}",
+      "meps_mbr0_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+    ),
+
+    "meps_cntrl_sfx" =  file.path(
+      "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
+      "{YYYY}", "{MM}", "{DD}",
+      "meps_mbr0_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+    ),
+
     "meps_extracted" =  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
@@ -106,7 +132,7 @@ get_template <- function(template) {
     "meps_sfx" =  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
-      "meps_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+      "meps_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
     "vfld" = file.path(

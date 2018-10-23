@@ -5,6 +5,7 @@
 #' @param lead_time
 #' @param members
 #' @param stations
+#' @param is_ensemble
 #'
 #' @return
 #' @export
@@ -19,7 +20,9 @@ read_netcdf_interpolate <- function(
   is_ensemble = FALSE
 ) {
 
-  members   <- readr::parse_number(unique(members))
+  if (is_ensemble) {
+    members   <- readr::parse_number(unique(members))
+  }
   lead_time <- unique(lead_time)
 
   if (is.null(stations)) {
@@ -27,18 +30,30 @@ read_netcdf_interpolate <- function(
     stations <- station_list
   }
 
+  message("Reading:", file_name)
+
   # Need to get the model elevation before anything else
+  if (is_ensemble) {
+    prm_nc <- list(model_elevation = list(name = "surface_geopotential", mbr = 0))
+  } else {
+    prm_nc <- list(model_elevation = list(name = "surface_geopotential"))
+  }
   model_elevation <- miIO::miReadNetCDFinterpolation(
     file_name,
     sites = as.data.frame(stations),
-    prm   = list(model_elevation = list(name = "surface_geopotential", mbr = 0)),
+    prm   = prm_nc,
     lt    = 0
   ) %>%
     dplyr::rename(
       SID             = .data$SITE,
-      lead_time       = .data$LT,
-      model_elevation = .data$model_elevation.0
-    ) %>%
+      lead_time       = .data$LT
+    )
+
+  if (is_ensemble) {
+    model_elevation <- dplyr::rename(model_elevation, model_elevation = .data$model_elevation.0)
+  }
+
+  model_elevation <- model_elevation %>%
     dplyr::mutate(model_elevation = .data$model_elevation / 9.80665) %>%
     dplyr::select(-dplyr::contains("TIME")) %>%
     tidyr::drop_na()
@@ -49,11 +64,20 @@ read_netcdf_interpolate <- function(
     by = "SID"
   )
 
+  if (nrow(stations) < 1) {
+    stop("No stations found inside model domain.", call. = FALSE)
+  }
+
   # function to read the data
   get_netcdf_data <- function(.param, .file, .sites, .lead_time, .member, .is_ensemble) {
 
     nc_prm <- list()
-    nc_prm[[.param]] <- list(name = get_netcdf_param_MET(.param), mbr = .member)
+    if (is_ensemble) {
+      nc_prm[[.param]] <- list(name = get_netcdf_param_MET(.param), mbr = .member)
+    } else {
+      nc_prm[[.param]] <- list(name = get_netcdf_param_MET(.param))
+    }
+
     netcdf_data <- miIO::miReadNetCDFinterpolation(
       .file,
       sites = as.data.frame(.sites),
@@ -66,7 +90,6 @@ read_netcdf_interpolate <- function(
       ) %>%
       dplyr::select(-dplyr::starts_with("TIME")) %>%
       tibble::as_tibble()
-
 
     if (.is_ensemble) {
 

@@ -18,6 +18,8 @@
 #'   h for hours or m for minutes.
 #' @param parameter If \{parameter\} exists in the the template this must be
 #'   specified.
+#' @param det_model If \{det_model\} exists in the the template this must be
+#'   specified.
 #' @param eps_model If \{eps_model\} exists in the the template this must be
 #'   specified.
 #' @param sub_model If \{sub_model\} exists in the the template this must be
@@ -69,10 +71,11 @@ get_filenames <- function(
   end_date       = NULL,
   by             = "6h",
   parameter      = NULL,
+  det_model      = NULL,
   eps_model      = NULL,
   sub_model      = NULL,
   lead_time      = seq(0, 48, 3),
-  members        = seq(0,9),
+  members        = NULL,
   file_template  = "FCTABLE",
   filenames_only = TRUE
 ) {
@@ -95,6 +98,13 @@ get_filenames <- function(
       "s" = 1,
       NA_real_
     )
+  }
+
+  if (grepl("_det", file_template)) {
+    if (!is.null(eps_model) & is.null(det_model)) {
+      det_model <- eps_model
+      eps_model <- NULL
+    }
   }
 
   template <- get_template(file_template)
@@ -143,6 +153,17 @@ get_filenames <- function(
     purrr::map( ~ cbind(file_dates, file_path = .x, stringsAsFactors = FALSE)) %>%
     dplyr::bind_rows() %>%
     tibble::as_tibble()
+
+  if (stringr::str_detect(template, "\\{det_model\\}")) {
+    if (is.null(det_model)) stop (paste0("det_model is in template, but not passed to the function\n", template))
+    files <- det_model %>%
+      purrr::map( ~ cbind(files, det_model = .x, stringsAsFactors = FALSE)) %>%
+      dplyr::bind_rows() %>%
+      tibble::as_tibble()
+  } else {
+    if (is.null(det_model)) det_model <- NA_character_
+    files <- dplyr::mutate(files, det_model = det_model)
+  }
 
   if (stringr::str_detect(template, "\\{eps_model\\}")) {
     if (is.null(eps_model)) stop (paste0("eps_model is in template, but not passed to the function\n", template))
@@ -194,8 +215,10 @@ get_filenames <- function(
         MBR4 = formatC(as.numeric(.data$MBR), width = 4, flag = "0")
       )
   } else {
-    files <- files %>%
-      dplyr::mutate(MBR = list(members))
+    if (!is.null(eps_model)) {
+      files <- files %>%
+        dplyr::mutate(MBR = list(members))
+    }
   }
 
   if (stringr::str_detect(template, "\\{parameter\\}")) {
@@ -209,19 +232,28 @@ get_filenames <- function(
       file_name = purrr::map_chr(purrr::transpose(files), glue::glue_data, template)
     )
 
+  if (is.na(eps_model)) {
+    model_cols <- rlang::quos(det_model, fcdate)
+  } else {
+    model_cols <- rlang::quos(eps_model, sub_model, fcdate, MBR)
+  }
   files <- files %>% dplyr::transmute(
-    .data$eps_model,
-    .data$sub_model,
-    .data$fcdate,
+    !!! model_cols,
     lead_time = .data$LDT,
-    member    = .data$MBR,
     file_name
   )
 
-  files <- files %>%
-    tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
-    tidyr::unnest(.data$member, .drop = FALSE) %>%
-    dplyr::mutate_at(dplyr::vars(.data$lead_time,.data$member), as.numeric)
+  if (is.na(eps_model)) {
+    files <- files %>%
+      tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
+      dplyr::mutate_at(dplyr::vars(.data$lead_time), as.numeric)
+  } else {
+    files <- files %>%
+      dplyr::rename(member = .data$MBR) %>%
+      tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
+      tidyr::unnest(.data$member, .drop = FALSE) %>%
+      dplyr::mutate_at(dplyr::vars(.data$lead_time,.data$member), as.numeric)
+  }
 
   if (filenames_only) {
     unique(files$file_name)

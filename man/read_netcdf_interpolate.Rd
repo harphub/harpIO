@@ -8,7 +8,7 @@ read_netcdf_interpolate(file_name, parameter = NULL, lead_time = NA_real_,
   members = NA_character_, stations = NULL, is_ensemble = FALSE)
 }
 \arguments{
-\item{stations}{}
+\item{is_ensemble}{}
 }
 \description{
 Title

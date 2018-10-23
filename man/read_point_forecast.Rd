@@ -4,10 +4,9 @@
 \alias{read_point_forecast}
 \title{Read point forecasts from an sqlite file}
 \usage{
-read_point_forecast(start_date, end_date, fcst_model, parameter,
+read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
   lead_time = seq(0, 48, 3), by = "1d", file_path = ".",
-  file_template = "fctable", stations = NULL, members = NULL,
-  member_regexp = "[[:graph:]]+(?=_mbr[[:digit:]]+)")
+  stations = NULL, members = NULL)
 }
 \arguments{
 \item{start_date}{Start date to read from. Should be numeric or character.
@@ -17,6 +16,9 @@ YYYYMMDD(HH)(mm)}
 
 \item{fcst_model}{The forecast model to read - this is typically used to
 construct the file name. Can be a character vector of model names.}
+
+\item{fcst_type}{The type of forecast to read. Set to "det" for deterministic
+or "eps" for ensemble.}
 
 \item{parameter}{The forecast parameter to read. This is usually only used to
 construct the filename.}
@@ -31,18 +33,6 @@ dimension in the desired file names.}
 
 \item{file_path}{The path to the data.}
 
-\item{file_template}{The file type to generate the template for. Can be
-"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
-"harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
-"fctable". If anything else is passed, it is returned unmodified. In this
-case substitutions can be used. Available substitutions are {YYYY} for
-year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
-leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
-hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
-for ensemble member where x is the length of the string including leading
-zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
-will always be file_path/file_template.}
-
 \item{stations}{The stations to retrieve forecasts for. This should be a
 vector of station ID numbers.}
 
@@ -50,9 +40,6 @@ vector of station ID numbers.}
 vector of a member numbers. For multi model ensembles this can be a named
 list with sub model name followed by the desired members, e.g. \cr
 \code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}}
-
-\item{member_regexp}{A regular expression to describe the column headings for
-ensemble forecasts. This shouldn't normally need changing.}
 }
 \value{
 A list with an element for each forecast model, or in the case of a
