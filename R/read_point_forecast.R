@@ -72,7 +72,6 @@ read_point_forecast <- function(
     stop("Unknown fcst_type argument:", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
   }
 
-
   file_names <- purrr::map(
     fcst_model,
     ~ get_filenames(

@@ -248,7 +248,7 @@ read_eps_interpolate <- function(
 
     # Get the data
 
-    message("Reading data.")
+    message("Reading data for ", fcst_date)
 
     read_function <- get(paste("read", file_format, "interpolate", sep = "_"))
     forecast_data <- data_files %>%
