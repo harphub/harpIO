@@ -341,6 +341,8 @@ read_eps_interpolate <- function(
 
     # If sqlite_path is passed write data to sqlite files
 
+    if (ncol(forecast_data) < 3) next
+
     if (!is.null(sqlite_path)) {
 
       message("Writing data.")

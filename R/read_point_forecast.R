@@ -107,6 +107,8 @@ read_point_forecast <- function(
     members   = members
   )
 
+  fcst <- purrr::map(fcst, tidyr::drop_na)
+
   split_sub_models <- function(df, .member_regexp) {
 
     meta_cols  <- rlang::syms(c("SID", "fcdate", "leadtime", "validdate"))

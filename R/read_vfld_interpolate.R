@@ -54,7 +54,7 @@ read_vfld_interpolate <- function(
   if (file.exists(file_name)) {
     message("Reading: ", file_name)
   } else {
-    warning("File not found: ", file_name)
+    warning("File not found: ", file_name, call. = FALSE, immediate. = TRUE)
     return(empty_data)
   }
 
