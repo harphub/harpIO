@@ -21,7 +21,7 @@ construct the file name. Can be a character vector of model names.}
 or "eps" for ensemble.}
 
 \item{parameter}{The forecast parameter to read. This is usually only used to
-construct the filename.}
+construct the filename, and in accumumlating precipitation.}
 
 \item{lead_time}{The lead times to be retrieved. Can be used to construct the
 file names and to set which lead times are retrieved.}

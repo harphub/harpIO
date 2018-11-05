@@ -14,19 +14,13 @@
 #' model_geofield <- read_fa(file_name, "t500")
 #' model_geofield <- read_fa(file_name, "topo")
 
-.last_fa_archive <- local({
-  archname <- ""
-  arch <- NULL
-  function(new) if (missing(new)) arch else arch <<- new
-})
-  
 read_fa <- function(infile, parameter, meta=TRUE, fa_type="alaro", fa_vector=FALSE, ...) {
   # TODO: change units (Kevin -> Celsius ...) ???
   # TODO: arome vs alaro field names (precip) + other alternative names
   # somehow keep a (tar)file in memory
 
 # harp_env$fa_infile <- infile
-# harp_env$fa_domain <- 
+# harp_env$fa_domain <-
 ## or use the same trick as meteogrid for e.g. .Last.domain()
   if (!requireNamespace("Rfa", quietly=TRUE)) {
     stop("The Rfa package must be installed to read FA files.")
@@ -64,9 +58,9 @@ read_fa <- function(infile, parameter, meta=TRUE, fa_type="alaro", fa_vector=FAL
 #' @return Dewpoint temperature
 #' @export
 rh2tdew <- function (T, RH, tuning=c("a"=17.67, "b"=243.5)) {
-# default tuning is from NOAA: (17.67, 243.5) 
+# default tuning is from NOAA: (17.67, 243.5)
 # tuning <- (17.27,237.3) is valid for 0<T<60, so not very good
-# other tunings may be 
+# other tunings may be
 # tuning <- c(a=17.62 , b=243.12)
 # tuning <- c("a"=17.625, "b"=243.04)
 # A.L. Buck '81: use two values depending on T: (17.368,238.88) T>0,
@@ -81,4 +75,11 @@ rh2tdew <- function (T, RH, tuning=c("a"=17.67, "b"=243.5)) {
     gg <- log(RH) + a*T/(T+b)
     b * gg/(a-gg)
 }
+
+.last_fa_archive <- local({
+  archname <- ""
+  arch <- NULL
+  function(new) if (missing(new)) arch else arch <<- new
+})
+
 

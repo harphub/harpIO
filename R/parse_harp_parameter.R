@@ -20,12 +20,12 @@ parse_harp_parameter <- function(param) {
 
   fullname <- param
 
-  basename <- tolower(fullname)
+  basename <- fullname
   plen <- nchar(basename)
 
   ## 1. accumulated field? must be AccXXnnh (last character is h, m, s)
   ## we assume the only digits in the parameter name are for accumulation
-  if (grepl("^acc[[:alpha:]]+[[:digit:]]+[hms]", basename)){
+  if (grepl("^acc[[:alpha:]]+[[:digit:]]+[hms]", tolower(basename))){
     acc1 <- regexpr("[[:digit:]]", basename)
     accum <- as.numeric(substr(basename, acc1, plen-1))
     acc_unit <- substring(basename, plen)
@@ -72,12 +72,12 @@ parse_harp_parameter <- function(param) {
   }
 
   levelType <- switch(basename,
-         "pmsl" = , 
+         "pmsl" = ,
          "mslp" = "msl",
          "tg"   = "surface",
          "sst"  = "sea",
          levelType)
- 
+
 #TODO
 # special levels like msl, surface, cloud, soil...
 # allow level indicators longer than 1 char!
@@ -85,5 +85,5 @@ parse_harp_parameter <- function(param) {
 
   list(fullname = fullname, basename = basename,
        level = level, levelType = levelType,
-       accum = accum)
+       accum = accum, acc_unit = acc_unit)
 }
