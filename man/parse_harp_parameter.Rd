@@ -2,33 +2,24 @@
 % Please edit documentation in R/parse_harp_parameter.R
 \name{parse_harp_parameter}
 \alias{parse_harp_parameter}
-\title{Parse a harp paramter.}
+\title{parse the parameter name and decide on level, accumulation...}
 \usage{
 parse_harp_parameter(param)
 }
 \arguments{
-\item{param}{The parameter name.}
+\item{param}{Parameter name}
 }
 \value{
-A list with the following elements: \cr
-- fullname: the original input name (==param) \cr
-- basename: the name without any accumulation info \cr
-- shortName: as found by grib_api (and/or Rgrib2) \cr
-- levelType: either numeric (100,105 etc) or S,P,H or NULL \cr
-- level: NULL if not needed (e.g. if shortName is enough) or numerical \cr
-- accum: the accumulation period (0 or higher) \cr
-- FAname : the corresponding name in FA format files \cr
+A list with \code{fullname}, \code{basename}, \code{level_type},
+  \code{level}, \code{accum}
 }
 \description{
-\code{parse_harp_parameter} returns vertical level information, accumulation time and parameter names
-for grib and FA reading.
+Parses a harp-style parameter name and returns accumulation time, level (if
+any) and the base name of the parameter
 }
 \examples{
-parse_harp_parameter("T2m")
-parse_harp_parameter("AccPcp12h")
-parse_harp_parameter("Z500")
-parse_harp_parameter("U100m")
-parse_harp_parameter("Q61s")
-
+parse_harp_param("AccPcp1h")
+parse_harp_param("z500")
+parse_harp_param("s100m")
 }
 

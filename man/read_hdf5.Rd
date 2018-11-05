@@ -6,6 +6,16 @@
 \usage{
 read_hdf5(filename, data = "dataset1/data1/data", meta = TRUE)
 }
+\arguments{
+\item{filename}{The hdf5 file name.}
+
+\item{data}{The location of the data}
+
+\item{meta}{If TRUE, also read all meta data (domain, time properties).}
+}
+\value{
+A geofield object (if meta is TRUE) or a plain matrix.
+}
 \description{
 Read/decode hdf5 files, mainly ODIM style
 }

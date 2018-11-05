@@ -34,5 +34,6 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
     ) %>%
     dplyr::pull(position)
   #
+  # to do: for "atmospheric" variables, read 3d data
   Rgrib2::Gdec(filename, grib_position, get.meta = meta, ...)
 }

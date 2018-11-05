@@ -4,20 +4,13 @@
 \alias{get_grib_param_info}
 \title{Get grib paramater information}
 \usage{
-get_grib_param_info(param, level = NULL, levtype = 100)
+get_grib_param_info(param)
 }
 \arguments{
-\item{param}{Parameter name}
-
-\item{level}{The level of the field required - may be pressure level, hybrid
-level or height above ground.}
-
-\item{levtype}{The level type given as a grib \code{indicatorOfTypeOfLevel}
-integer: 100 = pressure levels, 105 = height above ground, 109 = hybrid
-levels.}
+\item{param}{Parameter name (or harp_param object)}
 }
 \value{
-A lisy with \code{short_name}, \code{param_number},
+A list with \code{short_name}, \code{param_number},
   \code{level_type}, \code{level_numbe.r}
 }
 \description{
@@ -29,8 +22,8 @@ must be supplied. The default is for pressure levels.
 \examples{
 get_grib_param_info("pcp")
 get_grib_param_info("t2m")
-get_grib_param_info("t", level = 500)
-get_grib_param_info("rh", level = 32, levtype = 109)
+get_grib_param_info("t500")
+get_grib_param_info("rh32h")
 
 }
 

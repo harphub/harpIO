@@ -7,7 +7,8 @@
 get_filenames(file_path = "", file_date = Sys.Date(), start_date = NULL,
   end_date = NULL, by = "6h", parameter = NULL, det_model = NULL,
   eps_model = NULL, sub_model = NULL, lead_time = seq(0, 48, 3),
-  members = NULL, file_template = "FCTABLE", filenames_only = TRUE)
+  members = NA_character_, file_template = "FCTABLE",
+  filenames_only = TRUE)
 }
 \arguments{
 \item{file_path}{The static path to the data.}

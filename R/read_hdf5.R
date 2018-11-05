@@ -1,6 +1,3 @@
-### NEEDS INLINE DOCUMENTATION BEFORE EXPORTING ####
-
-
 #' Read/decode hdf5 files, mainly ODIM style
 ### assume the ODIM (Opera Data Information Model) data format
 ### ref: D. B. Michelson et al.
@@ -10,13 +7,17 @@
 
 ### read data from accumulated rainfall products
 ### reading the grid properties etc is about 30% of the time...
-### reading raw matrix will work for any HDF5 file, but geogrid attributes only for ODIM !
+### reading raw matrix will work for any HDF5 file, but meteogrid attributes only for ODIM !
 ### ODIM data also might be in .../quality1/data, but for now we don't consider that.
 
 ### TO DO: optional: return more meta data like product type etc. ?
-
-read_hdf5 <- function(filename, data="dataset1/data1/data",
-  meta=TRUE) {
+#' @param filename The hdf5 file name.
+#' @param data The location of the data
+#' @param meta If TRUE, also read all meta data (domain, time properties).
+#'
+#' @return A geofield object (if meta is TRUE) or a plain matrix. 
+#' @export
+read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE) {
   if (!requireNamespace("h5", quietly=TRUE)) {
     stop("The h5 package is not installed!", "Please install from CRAN.")
   }
@@ -100,9 +101,9 @@ read_hdf5 <- function(filename, data="dataset1/data1/data",
 
   # 2. extract domain specifications (only for ODIM, probably)
   if (meta) {
-    if (!requireNamespace("geogrid", quietly = TRUE)) {
-      stop("Package geogrid could not be found.\n",
-        "Please install geogrid or set meta=FALSE.")
+    if (!requireNamespace("meteogrid", quietly = TRUE)) {
+      stop("Package meteogrid could not be found.\n",
+        "Please install meteogrid or set meta=FALSE.")
     }
     # get projection definition and grid properties
     # SW and NE are shifted by half grid box to get box centers (A-grid !)
@@ -113,9 +114,9 @@ read_hdf5 <- function(filename, data="dataset1/data1/data",
     NE.ll <- c(get.where("UR_lon"), get.where("UR_lat"))
     if (any(is.na(c(pp, dx, dy, SW.ll, NE.ll)))) stop("Not all grid info was found.")
 
-    projection <- geogrid::proj4.str2list(pp)
-    SW.xy <- geogrid::project(SW.ll, proj=projection)
-    NE.xy <- geogrid::project(NE.ll, proj=projection)
+    projection <- meteogrid::proj4.str2list(pp)
+    SW.xy <- meteogrid::project(SW.ll, proj=projection)
+    NE.xy <- meteogrid::project(NE.ll, proj=projection)
 
     CXY <- (SW.xy + NE.xy) / 2
 
@@ -123,9 +124,9 @@ read_hdf5 <- function(filename, data="dataset1/data1/data",
     domain <- list(
       projection = projection,
       dx = dx, dy = dy, nx = dim(zz)[1], ny = dim(zz)[2],
-      clonlat = as.numeric(geogrid::project(CXY, proj = projection, inv = TRUE)),
-      SW = as.numeric(geogrid::project(SW.xy + c(dx/2, dy/2), proj = projection, inv = TRUE)),
-      NE = as.numeric(geogrid::project(NE.xy - c(dx/2, dy/2), proj = projection, inv = TRUE)))
+      clonlat = as.numeric(meteogrid::project(CXY, proj = projection, inv = TRUE)),
+      SW = as.numeric(meteogrid::project(SW.xy + c(dx/2, dy/2), proj = projection, inv = TRUE)),
+      NE = as.numeric(meteogrid::project(NE.xy - c(dx/2, dy/2), proj = projection, inv = TRUE)))
 
     class(domain)  <- "geodomain"
 
@@ -152,7 +153,7 @@ read_hdf5 <- function(filename, data="dataset1/data1/data",
       else obsname <- sprintf("%is Accumulated precipitation", accum)
     }
     # turn the data into a geofield object
-    zz <- geogrid::as.geofield(zz, domain=domain, time=gftime,
+    zz <- meteogrid::as.geofield(zz, domain=domain, time=gftime,
       info=list(name=obsname, origin=basename(fName), accum=accum))
   }
   # close file
