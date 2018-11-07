@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9031
+Version: 0.0.0.9032
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -15,7 +15,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
 Imports: 
-    DBI,
+    DBI (>= 0.5),
     dplyr,
     geogrid (>= 3.5.2),
     glue,

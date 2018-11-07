@@ -13,16 +13,15 @@
 # Note - these fuctions are not exported. Do they need to be? Also need some DBI namespacing.
 
 dbopen <- function(dbfile, lock) {
-  require(DBI)
   if (packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only
 function correctly with package DBI version 0.5 or higher.")
   if (missing(lock)) {
     if (exists(".SQLiteLocking")) lock <- .SQLiteLocking
     else lock <- TRUE
   }
-  if (lock)  dbConnect(RSQLite::SQLite(), dbname=dbfile)
+  if (lock)  DBI::dbConnect(RSQLite::SQLite(), dbname=dbfile)
   else {
-    dbConnect(RSQLite::SQLite(), dbname=dbfile, vfs="unix-none")  # for Lustre, NFS
+    DBI::dbConnect(RSQLite::SQLite(), dbname=dbfile, vfs="unix-none")  # for Lustre, NFS
   }
 ### WARNING: this turns off file locking completely!
 }
@@ -38,7 +37,7 @@ dbclear <- function(db) {
 
 dbclose <- function(db) {
 #  bclear(db)
-  invisible(dbDisconnect(db))
+  invisible(DBI::dbDisconnect(db))
 }
 
 ### add a new column to an existing table
@@ -55,7 +54,7 @@ db.add.columns <- function(db, table, colnames, quiet=FALSE){
 ####################################################################
 
 dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
-  tnames <- dbListFields(conn, table)
+  tnames <- DBI::dbListFields(conn, table)
   if (length(setdiff(tolower(names(mydata)), tolower(tnames))) > 0) {
     cat("ERROR: The new data contains fields that do not exist in the data base table!\n",
         "Consider re-creating SQLite file.\n")
@@ -74,16 +73,16 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
   }
 
   if (packageVersion('DBI')<'0.3.0') {
-    dbBegin <- dbBeginTransaction
+    dbBegin <- get("dbBeginTransaction", envir = asNamespace("DBI"))
   } else if (packageVersion("RSQLite") < "1.0.0") {
     stop("RSQLite version is inconsistent with DBI. Consider upgrading.")
   }
-  dbBegin(conn)  ### this is OK: doesn't require a lock
+  DBI::dbBegin(conn)  ### this is OK: doesn't require a lock
 
   prepOK <- FALSE
   count <- 1
   while (!prepOK & count<=maxtry){
-    tryOK1 <- tryCatch(dbSendQuery(conn, SQL, params=mydata),
+    tryOK1 <- tryCatch(DBI::dbSendQuery(conn, SQL, params=mydata),
                       error=function(e) {print(e);return(e)}) ### this needs RESERVED lock
     if (inherits(tryOK1,"error")) {
       print(paste("FAILURE dbSendQuery",count,"/",maxtry))
@@ -98,7 +97,7 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
     }
   }
   if (!prepOK) {
-    dbRollback(conn)
+    DBI::dbRollback(conn)
     stop("FATAL DBFAILURE: Unable to acquire lock.")
   }
 
@@ -106,8 +105,8 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
   commitOK <- FALSE
   count <- 1
   while (!commitOK & count<=maxtry){
-   dbClearResult(tryOK1)
-    tryOK2 <- tryCatch(dbCommit(conn),
+   DBI::dbClearResult(tryOK1)
+    tryOK2 <- tryCatch(DBI::dbCommit(conn),
                       error=function(e) {print(e);return(e)})  ### commit needs an EXCLUSIVE lock
     if (inherits(tryOK2,"error")) {
       print(paste("FAILURE commit",count,"/",maxtry))
@@ -122,8 +121,8 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
     }
   }
   if (!commitOK) {
-    dbRollback(conn)
-    dbClearResult(tryOK1)
+    DBI::dbRollback(conn)
+    DBI::dbClearResult(tryOK1)
     stop("FATAL DBFAILURE: Unable to commit.")
   } else {
     return(TRUE)
@@ -142,7 +141,7 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
   sendOK <- FALSE
   count <- 1
   while (!sendOK & count<=maxtry){
-    result <- tryCatch(dbSendQuery(conn, sql),
+    result <- tryCatch(DBI::dbSendQuery(conn, sql),
                        error=function(e) {print(e); return(e)})
     if (inherits(result,"error")) {
       print(paste("FAILURE dbSendQuery",count,"/",maxtry))
@@ -160,16 +159,16 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 
 #-- if the sql statement doesn't return data (not a select), there is nothing more to do:
 # Note $completed has changed to $has.completed in newer versions of DBI
-  lCompleted <- dbGetInfo(result)$has.completed
-  if (is.null(lCompleted)) lCompleted <- dbGetInfo(result)$completed
+  lCompleted <- DBI::dbGetInfo(result)$has.completed
+  if (is.null(lCompleted)) lCompleted <- DBI::dbGetInfo(result)$completed
   if (is.null(lCompleted)) {
      cat("Problem with dbGetInfo result\n")
-     print(dbGetInfo(result))
+     print(DBI::dbGetInfo(result))
      stop("ABORTING!")
   }
   if (lCompleted) {
     # do I have to clear the result even if it is completed? YES!
-    dbClearResult(result)
+    DBI::dbClearResult(result)
     return(TRUE)
   }
 
@@ -177,8 +176,8 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
   fetchOK <- FALSE
   count <- 1
    while (!fetchOK & count<=maxtry){
-    if (packageVersion('DBI')<'0.3.0') dbFetch <- fetch
-    data <- tryCatch(dbFetch(result,n=-1),
+    if (packageVersion('DBI')<'0.3.0') dbFetch <- get("fetch", envir = asNamespace("DBI"))
+    data <- tryCatch(DBI::dbFetch(result,n=-1),
                      error=function(e) {print(e);return(e)})
     if (inherits(data,"error")) {
       print(paste("FAILURE dbFetch",count,"/",maxtry))
@@ -193,7 +192,7 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
     }
   }
   # do I have to clear the result after a fetch? YES!
-  dbClearResult(result)
+  DBI::dbClearResult(result)
   if (!fetchOK) stop("FATAL DBFAILURE: Unable to fetch from database.")
   return(data)
 }
@@ -201,7 +200,7 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 #############################
 
 create_table <- function(db, tab) {
-  if (dbExistsTable(db, tab$name)) {
+  if (DBI::dbExistsTable(db, tab$name)) {
 ## TODO: check fields are the same!!!
 
     return(NULL)

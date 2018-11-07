@@ -6,7 +6,7 @@
 \usage{
 read_obs_convert(start_date, end_date, by = "3h", obs_path = ".",
   obs_format = "vobs", obsfile_template = "vobs", parameter = NULL,
-  sqlite_path = ".",
+  sqlite_path = NULL,
   sqlite_template = "{sqlite_path}/OBSTABLE_{YYYY}.sqlite",
   return_data = FALSE, iterations_per_write = 24, ...)
 }
