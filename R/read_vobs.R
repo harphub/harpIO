@@ -3,14 +3,16 @@
 #' \code{read_vobs} returns the content of a named vobs file as a list of
 #' data frames - one for synop data and one for temp (upper air) data.
 #'
-#' @param file_name Name of the vobs file
+#' @param file_name Name of the vobs file.
+#' @param missing_value Missing value indicator in vobs file.
+#' @param ... Not used. Absorbs unused arguments.
 #'
 #' @return A list with data frames for synop and temp data.
 #' @export
 #'
 #' @examples
 #'
-read_vobs <- function(file_name) {
+read_vobs <- function(file_name, missing_value = -99, ...) {
 
   empty_data <- tibble::tibble(
     SID  = NA_real_,
@@ -23,7 +25,7 @@ read_vobs <- function(file_name) {
     message("Reading: ", file_name)
   } else {
     warning("File not found: ", file_name, call. = FALSE, immediate. = TRUE)
-    return(empty_data)
+    return(list(synop = empty_data, temp = empty_data))
   }
 
   vobs_data <- readr::read_lines(file_name) %>%
@@ -52,6 +54,18 @@ read_vobs <- function(file_name) {
       parameter   = purrr::map_chr(.data$parameter, parse_v_parameter_synop),
       accum_hours = as.numeric(.data$accum_hours)
     )
+# In vobs PE can stupidly be 12h precipitation so is converted to Pcp - go figure!
+  params <- params %>%
+    dplyr::mutate(
+      parameter = dplyr::case_when(
+        .data$parameter == "Pcp" ~ "AccPcp12h",
+        TRUE                     ~ .data$parameter
+      ),
+      accum_hours = dplyr::case_when(
+        .data$parameter == "Pcp" ~ 12,
+        TRUE                     ~ .data$accum_hours
+      )
+    )
 
 # The next num_synop rows are the synop data
   synop_data <- t(dplyr::bind_cols(vobs_data[synop_start_row:synop_end_row])) %>%
@@ -59,7 +73,7 @@ read_vobs <- function(file_name) {
     dplyr::mutate_all(as.numeric)
   colnames(synop_data) <- c("SID", "lat", "lon", "elev", params$parameter)
   synop_data$SID <- as.integer(synop_data$SID)
-  synop_data[synop_data == -99] <- NA
+  synop_data[synop_data == missing_value] <- NA
 
 
 ### TEMP DATA
@@ -113,6 +127,8 @@ read_vobs <- function(file_name) {
     temp_data <- dplyr::bind_rows(temp_data) %>%
       dplyr::mutate_all(as.numeric) %>%
       dplyr::mutate(SID = as.integer(.data$SID))
+
+    temp_data[temp_data == missing_value] <- NA
 
   }
 

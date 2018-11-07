@@ -4,10 +4,14 @@
 \alias{read_vobs}
 \title{Read data from a vobs file.}
 \usage{
-read_vobs(file_name)
+read_vobs(file_name, missing_value = -99, ...)
 }
 \arguments{
-\item{file_name}{Name of the vobs file}
+\item{file_name}{Name of the vobs file.}
+
+\item{missing_value}{Missing value indicator in vobs file.}
+
+\item{...}{Not used. Absorbs unused arguments.}
 }
 \value{
 A list with data frames for synop and temp data.
