@@ -14,7 +14,7 @@
 save_point_verif <- function(
   verif_data,
   verif_path          = "./Verification",
-  verif_file_template = "{verif_path}/{parameter}_{start_date}-{end_date}_{models}.rds",
+  verif_file_template = "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
   ...
 ) {
 
@@ -29,7 +29,7 @@ save_point_verif <- function(
     stringr::str_replace("\\)", "")
 
   models <- unique(c(model_names[is.na(multi_models)], multi_models[!is.na(multi_models)])) %>%
-    paste(collapse = "+")
+    paste(collapse = ".model.")
 
   dots <- list(...)
   if (length(dots) > 0) {
@@ -43,7 +43,7 @@ save_point_verif <- function(
     dir.create(dirname(file_name), recursive = TRUE, mode = "0750")
   }
 
-  message("Saving verification data to ", file_name)
+  message("Saving point verification scores to: \n", file_name)
 
   saveRDS(verif_data, file = file_name)
 

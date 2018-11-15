@@ -1,10 +1,11 @@
-#' Title
+#' Read observations from an OBSTABLE file
 #'
-#' @param obs_files A vector of observation files in sqlite format to read.
 #' @param start_date The start date of the observations to read.
 #' @param end_date The end date of the observations to read.
 #' @param parameter Which parameter to read. This will normally be a harp3
 #'   parameter name.
+#' @param obs_path The path to the OBSTABLE files
+#' @param obsfile_template The template for the OBSTABLE file name.
 #' @param gross_error_check Logical of whether to perform a gross error check.
 #' @param min_allowed The minimum value of observation to allow in the gross error
 #'   check. If set to NULL the default value for the parameter is used.
@@ -15,28 +16,47 @@
 #' @export
 #'
 #' @examples
-read_obs <- function(
-  obs_files,
+read_point_obs <- function(
   start_date,
   end_date,
   parameter,
+  obs_path           = ".",
+  obsfile_template   = "obstable",
   gross_error_check  = TRUE,
   min_allowed        = NULL,
   max_allowed        = NULL
 ) {
 
-  date_start <- str_datetime_to_unixtime(start_date)
-  date_end   <- str_datetime_to_unixtime(end_date)
+  obs_files <- get_filenames(
+    obs_path,
+    start_date    = start_date,
+    end_date      = end_date,
+    file_template = obsfile_template
+  )
+
+  available_files <- obs_files[file.exists(obs_files)]
+  missing_files   <- obs_files[!file.exists(obs_files)]
+
+  if (length(available_files) < 1) {
+    stop(paste("Files not found:\n", paste(missing_files, collapse = "\n")), call. = FALSE)
+  }
+
+  if (length(missing_files) > 0) {
+    warning(paste("Files not found:\n", paste(missing_files, collapse = "\n")), call. = FALSE, immediate. = TRUE)
+  }
+
+  date_start <- suppressMessages(str_datetime_to_unixtime(start_date))
+  date_end   <- suppressMessages(str_datetime_to_unixtime(end_date))
 
   obs <- list()
   list_counter <- 0
-  for (in_file in obs_files) {
+  for (in_file in available_files) {
     list_counter <- list_counter + 1
 
     obs_db <- DBI::dbConnect(RSQLite::SQLite(), (in_file))
 
-    message(in_file,":\n")
-    message("Reading ", parameter, " obs for ", start_date, "-", end_date)
+    message("\nReading: ", in_file, ":")
+    message(parameter, " obs for ", start_date, "-", end_date)
     obs_param <- rlang::sym(parameter)
     obs[[list_counter]] <- dplyr::tbl(obs_db, "SYNOP") %>%
       dplyr::select(validdate, SID, !!obs_param) %>%

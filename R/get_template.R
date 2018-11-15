@@ -135,6 +135,11 @@ get_template <- function(template) {
       "meps_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
+    "obstable" = file.path(
+      "{file_path}",
+      "OBSTABLE_{YYYY}.sqlite"
+    ),
+
     "vfld" = file.path(
       "{file_path}",
       "{sub_model}",

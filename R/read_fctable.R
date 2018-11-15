@@ -59,6 +59,9 @@ read_fctable <- function(
 
   }
 
-  dplyr::bind_rows(fcst_out)
+  dplyr::bind_rows(fcst_out) %>%
+    dplyr::mutate(
+      fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
+    )
 
 }
