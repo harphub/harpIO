@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_fa.R
 \name{read_fa}
 \alias{read_fa}
-\title{Read a field from a FA file}
+\title{Read a field from an FA file}
 \usage{
 read_fa(infile, parameter, meta = TRUE, fa_type = "alaro",
   fa_vector = FALSE, ...)
@@ -24,7 +24,7 @@ read_fa(infile, parameter, meta = TRUE, fa_type = "alaro",
 A geofield object with 2d array and projection information
 }
 \description{
-Read a field from a FA file
+Read a field from an FA file
 }
 \examples{
 model_geofield <- read_fa(file_name, "t2m")

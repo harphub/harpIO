@@ -50,6 +50,9 @@
 #' )
 #' model_field <- read_members(fname, "fog")
 
+
+### NEEDS UPDATING!!!! - change name to read_eps. Accommodate multi dimensions better.
+
 read_members <- function(model_files,
   parameter,
   members   = seq(0, 9),
@@ -98,12 +101,12 @@ read_members <- function(model_files,
     num_perturbed_members <- length(model_files) - 1
     model_file            <- model_files[1]
     geofield_data         <- read_grib(model_file, parameter)
-    domain_data           <- geogrid::DomainExtent(geofield_data)
+    domain_data           <- meteogrid::DomainExtent(geofield_data)
     x                     <- seq(domain_data$x0, domain_data$x1, domain_data$dx)
     y                     <- seq(domain_data$y0, domain_data$y1, domain_data$dy)
     proj4_string          <- paste0(
       "+", paste(
-        geogrid::proj4.list2str(attr(geofield_data, "domain")$projection), collapse = " +"
+        meteogrid::proj4.list2str(attr(geofield_data, "domain")$projection), collapse = " +"
       )
     ) %>%
       stringr::str_replace("latlong", "longlat") %>%

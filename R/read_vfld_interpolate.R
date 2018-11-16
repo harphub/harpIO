@@ -31,6 +31,9 @@
 #'   file_template = "vfld")$file_name
 #' vfld_data <- read_vfld_interpolate(vfld_file)
 #'
+
+### EXAMPLES NEED UPDATING!!!!
+
 read_vfld_interpolate <- function(
   file_name,
   parameter   = NULL,

@@ -1,13 +1,22 @@
-#' Title
+#' Read a netcdf file and interpolate to stations.
 #'
-#' @param file_name
-#' @param parameter
-#' @param lead_time
-#' @param members
-#' @param stations
-#' @param is_ensemble
+#' The function reads a single file. To read more than 1 file and / or use for
+#' verificationuse the wrappers \link[harpIO]{read_eps_interpolate} and
+#' \link[harpIO]{read_det_interpolate}. The function has only been tested on
+#' netcdf files archived at MET Norway.
 #'
-#' @return
+#' @param file_name The netcdf file to read.
+#' @param parameter The parameters to read from the netcdf file. Can be harp
+#'   parameters are the names used in the netcdf files.
+#' @param lead_time The lead times to read (in hours).
+#' @param members The ensemble members to read.
+#' @param stations The stations to interpolate to. By default all of the
+#'   stations from \link[harpIO]{station_list} that are inside the domain are
+#'   used.
+#' @param is_ensemble Logical - whether the file contains ensemble data. The
+#'   default is FALSE (i.e. deterministic data).
+#'
+#' @return A data frame with the data read from the netcdf file.
 #' @export
 #'
 #' @examples
@@ -19,6 +28,27 @@ read_netcdf_interpolate <- function(
   stations    = NULL,
   is_ensemble = FALSE
 ) {
+
+  if (!requireNamespace("miIO", quietly = TRUE)) {
+    stop(
+      paste0(
+        "You need to install the miIO package from to read from netcdf files. \n",
+        "It is not on CRAN but available from MET Norway."
+      ),
+      call. = FALSE
+    )
+  }
+
+    if (!requireNamespace("ncdf4", quietly = TRUE)) {
+    stop(
+      paste0(
+        "You need to install the ncdf4 package from to read from netcdf files. \n",
+        "It is available from CRAN ."
+      ),
+      call. = FALSE
+    )
+  }
+
 
   empty_data <- tibble::tibble(
     SID             = NA_real_,

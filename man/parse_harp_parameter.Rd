@@ -2,7 +2,7 @@
 % Please edit documentation in R/parse_harp_parameter.R
 \name{parse_harp_parameter}
 \alias{parse_harp_parameter}
-\title{parse the parameter name and decide on level, accumulation...}
+\title{Parse the parameter name and decide on level, accumulation...}
 \usage{
 parse_harp_parameter(param)
 }

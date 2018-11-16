@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9034
+Version: 0.0.0.9035
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -17,7 +17,7 @@ RoxygenNote: 5.0.1
 Imports: 
     DBI (>= 0.5),
     dplyr,
-    geogrid (>= 3.5.2),
+    meteogrid (>= 3.6.0),
     glue,
     lubridate,
     magrittr,

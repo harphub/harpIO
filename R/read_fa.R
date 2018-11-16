@@ -1,4 +1,4 @@
-#' Read a field from a FA file
+#' Read a field from an FA file
 #'
 #' @param filename The FA file name.
 #' @param parameter The parameter to read. Standard HARP names are used.

@@ -14,9 +14,10 @@
 #'
 #' @return A data frame of class \code{harp_point_forecast} with the
 #'   \code{forecast} column containing the accumulated forecast.
-#' @export
 #'
 #' @examples
+
+### CALLED BY read_point_forecast - doesn't need to be exported.
 accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit) {
 
   message("Accumulating forecast for ", accumulation_time, accumulation_unit, " accumulations")

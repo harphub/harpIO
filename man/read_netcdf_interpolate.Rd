@@ -2,15 +2,35 @@
 % Please edit documentation in R/read_netcdf_interpolate.R
 \name{read_netcdf_interpolate}
 \alias{read_netcdf_interpolate}
-\title{Title}
+\title{Read a netcdf file and interpolate to stations.}
 \usage{
 read_netcdf_interpolate(file_name, parameter = NULL, lead_time = NA_real_,
   members = NA_character_, stations = NULL, is_ensemble = FALSE)
 }
 \arguments{
-\item{is_ensemble}{}
+\item{file_name}{The netcdf file to read.}
+
+\item{parameter}{The parameters to read from the netcdf file. Can be harp
+parameters are the names used in the netcdf files.}
+
+\item{lead_time}{The lead times to read (in hours).}
+
+\item{members}{The ensemble members to read.}
+
+\item{stations}{The stations to interpolate to. By default all of the
+stations from \link[harpIO]{station_list} that are inside the domain are
+used.}
+
+\item{is_ensemble}{Logical - whether the file contains ensemble data. The
+default is FALSE (i.e. deterministic data).}
+}
+\value{
+A data frame with the data read from the netcdf file.
 }
 \description{
-Title
+The function reads a single file. To read more than 1 file and / or use for
+verificationuse the wrappers \link[harpIO]{read_eps_interpolate} and
+\link[harpIO]{read_det_interpolate}. The function has only been tested on
+netcdf files archived at MET Norway.
 }
 

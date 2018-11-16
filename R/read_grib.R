@@ -13,6 +13,9 @@
 #' model_geofield <- read_grib(file_name, "t2m")
 #' model_geofield <- read_grib(file_name, "t500")
 #' model_geofield <- read_grib(file_name, "topo")
+
+### EXAMPLES NEED UPDATING
+
 read_grib <- function(filename, parameter, meta = TRUE, ...) {
   #
   param_info    <- get_grib_param_info(parameter)
