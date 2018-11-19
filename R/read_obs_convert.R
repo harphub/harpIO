@@ -1,4 +1,4 @@
-#' Read observations and output to sqlite
+#' Read observations and output to sqlite OBSTABLE file(s)
 #'
 #' Read observations from any source (currently only vobs...) and output the
 #' data to sqlite files.

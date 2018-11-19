@@ -1,4 +1,4 @@
-#' Read observations from an OBSTABLE file
+#' Read point observations from an OBSTABLE file
 #'
 #' @param start_date The start date of the observations to read.
 #' @param end_date The end date of the observations to read.

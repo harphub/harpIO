@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_point_obs.R
 \name{read_point_obs}
 \alias{read_point_obs}
-\title{Read observations from an OBSTABLE file}
+\title{Read point observations from an OBSTABLE file}
 \usage{
 read_point_obs(start_date, end_date, parameter, obs_path = ".",
   obsfile_template = "obstable", gross_error_check = TRUE,
@@ -32,6 +32,6 @@ check. If set to NULL the default value for the parameter is used.}
 A tibble with columns for validdate, SID and the parameter.
 }
 \description{
-Read observations from an OBSTABLE file
+Read point observations from an OBSTABLE file
 }
 

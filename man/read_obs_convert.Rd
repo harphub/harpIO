@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_obs_convert.R
 \name{read_obs_convert}
 \alias{read_obs_convert}
-\title{Read observations and output to sqlite}
+\title{Read observations and output to sqlite OBSTABLE file(s)}
 \usage{
 read_obs_convert(start_date, end_date, by = "3h", obs_path = ".",
   obs_format = "vobs", obsfile_template = "vobs", parameter = NULL,

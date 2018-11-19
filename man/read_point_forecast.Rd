@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_point_forecast.R
 \name{read_point_forecast}
 \alias{read_point_forecast}
-\title{Read point forecasts from an sqlite file}
+\title{Read point forecasts from an FCTABLE file}
 \usage{
 read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
   lead_time = seq(0, 48, 3), by = "1d", file_path = ".",
