@@ -17,7 +17,6 @@ RoxygenNote: 5.0.1
 Imports: 
     DBI (>= 0.5),
     dplyr,
-    meteogrid (>= 3.6.0),
     glue,
     lubridate,
     magrittr,
@@ -33,6 +32,7 @@ Imports:
 Suggests:
     ncdf4,
     miIO,
+    meteogrid (>= 3.6.0),
     Rgrib2 (>= 1.2.8),
     Rfa (>= 4.2.7),
     h5
