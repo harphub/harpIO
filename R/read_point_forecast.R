@@ -1,4 +1,4 @@
-#' Read point forecasts from an FCTABLE file
+#' Read point forecasts from FCTABLE files
 #'
 #' Reads point forecasts from an sqlite file produced by
 #' \link{read_eps_interpolate} or \link{read_det_interpolate}. The function
