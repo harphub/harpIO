@@ -80,10 +80,11 @@ read_obs_convert <- function(
     obs_data  <- data_files %>%
       dplyr::transmute(
         .data$fcdate,
-        YYYY      = substr(.data$fcdate, 1, 4),
-        MM        = substr(.data$fcdate, 5, 6),
-        DD        = substr(.data$fcdate, 7, 8),
-        obs       = purrr::map(file_name, read_func, ...)
+        YYYY        = substr(.data$fcdate, 1, 4),
+        MM          = substr(.data$fcdate, 5, 6),
+        DD          = substr(.data$fcdate, 7, 8),
+        obs         = purrr::map(file_name, read_func, ...),
+        sqlite_path = ifelse(is.null(sqlite_path), NA, sqlite_path)
       ) %>%
       dplyr::mutate(
         file_name = purrr::map_chr(
