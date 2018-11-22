@@ -57,7 +57,7 @@ read_vfld_interpolate <- function(
   if (file.exists(file_name)) {
     message("Reading: ", file_name)
   } else {
-    warning("File not found: ", file_name, call. = FALSE, immediate. = TRUE)
+    warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
     return(empty_data)
   }
 
@@ -219,8 +219,8 @@ read_vfld_interpolate <- function(
 # Extract the synop parameters
 
   if (length(synop_parameters) > 0) {
-    synop_parameter <- unique(purrr::map_chr(synop_parameters, "basename"))
-    param_cols_out  <- rlang::quos(synop_parameter)
+    synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname"))
+    param_cols_out  <- rlang::syms(synop_parameter)
     synop_data      <- synop_data %>%
       dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
       dplyr::mutate(
@@ -234,7 +234,7 @@ read_vfld_interpolate <- function(
 # Extract the temp parameters
 
   if (length(temp_parameters) > 0) {
-    p_level_elements <- which(purrr::map_chr(temp_parameters, "levelType") == "P")
+    p_level_elements <- which(purrr::map_chr(temp_parameters, "levelType") == "pressure")
     if (length(p_level_elements) < length(temp_parameters)) {
       warning(
         paste0(
@@ -246,9 +246,9 @@ read_vfld_interpolate <- function(
     temp_parameters <- temp_parameters[p_level_elements]
     if (length(temp_parameters) > 0) {
       temp_parameter_base <- purrr::map_chr(temp_parameters, "basename")
-      param_cols_in       <- rlang::quos(temp_parameter_base)
+      param_cols_in       <- rlang::syms(temp_parameter_base)
       temp_parameter_full <- purrr::map_chr(temp_parameters, "fullname")
-      param_cols_out      <- rlang::quos(temp_parameter_full)
+      param_cols_out      <- rlang::syms(temp_parameter_full)
       temp_data <- temp_data %>%
         dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
         tidyr::gather(key = param, value = forecast, !!!param_cols_in) %>%
