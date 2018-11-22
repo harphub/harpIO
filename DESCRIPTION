@@ -28,7 +28,8 @@ Imports:
     tibble,
     tidyr,
     tools,
-    utils
+    utils,
+    dbplyr
 Suggests:
     ncdf4,
     miIO,
