@@ -18,4 +18,3 @@ Convert date type to YYYYMMDDHHmm string
 \examples{
 YMDhm(Sys.time())
 }
-

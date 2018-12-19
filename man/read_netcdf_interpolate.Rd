@@ -4,8 +4,9 @@
 \alias{read_netcdf_interpolate}
 \title{Read a netcdf file and interpolate to stations.}
 \usage{
-read_netcdf_interpolate(file_name, parameter = NULL, lead_time = NA_real_,
-  members = NA_character_, stations = NULL, is_ensemble = FALSE)
+read_netcdf_interpolate(file_name, parameter = NULL,
+  lead_time = NA_real_, members = NA_character_, stations = NULL,
+  is_ensemble = FALSE)
 }
 \arguments{
 \item{file_name}{The netcdf file to read.}
@@ -33,4 +34,3 @@ verificationuse the wrappers \link[harpIO]{read_eps_interpolate} and
 \link[harpIO]{read_det_interpolate}. The function has only been tested on
 netcdf files archived at MET Norway.
 }
-

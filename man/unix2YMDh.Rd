@@ -18,4 +18,3 @@ Convert unix time to YYYYMMDDHH string
 \examples{
 unix2YMDh(as.numeric(Sys.time()))
 }
-

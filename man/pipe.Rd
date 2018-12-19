@@ -10,4 +10,3 @@ lhs \%>\% rhs
 See \code{magrittr::\link[magrittr]{\%>\%}} for details.
 }
 \keyword{internal}
-

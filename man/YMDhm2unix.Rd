@@ -18,4 +18,3 @@ Convert YYYYMMDDHHmm string to unix time
 \examples{
 YMDhm2unix(201701011230)
 }
-

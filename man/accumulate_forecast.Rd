@@ -25,4 +25,3 @@ lead time T - \code{accumulation_time} from the forecast at lead time T.
 \code{accumulation_time} must therefore be in the same units as the
 \code{leadtime} column.
 }
-

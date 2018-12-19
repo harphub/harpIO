@@ -19,4 +19,3 @@ A geofield object (if meta is TRUE) or a plain matrix.
 \description{
 Read/decode hdf5 files, mainly ODIM style
 }
-

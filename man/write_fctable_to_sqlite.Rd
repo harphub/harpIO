@@ -23,4 +23,3 @@ This function only has a side effect (writing to sqlite file).
 This function should rarely be used as a standalone function. It is called by
 \code{read_det_interpolate} and \code{read_eps_interpolate}.
 }
-

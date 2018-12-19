@@ -4,11 +4,11 @@
 \alias{get_filenames}
 \title{Get filename(s) for meteorological data}
 \usage{
-get_filenames(file_path = "", file_date = Sys.Date(), start_date = NULL,
-  end_date = NULL, by = "6h", parameter = NULL, det_model = NULL,
-  eps_model = NULL, sub_model = NULL, lead_time = seq(0, 48, 3),
-  members = NA_character_, file_template = "FCTABLE",
-  filenames_only = TRUE)
+get_filenames(file_path = "", file_date = Sys.Date(),
+  start_date = NULL, end_date = NULL, by = "6h", parameter = NULL,
+  det_model = NULL, eps_model = NULL, sub_model = NULL,
+  lead_time = seq(0, 48, 3), members = NA_character_,
+  file_template = "FCTABLE", filenames_only = TRUE)
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -90,4 +90,3 @@ lead_time = seq(0, 24, 6), file_template =
 "{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 
 }
-

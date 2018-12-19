@@ -19,4 +19,3 @@ Dewpoint temperature
 \description{
 Standard Magnus formula for dewpoint temperature
 }
-

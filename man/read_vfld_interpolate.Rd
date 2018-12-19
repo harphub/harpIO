@@ -4,8 +4,9 @@
 \alias{read_vfld_interpolate}
 \title{Read data from a vfld file}
 \usage{
-read_vfld_interpolate(file_name, parameter = NULL, lead_time = NA_real_,
-  members = NA_character_, stations = NULL, is_ensemble = FALSE)
+read_vfld_interpolate(file_name, parameter = NULL,
+  lead_time = NA_real_, members = NA_character_, stations = NULL,
+  is_ensemble = FALSE)
 }
 \arguments{
 \item{file_name}{Name of the vfld file}
@@ -45,4 +46,3 @@ vfld_file <- get_filenames(
 vfld_data <- read_vfld_interpolate(vfld_file)
 
 }
-

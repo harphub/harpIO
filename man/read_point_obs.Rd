@@ -34,4 +34,3 @@ A tibble with columns for validdate, SID and the parameter.
 \description{
 Read point observations from OBSTABLE files
 }
-

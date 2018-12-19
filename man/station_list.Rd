@@ -20,4 +20,3 @@ A dataset containing site ID, latitude, longitude, elevation and name of
 13417 weather stations world wide.
 }
 \keyword{datasets}
-

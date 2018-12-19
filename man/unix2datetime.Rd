@@ -18,4 +18,3 @@ Convert unix time to date type
 \examples{
 unix2datetime(as.numeric(Sys.time()))
 }
-

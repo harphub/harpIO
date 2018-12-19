@@ -48,6 +48,15 @@ read_point_obs <- function(
   date_start <- suppressMessages(str_datetime_to_unixtime(start_date))
   date_end   <- suppressMessages(str_datetime_to_unixtime(end_date))
 
+  harp_param <- parse_harp_parameter(parameter)
+  if (!is.null(harp_param$levelType) & harp_param$levelType == "pressure") {
+    sqlite_table <- "TEMP"
+    obs_param    <- rlang::sym(harp_param$basename)
+  } else {
+    sqlite_table <- "SYNOP"
+    obs_param    <- rlang::sym(parameter)
+  }
+
   obs <- list()
   list_counter <- 0
   for (in_file in available_files) {
@@ -57,12 +66,20 @@ read_point_obs <- function(
 
     message("\nReading: ", in_file, ":")
     message(parameter, " obs for ", start_date, "-", end_date)
-    obs_param <- rlang::sym(parameter)
-    obs[[list_counter]] <- dplyr::tbl(obs_db, "SYNOP") %>%
-      dplyr::select(validdate, SID, !!obs_param) %>%
-      dplyr::filter(validdate >= date_start & validdate <= date_end) %>%
-      dplyr::collect(n = Inf) %>%
-      tidyr::drop_na()
+    if (sqlite_table == "SYNOP") {
+      obs[[list_counter]] <- dplyr::tbl(obs_db, sqlite_table) %>%
+        dplyr::select(validdate, SID, !!obs_param) %>%
+        dplyr::filter(validdate >= date_start & validdate <= date_end) %>%
+        dplyr::collect(n = Inf) %>%
+        tidyr::drop_na()
+    } else {
+      obs[[list_counter]] <- dplyr::tbl(obs_db, sqlite_table) %>%
+        dplyr::select(validdate, SID, p, !!obs_param) %>%
+        dplyr::filter(validdate >= date_start & validdate <= date_end) %>%
+        dplyr::filter(p == harp_param$level) %>%
+        dplyr::collect(n = Inf) %>%
+        tidyr::drop_na()
+    }
     DBI::dbDisconnect(obs_db)
     message(" ---> DONE \n")
   }
@@ -72,8 +89,8 @@ read_point_obs <- function(
   if (gross_error_check) {
     if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter)
     if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter)
-    obs_removed <- dplyr::filter(obs, !dplyr::between(.data[[parameter]], min_allowed, max_allowed))
-    obs         <- dplyr::filter(obs, dplyr::between(.data[[parameter]], min_allowed, max_allowed))
+    obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_param, min_allowed, max_allowed))
+    obs         <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
   } else {
     obs_removed = "No gross error check done."
   }

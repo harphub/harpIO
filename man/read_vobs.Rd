@@ -23,4 +23,3 @@ data frames - one for synop data and one for temp (upper air) data.
 \examples{
 
 }
-

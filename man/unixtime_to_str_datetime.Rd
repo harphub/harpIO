@@ -27,4 +27,3 @@ unixtime_to_str_datetime(as.numeric(Sys.time()), YMDh)
 unixtime_to_str_datetime(as.numeric(Sys.time()), YMDhm)
 
 }
-

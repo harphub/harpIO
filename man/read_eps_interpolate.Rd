@@ -77,4 +77,3 @@ Read EPS forecast files and interpolate to stations.
 \examples{
 
 }
-

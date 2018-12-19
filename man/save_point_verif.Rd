@@ -23,4 +23,3 @@ consistency with the default shiny app to plot verification, this should not be 
 \description{
 Save verification data
 }
-

@@ -17,6 +17,7 @@ get_min_obs_allowed <- function(parameter) {
     "CCmed"     = 0,
     "CChigh"    = 0,
     "Cbase"     = 0,
+    "RH"        = 0,
     -Inf
   )
 }
@@ -38,6 +39,7 @@ get_max_obs_allowed <- function(parameter) {
     "CCmed"     = 8,
     "CChigh"    = 8,
     "Cbase"     = 10000,
+    "RH"        = 100,
     Inf
   )
 }

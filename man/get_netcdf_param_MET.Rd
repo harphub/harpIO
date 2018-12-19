@@ -21,4 +21,3 @@ get_netcdf_param_MET("PMSL")
 get_netcdf_param_MET("S10m")
 get_netcdf_param_MET("Pcp")
 }
-

@@ -52,4 +52,3 @@ If return_data is TRUE - a list with two data frames - one for synop
 Read observations from any source (currently only vobs...) and output the
 data to sqlite files.
 }
-
