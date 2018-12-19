@@ -49,7 +49,7 @@ read_point_obs <- function(
   date_end   <- suppressMessages(str_datetime_to_unixtime(end_date))
 
   harp_param <- parse_harp_parameter(parameter)
-  if (!is.null(harp_param$levelType) & harp_param$levelType == "pressure") {
+  if (!is.null(harp_param$levelType) && harp_param$levelType == "pressure") {
     sqlite_table <- "TEMP"
     obs_param    <- rlang::sym(harp_param$basename)
   } else {
