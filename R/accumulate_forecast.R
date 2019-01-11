@@ -31,7 +31,6 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit) {
         .data$fcdate,
         lead_acc = .data$leadtime,
         fcst_acc = .data$forecast,
-        .data$mname,
         .data$member
       ),
       by = c("SID", "fcdate", "lead_acc", "member")
