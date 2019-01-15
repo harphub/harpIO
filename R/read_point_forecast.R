@@ -102,6 +102,10 @@ read_point_forecast <- function(
     ~ .x[file.exists(.x)]
   )
 
+  if (length(purrr::flatten(available_files)) < 1) {
+    stop("No forecast files found \n", missing_files, call. = FALSE)
+  }
+
   fcst <- purrr::map(
     available_files,
     read_fctable,
@@ -121,6 +125,20 @@ read_point_forecast <- function(
       "m" = parameter$accum / 60,
       parameter$accum
     )
+
+    # If no data for lead time = 0 exist, create fake data based on shortest leadtime
+
+    add_fake_data <- function(.fcst) {
+      if (length(which(.fcst$leadtime == 0)) == 0) {
+        fake_data <- .fcst %>%
+          dplyr::filter(.data$leadtime == min(.fcst$leadtime)) %>%
+          dplyr::mutate_at(dplyr::vars(dplyr::contains(fcst_suffix)), dplyr::funs(. * 0)) %>%
+          dplyr::mutate(leadtime = 0)
+        fcst <- dplyr::bind_rows(.fcst, fake_data)
+      }
+    }
+
+    fcst <- purrr::map(fcst, add_fake_data)
 
     fcst_accum <- purrr::map(
       fcst,
