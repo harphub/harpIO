@@ -193,8 +193,14 @@ read_vfld_interpolate <- function(
       parameter <- purrr::map(parameter, parse_harp_parameter)
     }
     param_level_type <- purrr::map(parameter, "levelType")
-    synop_parameters <- parameter[which(purrr::map_lgl(param_level_type, is.null))]
-    temp_parameters  <- parameter[which(purrr::map_lgl(param_level_type, ~ !is.null(.x)))]
+    param_level      <- purrr::map(parameter, "level")
+
+    is_synop <- function(.level_type, .level) {
+      is.null(.level_type) | (.level_type == "height" && .level %in% c(2, 10))
+    }
+
+    synop_parameters <- parameter[which(purrr::map2_lgl(param_level_type, param_level, is_synop))]
+    temp_parameters  <- parameter[which(purrr::map2_lgl(param_level_type, param_level, ~ !is_synop(.x, .y)))]
 
   } else { # Get all parameters from the file
 

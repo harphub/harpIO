@@ -258,7 +258,9 @@ read_eps_interpolate <- function(
       ) %>%
       dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
       dplyr::group_by(file_name) %>%
-      tidyr::nest(.key = "metadata") %>%
+      tidyr::nest(.key = "metadata")
+
+    forecast_data <- forecast_data %>%
       dplyr::mutate(
         forecast = purrr::map2(
           .data$file_name,

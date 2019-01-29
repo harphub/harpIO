@@ -126,20 +126,6 @@ read_point_forecast <- function(
       parameter$accum
     )
 
-    # If no data for lead time = 0 exist, create fake data based on shortest leadtime
-
-    add_fake_data <- function(.fcst) {
-      if (length(which(.fcst$leadtime == 0)) == 0) {
-        fake_data <- .fcst %>%
-          dplyr::filter(.data$leadtime == min(.fcst$leadtime)) %>%
-          dplyr::mutate_at(dplyr::vars(dplyr::contains(fcst_suffix)), dplyr::funs(. * 0)) %>%
-          dplyr::mutate(leadtime = 0)
-        fcst <- dplyr::bind_rows(.fcst, fake_data)
-      }
-    }
-
-    fcst <- purrr::map(fcst, add_fake_data)
-
     fcst_accum <- purrr::map(
       fcst,
       ~ accumulate_forecast(
@@ -151,7 +137,7 @@ read_point_forecast <- function(
 
     if (any(purrr::map_int(fcst_accum, nrow) == 0)) {
       lead_time_accum <- lead_time - accum
-      if (lead_time_accum > 0) {
+      if (any(lead_time_accum > 0)) {
 
         file_names <- purrr::map(
           fcst_model,
@@ -162,7 +148,7 @@ read_point_forecast <- function(
             by            = by,
             parameter     = param_name,
             eps_model     = .x,
-            lead_time     = lead_time_accum,
+            lead_time     = lead_time_accum[lead_time_accum > 0],
             file_template = file_template
           )
         )
@@ -189,17 +175,15 @@ read_point_forecast <- function(
 
       }
 
-    } else {
-
-      fcst <- purrr::map(fcst_accum, tidyr::spread, .data$member, .data$forecast)
-
     }
+
+    fcst <- purrr::map(fcst_accum, tidyr::spread, .data$member, .data$forecast)
 
   }
 
   split_sub_models <- function(df, .member_regexp) {
 
-    meta_cols  <- rlang::syms(c("SID", "fcdate", "leadtime", "validdate"))
+    meta_cols  <- rlang::syms(c("SID", "fcdate", "leadtime", "validdate", "fcst_cycle"))
     sub_models <- stringr::str_extract(
       names(df),
       .member_regexp
