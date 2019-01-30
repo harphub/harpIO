@@ -18,11 +18,14 @@
 #' @examples
 
 ### CALLED BY read_point_forecast - doesn't need to be exported.
-accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit) {
+accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, check_leads = TRUE) {
 
   message("Accumulating forecast for ", accumulation_time, accumulation_unit, " accumulations")
 
-  lead_times <- sort(unique(.fcst$leadtime))
+  lead_times          <- sort(unique(.fcst$leadtime))
+  required_lead_times <- union((lead_times - accumulation_time), lead_times)
+  missing_lead_times  <- setdiff(required_lead_times, lead_times) %>% .[. > 0]
+
 
   if (any(lead_times == accumulation_time) && !any(lead_times == 0)) {
     first_accum_fcst <- dplyr::filter(.fcst, .data$leadtime == accumulation_time)
@@ -30,9 +33,9 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit) {
     first_accum_fcst <- dplyr::filter(.fcst, .data$leadtime < min(lead_times))
   }
 
-  if (length(lead_times) == 1  && nrow(first_accum_fcst) == 0) {
+  if (length(missing_lead_times) > 0 && check_leads) {
     warning("Not enough lead times to compute accumulation - will try to get more data\n", immediate. = TRUE, call. = FALSE)
-    return(dplyr::filter(.fcst, .data$leadtime != lead_times))
+    return(missing_lead_times)
   }
 
   lead_times_res <- unique(na.omit(lead_times - dplyr::lag(lead_times)))
@@ -95,7 +98,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit) {
       .fcst <- .fcst %>%
         tidyr::unnest() %>%
         dplyr::mutate(forecast = .data$forecast - .data$forecast1) %>%
-        dplyr::select(-dplyr::ends_with("1"), -.data$type)
+        dplyr::select(-dplyr::ends_with("1"), -.data$type, -.data$equal_rows)
     }
 
     if (nrow(bad_data) > 0) {
@@ -112,11 +115,12 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit) {
         dplyr::rename(validdate = .data$validdate.x) %>%
         dplyr::select(-dplyr::starts_with("type"), -dplyr::ends_with(".y"), -dplyr::ends_with(".x"), -.data$forecast1)
       if (nrow(.fcst) > 0) {
-        bad_data <- dplyr::bind_rows(.fcst, bad_data) %>%
+        .fcst <- dplyr::bind_rows(.fcst, bad_data) %>%
           dplyr::arrange(.data$leadtime)
       } else {
         .fcst <- bad_data
       }
+      .fcst <- dplyr::mutate(.fcst, forecast = case_when(.data$forecast < 0 ~ 0, TRUE ~ .data$forecast))
     }
   }
 

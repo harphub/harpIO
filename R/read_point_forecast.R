@@ -72,11 +72,24 @@ read_point_forecast <- function(
     }
   )
   if (is.null(member_regexp)) {
-    stop("Unknown fcst_type argument:", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
+    stop("Unknown fcst_type argument: ", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
   }
 
   parameter  <- parse_harp_parameter(parameter)
-  param_name <- ifelse(parameter$accum > 0, parameter$basename, parameter$fullname)
+  param_name <- parameter$fullname
+  if (parameter$accum > 0) {
+    param_name <- parameter$basename
+    lead_time  <- lead_time[lead_time >= parse_accum(parameter)]
+  }
+
+  if (length(lead_time) < 1) {
+    stop(
+      "At least one of lead_time must be greater than or equal to the accumulation time: ",
+      parse_accum(parameter), parameter$acc_unit,
+      call. = FALSE
+    )
+  }
+
   file_names <- purrr::map(
     fcst_model,
     ~ get_filenames(
@@ -120,11 +133,7 @@ read_point_forecast <- function(
 
   if (parameter$accum > 0) {
 
-    accum <- switch(parameter$acc_unit,
-      "h" = parameter$accum / 3600,
-      "m" = parameter$accum / 60,
-      parameter$accum
-    )
+    accum <- parse_accum(parameter)
 
     fcst_accum <- purrr::map(
       fcst,
@@ -135,45 +144,51 @@ read_point_forecast <- function(
       )
     )
 
-    if (any(purrr::map_int(fcst_accum, nrow) == 0)) {
-      lead_time_accum <- lead_time - accum
-      if (any(lead_time_accum > 0)) {
+    # accumulate_forecast returns a vector of missing lead times rather than data if some lead times
+    # to compute an accumlation are missing.
 
-        file_names <- purrr::map(
-          fcst_model,
-          ~ get_filenames(
-            file_path     = file_path,
-            start_date    = start_date,
-            end_date      = end_date,
-            by            = by,
-            parameter     = param_name,
-            eps_model     = .x,
-            lead_time     = lead_time_accum[lead_time_accum > 0],
-            file_template = file_template
-          )
+    if (any(purrr::map_lgl(fcst_accum, is.numeric))) {
+      lead_time_accum <- fcst_accum
+
+
+      file_names <- purrr::map2(
+        fcst_model,
+        lead_time_accum,
+        ~ get_filenames(
+          file_path     = file_path,
+          start_date    = start_date,
+          end_date      = end_date,
+          by            = by,
+          parameter     = param_name,
+          eps_model     = .x,
+          lead_time     = .y,
+          file_template = file_template
         )
+      )
 
-        fcst_lead_time_accum <- purrr::map(
-          purrr::map(file_names, ~ .x[file.exists(.x)]),
-          read_fctable,
+      fcst_lead_time_accum <- purrr::map2(
+        purrr::map(file_names, ~ .x[file.exists(.x)]),
+        lead_time_accum,
+        ~ read_fctable(
+          .x,
           suppressMessages(str_datetime_to_unixtime(start_date)),
           suppressMessages(str_datetime_to_unixtime(end_date)),
-          lead_time = lead_time_accum,
+          lead_time = .y,
           stations  = stations,
           members   = members
-        ) %>% purrr::map(tidyr::drop_na)
-
-        fcst       <- purrr::map2(fcst, fcst_lead_time_accum, dplyr::bind_rows)
-        fcst_accum <- purrr::map(
-          fcst,
-          ~ accumulate_forecast(
-            tidyr::gather(.x, dplyr::contains(fcst_suffix), key = "member", value = "forecast"),
-            accum,
-            parameter$acc_unit
-          )
         )
+      ) %>% purrr::map(tidyr::drop_na)
 
-      }
+      fcst       <- purrr::map2(fcst, fcst_lead_time_accum, dplyr::bind_rows)
+      fcst_accum <- purrr::map(
+        fcst,
+        ~ accumulate_forecast(
+          tidyr::gather(.x, dplyr::contains(fcst_suffix), key = "member", value = "forecast"),
+          accum,
+          parameter$acc_unit,
+          check_leads = FALSE
+        )
+      )
 
     }
 
@@ -213,4 +228,12 @@ read_point_forecast <- function(
 
   fcst
 
+}
+
+parse_accum <- function(prm) {
+  switch(prm$acc_unit,
+    "h" = prm$accum / 3600,
+    "m" = prm$accum / 60,
+    prm$accum
+  )
 }
