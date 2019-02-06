@@ -34,7 +34,7 @@ dimension in the desired file names.}
 \item{file_path}{The path to the data.}
 
 \item{stations}{The stations to retrieve forecasts for. This should be a
-vector of station ID numbers.}
+vector of station ID numbers. Set to NULL to retrieve all stations.}
 
 \item{members}{The members to retrieve if reading an EPS forecast. Normally a
 vector of a member numbers. For multi model ensembles this can be a named

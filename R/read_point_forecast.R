@@ -24,7 +24,7 @@
 #'   dimension in the desired file names.
 #' @param file_path The path to the data.
 #' @param stations The stations to retrieve forecasts for. This should be a
-#'   vector of station ID numbers.
+#'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #' @param members The members to retrieve if reading an EPS forecast. Normally a
 #'   vector of a member numbers. For multi model ensembles this can be a named
 #'   list with sub model name followed by the desired members, e.g. \cr
@@ -115,8 +115,22 @@ read_point_forecast <- function(
     ~ .x[file.exists(.x)]
   )
 
-  if (length(purrr::flatten(available_files)) < 1) {
-    stop("No forecast files found \n", missing_files, call. = FALSE)
+  if (any(purrr::map_int(missing_files, length) > 0)) {
+    std_warn_length <- getOption("warning.length")
+    options(warning.length = 8170)
+    warning(
+      "Cannot file files:\n",
+      paste(purrr::flatten(missing_files), collapse = "\n"),
+      "\n",
+      immediate. = TRUE,
+      call. = FALSE
+    )
+    options(warning.length = std_warn_length)
+  }
+
+  if (any(purrr::map_int(available_files, length) < 1)) {
+    model_with_no_files <- names(missing_files)[purrr::map_int(available_files, length) < 1]
+    stop("No forecast files found for ", paste(model_with_no_files, collapse = ", "), call. = FALSE)
   }
 
   fcst <- purrr::map(
