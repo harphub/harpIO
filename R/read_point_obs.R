@@ -11,6 +11,8 @@
 #'   check. If set to NULL the default value for the parameter is used.
 #' @param max_allowed The maximum value of observation to allow in the gross error
 #'   check. If set to NULL the default value for the parameter is used.
+#' @param stations The stations to retrieve observations for. This should be a
+#'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #'
 #' @return A tibble with columns for validdate, SID and the parameter.
 #' @export
@@ -24,7 +26,8 @@ read_point_obs <- function(
   obsfile_template   = "obstable",
   gross_error_check  = TRUE,
   min_allowed        = NULL,
-  max_allowed        = NULL
+  max_allowed        = NULL,
+  stations           = NULL
 ) {
 
   obs_files <- get_filenames(
@@ -69,17 +72,23 @@ read_point_obs <- function(
     if (sqlite_table == "SYNOP") {
       obs[[list_counter]] <- dplyr::tbl(obs_db, sqlite_table) %>%
         dplyr::select(validdate, SID, !!obs_param) %>%
-        dplyr::filter(validdate >= date_start & validdate <= date_end) %>%
-        dplyr::collect(n = Inf) %>%
-        tidyr::drop_na()
+        dplyr::filter(validdate >= date_start & validdate <= date_end)
     } else {
       obs[[list_counter]] <- dplyr::tbl(obs_db, sqlite_table) %>%
         dplyr::select(validdate, SID, p, !!obs_param) %>%
         dplyr::filter(validdate >= date_start & validdate <= date_end) %>%
-        dplyr::filter(p == harp_param$level) %>%
+        dplyr::filter(p == harp_param$level)
+    }
+
+    if (!is.null(stations)) {
+      obs[[list_counter]] <- obs[[list_counter]] %>%
+        dplyr::filter(SID %in% stations)
+    }
+
+    obs[[list_counter]] <- obs[[list_counter]] %>%
         dplyr::collect(n = Inf) %>%
         tidyr::drop_na()
-    }
+
     DBI::dbDisconnect(obs_db)
     message(" ---> DONE \n")
   }

@@ -4,7 +4,8 @@
 \alias{accumulate_forecast}
 \title{Accumulate a forecast over a given time period.}
 \usage{
-accumulate_forecast(.fcst, accumulation_time, accumulation_unit)
+accumulate_forecast(.fcst, accumulation_time, accumulation_unit,
+  check_leads = TRUE)
 }
 \arguments{
 \item{.fcst}{A data frame of class \code{harp_point_forecast}.}

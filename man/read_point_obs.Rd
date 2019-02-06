@@ -6,7 +6,7 @@
 \usage{
 read_point_obs(start_date, end_date, parameter, obs_path = ".",
   obsfile_template = "obstable", gross_error_check = TRUE,
-  min_allowed = NULL, max_allowed = NULL)
+  min_allowed = NULL, max_allowed = NULL, stations = NULL)
 }
 \arguments{
 \item{start_date}{The start date of the observations to read.}
@@ -27,6 +27,9 @@ check. If set to NULL the default value for the parameter is used.}
 
 \item{max_allowed}{The maximum value of observation to allow in the gross error
 check. If set to NULL the default value for the parameter is used.}
+
+\item{stations}{The stations to retrieve observations for. This should be a
+vector of station ID numbers. Set to NULL to retrieve all stations.}
 }
 \value{
 A tibble with columns for validdate, SID and the parameter.
