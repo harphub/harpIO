@@ -22,11 +22,11 @@ parameter name.}
 
 \item{gross_error_check}{Logical of whether to perform a gross error check.}
 
-\item{min_allowed}{The minimum value of observation to allow in the gross error
-check. If set to NULL the default value for the parameter is used.}
+\item{min_allowed}{The minimum value of observation to allow in the gross
+error check. If set to NULL the default value for the parameter is used.}
 
-\item{max_allowed}{The maximum value of observation to allow in the gross error
-check. If set to NULL the default value for the parameter is used.}
+\item{max_allowed}{The maximum value of observation to allow in the gross
+error check. If set to NULL the default value for the parameter is used.}
 
 \item{stations}{The stations to retrieve observations for. This should be a
 vector of station ID numbers. Set to NULL to retrieve all stations.}
@@ -35,5 +35,8 @@ vector of station ID numbers. Set to NULL to retrieve all stations.}
 A tibble with columns for validdate, SID and the parameter.
 }
 \description{
-Read point observations from OBSTABLE files
+Data are read directly from OBSTABLE files with no modification except in the
+case of precipitation accumulations. Where possible, observations that are
+not available for the given accumulation time, they are derived from
+observations for other accumulation times, either by subtraction or addition.
 }

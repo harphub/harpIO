@@ -1,5 +1,10 @@
 #' Read point observations from OBSTABLE files
 #'
+#' Data are read directly from OBSTABLE files with no modification except in the
+#' case of precipitation accumulations. Where possible, observations that are
+#' not available for the given accumulation time, they are derived from
+#' observations for other accumulation times, either by subtraction or addition.
+#'
 #' @param start_date The start date of the observations to read.
 #' @param end_date The end date of the observations to read.
 #' @param parameter Which parameter to read. This will normally be a harp3
@@ -7,10 +12,10 @@
 #' @param obs_path The path to the OBSTABLE files
 #' @param obsfile_template The template for the OBSTABLE file name.
 #' @param gross_error_check Logical of whether to perform a gross error check.
-#' @param min_allowed The minimum value of observation to allow in the gross error
-#'   check. If set to NULL the default value for the parameter is used.
-#' @param max_allowed The maximum value of observation to allow in the gross error
-#'   check. If set to NULL the default value for the parameter is used.
+#' @param min_allowed The minimum value of observation to allow in the gross
+#'   error check. If set to NULL the default value for the parameter is used.
+#' @param max_allowed The maximum value of observation to allow in the gross
+#'   error check. If set to NULL the default value for the parameter is used.
 #' @param stations The stations to retrieve observations for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #'
@@ -60,40 +65,23 @@ read_point_obs <- function(
     obs_param    <- rlang::sym(parameter)
   }
 
-  obs <- list()
-  list_counter <- 0
-  for (in_file in available_files) {
-    list_counter <- list_counter + 1
-
-    obs_db <- DBI::dbConnect(RSQLite::SQLite(), (in_file))
-
-    message("\nReading: ", in_file, ":")
-    message(parameter, " obs for ", start_date, "-", end_date)
-    if (sqlite_table == "SYNOP") {
-      obs[[list_counter]] <- dplyr::tbl(obs_db, sqlite_table) %>%
-        dplyr::select(validdate, SID, !!obs_param) %>%
-        dplyr::filter(validdate >= date_start & validdate <= date_end)
+  message("Getting ", parameter, " observations for ", start_date, "-", end_date)
+  obs <- read_obstable(available_files, !!obs_param, sqlite_table, date_start, date_end, stations, harp_param$level)
+  if (parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h")) {
+    message("Deriving 6h precipitation from 12h precipitation")
+    obs <- derive_6h_precip(obs, available_files, date_start, date_end, stations)
+    if (parameter == "AccPcp12h") {
+      message("Deriving 12h precipitation from 6h precipitation")
+      obs <- derive_12h_precip(obs)
     } else {
-      obs[[list_counter]] <- dplyr::tbl(obs_db, sqlite_table) %>%
-        dplyr::select(validdate, SID, p, !!obs_param) %>%
-        dplyr::filter(validdate >= date_start & validdate <= date_end) %>%
-        dplyr::filter(p == harp_param$level)
+      message("Deriving 3h precipitation from 6h precipitation")
+      obs <- derive_3h_precip(obs)
     }
-
-    if (!is.null(stations)) {
-      obs[[list_counter]] <- obs[[list_counter]] %>%
-        dplyr::filter(SID %in% stations)
-    }
-
-    obs[[list_counter]] <- obs[[list_counter]] %>%
-        dplyr::collect(n = Inf) %>%
-        tidyr::drop_na()
-
-    DBI::dbDisconnect(obs_db)
-    message(" ---> DONE \n")
+    obs <- obs %>%
+      dplyr::select(.data$validdate, .data$SID, !! obs_param) %>%
+      tidyr::drop_na()
   }
 
-  obs <- dplyr::bind_rows(obs)
 
   if (gross_error_check) {
     if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter)
@@ -106,5 +94,129 @@ read_point_obs <- function(
 
   attr(obs, "bad_obs") <- obs_removed
   obs
+}
+
+
+
+### Functions
+
+# Read data from a set of obstable files
+read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_end, .stations, .level = NULL) {
+
+  obs_param_quo <- rlang::enquo(.obs_param)
+
+  .obs <- list()
+  list_counter <- 0
+  for (in_file in files) {
+    list_counter <- list_counter + 1
+
+    obs_db <- DBI::dbConnect(RSQLite::SQLite(), (in_file))
+
+    message("\nReading: ", in_file)
+    if (.sqlite_table == "SYNOP") {
+      .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
+        dplyr::select(validdate, SID, !!obs_param_quo) %>%
+        dplyr::filter(validdate >= .date_start & validdate <= .date_end)
+    } else {
+      .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
+        dplyr::select(validdate, SID, p, !!obs_param_quo) %>%
+        dplyr::filter(validdate >= .date_start & validdate <= .date_end) %>%
+        dplyr::filter(p == .level)
+    }
+
+    if (!is.null(.stations)) {
+      .obs[[list_counter]] <- .obs[[list_counter]] %>%
+        dplyr::filter(SID %in% .stations)
+    }
+
+    .obs[[list_counter]] <- .obs[[list_counter]] %>%
+      dplyr::collect(n = Inf) %>%
+      tidyr::drop_na()
+
+    DBI::dbDisconnect(obs_db)
+    message(" ---> DONE \n")
+  }
+
+  dplyr::bind_rows(.obs)
+
+}
+
+# Derive 6h precipitation from 12h precipitation
+derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station_ids) {
+
+  pcp_AccPcp6h  <- NULL
+  pcp_AccPcp12h <- NULL
+
+  pcp_in_data   <- grep("AccPcp*[[:digit:]]", names(pcp_data), perl = TRUE, value = TRUE)
+  switch(
+    pcp_in_data,
+    "AccPcp12h" = {acc <- "AccPcp6h"; assign(paste0("pcp_", pcp_in_data), pcp_data)},
+    "AccPcp6h"  = {acc <- "AccPcp12h"; assign(paste0("pcp_", pcp_in_data), pcp_data)},
+    "AccPcp3h"  = acc  <- c("AccPcp6h", "AccPcp12h")
+  )
+
+  for (pcp_acc in acc) {
+    message("Getting ", pcp_acc, " observations.")
+    acc_sym <- rlang::sym(pcp_acc)
+    assign(
+      paste0("pcp_", pcp_acc),
+      read_obstable(obs_files, !!acc_sym, "SYNOP", first_date, last_date, station_ids)
+    )
+  }
+
+  pcp_AccPcp6h <- pcp_AccPcp6h %>%
+    dplyr::full_join(
+      dplyr::transmute(
+        pcp_AccPcp6h,
+        validdate = .data$validdate + 3600 * 6,
+        .data$SID,
+        AccPcp6h_lag = .data$AccPcp6h
+      )
+    ) %>%
+    dplyr::full_join(pcp_AccPcp12h) %>%
+    dplyr::mutate(
+      AccPcp6h = dplyr::case_when(
+        is.na(.data$AccPcp6h) ~ (.data$AccPcp12h - .data$AccPcp6h_lag),
+        TRUE                  ~ .data$AccPcp6h
+      )
+    ) %>%
+    dplyr::select(-.data$AccPcp6h_lag)
+
+  dplyr::full_join(pcp_data, pcp_AccPcp6h)
+
+}
+
+derive_12h_precip <- function(pcp_data) {
+  pcp_data %>%
+  dplyr::full_join(
+    dplyr::transmute(
+      pcp_data,
+      validdate = .data$validdate + 3600 * 6,
+      .data$SID,
+      AccPcp6h_lag = .data$AccPcp6h
+    )
+  ) %>% dplyr::mutate(
+    AccPcp12h = dplyr::case_when(
+      is.na(.data$AccPcp12h) ~ .data$AccPcp6h + .data$AccPcp6h_lag,
+      TRUE                   ~ .data$AccPcp12h
+    )
+  )
+}
+
+derive_3h_precip <- function(pcp_data) {
+  pcp_data %>%
+  dplyr::full_join(
+    dplyr::transmute(
+      pcp_data,
+      validdate = .data$validdate + 3600 * 3,
+      .data$SID,
+      AccPcp3h_lag = .data$AccPcp3h
+    )
+  ) %>% dplyr::mutate(
+    AccPcp3h = dplyr::case_when(
+      is.na(.data$AccPcp3h) ~ .data$AccPcp6h - .data$AccPcp3h_lag,
+      TRUE                  ~ .data$AccPcp3h
+    )
+  )
 }
 
