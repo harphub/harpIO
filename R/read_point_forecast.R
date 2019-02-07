@@ -115,12 +115,13 @@ read_point_forecast <- function(
     ~ .x[file.exists(.x)]
   )
 
-  if (any(purrr::map_int(missing_files, length) > 0)) {
+  check_for_missing <- purrr::flatten_chr(missing_files)
+  if (any(check_for_missing != "none")) {
     std_warn_length <- getOption("warning.length")
     options(warning.length = 8170)
     warning(
-      "Cannot file files:\n",
-      paste(purrr::flatten(missing_files), collapse = "\n"),
+      "Cannot find files:\n",
+      paste(check_for_missing[check_for_missing != "none"], collapse = "\n"),
       "\n",
       immediate. = TRUE,
       call. = FALSE
