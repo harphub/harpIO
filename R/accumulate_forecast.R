@@ -120,7 +120,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
       } else {
         .fcst <- bad_data
       }
-      .fcst <- dplyr::mutate(.fcst, forecast = case_when(.data$forecast < 0 ~ 0, TRUE ~ .data$forecast))
+      .fcst <- dplyr::mutate(.fcst, forecast = dplyr::case_when(.data$forecast < 0 ~ 0, TRUE ~ .data$forecast))
     }
   }
 

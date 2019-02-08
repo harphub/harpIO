@@ -134,7 +134,6 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
       tidyr::drop_na()
 
     DBI::dbDisconnect(obs_db)
-    message(" ---> DONE \n")
   }
 
   dplyr::bind_rows(.obs)
