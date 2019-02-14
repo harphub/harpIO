@@ -29,6 +29,9 @@
 #'   vector of a member numbers. For multi model ensembles this can be a named
 #'   list with sub model name followed by the desired members, e.g. \cr
 #'   \code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}
+#' @param accumulate TRUE or FALSE. Whether to automatically accumulate
+#'   parameters based on the accumulation time. Set to FALSE if the data to be
+#'   read in have already been accumulated.
 #' @return A list with an element for each forecast model, or in the case of a
 #'   multi model ensemble, another list with an element for each sub model. The
 #'   list elements each contain a data frame with columns for station ID (SID),
@@ -51,7 +54,8 @@ read_point_forecast <- function(
   by            = "1d",
   file_path     = ".",
   stations      = NULL,
-  members       = NULL
+  members       = NULL,
+  accumulate    = TRUE
 ) {
 
   switch(tolower(fcst_type),
@@ -77,7 +81,7 @@ read_point_forecast <- function(
 
   parameter  <- parse_harp_parameter(parameter)
   param_name <- parameter$fullname
-  if (parameter$accum > 0) {
+  if (parameter$accum > 0 && accumulate) {
     param_name <- parameter$basename
     lead_time  <- lead_time[lead_time >= parse_accum(parameter)]
   }
@@ -146,7 +150,7 @@ read_point_forecast <- function(
 
   fcst <- purrr::map(fcst, tidyr::drop_na)
 
-  if (parameter$accum > 0) {
+  if (parameter$accum > 0 && accumulate) {
 
     accum <- parse_accum(parameter)
 
