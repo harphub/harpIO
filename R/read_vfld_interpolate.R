@@ -13,6 +13,7 @@
 #' @param members Value to fill the member column with in the output tibble.
 #' @param stations A data frame of stations to filter to. Must contain a column
 #'   named SID.
+#' @param ... Absorb arguments for other read_*_interpolate functions.
 #'
 #' @return A data frame with columns SID, lat, lon, model_elevation, and a
 #'   column for each parameter.
@@ -40,17 +41,10 @@ read_vfld_interpolate <- function(
   lead_time   = NA_real_,
   members     = NA_character_,
   stations    = NULL,
-  is_ensemble = FALSE
+  ...
 ) {
 
-  empty_data <- tibble::tibble(
-    SID             = NA_real_,
-    lat             = NA_real_,
-    lon             = NA_real_,
-    model_elevation = NA_real_,
-    member          = members,
-    lead_time       = lead_time
-  )
+  empty_data <- empty_data_interpolate(members, lead_time)
 
   if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
 

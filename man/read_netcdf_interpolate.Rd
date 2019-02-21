@@ -6,7 +6,7 @@
 \usage{
 read_netcdf_interpolate(file_name, parameter = NULL,
   lead_time = NA_real_, members = NA_character_, stations = NULL,
-  is_ensemble = FALSE)
+  is_ensemble = FALSE, ...)
 }
 \arguments{
 \item{file_name}{The netcdf file to read.}
@@ -24,6 +24,8 @@ used.}
 
 \item{is_ensemble}{Logical - whether the file contains ensemble data. The
 default is FALSE (i.e. deterministic data).}
+
+\item{...}{Absorb arguments for other read_*_interpolate functions.}
 }
 \value{
 A data frame with the data read from the netcdf file.

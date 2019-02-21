@@ -8,15 +8,15 @@ read_det_interpolate(start_date, end_date, det_model, parameter,
   lead_time = seq(0, 48, 3), by = "6h", file_path = "",
   file_format = "vfld", file_template = "vfld", stations = NULL,
   correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
-  sqlite_path = NULL, return_data = FALSE)
+  sqlite_path = NULL, return_data = FALSE, ...)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to read.}
 
 \item{end_date}{Date of the last forecast to read.}
 
-\item{det_model}{The name of the deterministic model. Maybe expressed as a vector if
-more than onemodel is wanted.}
+\item{det_model}{The name of the deterministic model. Maybe expressed as a
+vector if more than onemodel is wanted.}
 
 \item{parameter}{The parameters to read as a character vector. For reading
 from vfld files, set to NULL to read all parameters.}
@@ -46,14 +46,16 @@ will always be file_path/template.}
 
 \item{stations}{A data frame of stations with columns SID, lat, lon, elev. If
 this is supplied the forecasts are interpolated to these stations. In the
-case of vfld files, the common stations between the vfld files and the
-stations in this data frame are selected. In the case of gridded files
-(e.g. grib, netcdf, FA), if no data frame of stations is passed a default
-list of stations is used. This list can be accessed via
-\code{data(stations)}.}
+case of vfld files, all stations found in the vfld are used. In the case of
+gridded files (e.g. grib, netcdf, FA), if no data frame of stations is
+passed a default list of stations is used. This list can be accessed via
+\code{station_list}.}
 
 \item{sqlite_path}{If specified, SQLite files are generated and written to
 this directory.}
+
+\item{...}{Arguments dependent on \code{file_format}. (More info to be
+added).}
 
 \item{correct_T2m}{Whether to correct the 2m temperature forecast from the
 model elevation to the observation elevation.}

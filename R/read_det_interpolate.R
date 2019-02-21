@@ -2,8 +2,8 @@
 #'
 #' @param start_date Date of the first forecast to read.
 #' @param end_date Date of the last forecast to read.
-#' @param det_model The name of the deterministic model. Maybe expressed as a vector if
-#'   more than onemodel is wanted.
+#' @param det_model The name of the deterministic model. Maybe expressed as a
+#'   vector if more than one model is wanted.
 #' @param parameter The parameters to read as a character vector. For reading
 #'   from vfld files, set to NULL to read all parameters.
 #' @param lead_time The lead times to read as a numeric vector.
@@ -26,15 +26,16 @@
 #'   will always be file_path/template.
 #' @param stations A data frame of stations with columns SID, lat, lon, elev. If
 #'   this is supplied the forecasts are interpolated to these stations. In the
-#'   case of vfld files, the common stations between the vfld files and the
-#'   stations in this data frame are selected. In the case of gridded files
-#'   (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
-#'   list of stations is used. This list can be accessed via
-#'   \code{data(stations)}.
+#'   case of vfld files, all stations found in the vfld are used. In the case of
+#'   gridded files (e.g. grib, netcdf, FA), if no data frame of stations is
+#'   passed a default list of stations is used. This list can be accessed via
+#'   \code{station_list}.
 #' @param correct_T2m Whether to correct the 2m temperature forecast from the
 #'   model elevation to the observation elevation.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
+#' @param ... Arguments dependent on \code{file_format}. (More info to be
+#'   added).
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -57,7 +58,8 @@ read_det_interpolate <- function(
   keep_model_t2m = FALSE,
   lapse_rate     = 0.0065,
   sqlite_path    = NULL,
-  return_data    = FALSE
+  return_data    = FALSE,
+  ...
 ) {
 
   # Loop over dates to prevent excessive data volumes in memory
@@ -114,7 +116,8 @@ read_det_interpolate <- function(
             parameter   = parameter,
             lead_time   = y$lead_time,
             stations    = stations,
-            is_ensemble = FALSE
+            is_ensemble = FALSE,
+            ...
           )
         )
       )

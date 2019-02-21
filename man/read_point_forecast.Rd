@@ -6,7 +6,7 @@
 \usage{
 read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
   lead_time = seq(0, 48, 3), by = "1d", file_path = ".",
-  stations = NULL, members = NULL)
+  stations = NULL, members = NULL, accumulate = TRUE)
 }
 \arguments{
 \item{start_date}{Start date to read from. Should be numeric or character.
@@ -40,6 +40,10 @@ vector of station ID numbers. Set to NULL to retrieve all stations.}
 vector of a member numbers. For multi model ensembles this can be a named
 list with sub model name followed by the desired members, e.g. \cr
 \code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}}
+
+\item{accumulate}{TRUE or FALSE. Whether to automatically accumulate
+parameters based on the accumulation time. Set to FALSE if the data to be
+read in have already been accumulated.}
 }
 \value{
 A list with an element for each forecast model, or in the case of a

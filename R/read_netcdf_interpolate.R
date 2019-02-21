@@ -15,6 +15,7 @@
 #'   used.
 #' @param is_ensemble Logical - whether the file contains ensemble data. The
 #'   default is FALSE (i.e. deterministic data).
+#' @param ... Absorb arguments for other read_*_interpolate functions.
 #'
 #' @return A data frame with the data read from the netcdf file.
 #' @export
@@ -26,7 +27,8 @@ read_netcdf_interpolate <- function(
   lead_time   = NA_real_,
   members     = NA_character_,
   stations    = NULL,
-  is_ensemble = FALSE
+  is_ensemble = FALSE,
+  ...
 ) {
 
   if (!requireNamespace("miIO", quietly = TRUE)) {
@@ -50,14 +52,7 @@ read_netcdf_interpolate <- function(
   }
 
 
-  empty_data <- tibble::tibble(
-    SID             = NA_real_,
-    lat             = NA_real_,
-    lon             = NA_real_,
-    model_elevation = NA_real_,
-    member          = members,
-    lead_time       = lead_time
-  )
+  empty_data <- empty_data_interpolate(members, lead_time)
 
   if (!file.exists(file_name)) {
     warning("File not found: ", file_name, call. = FALSE, immediate. = TRUE)

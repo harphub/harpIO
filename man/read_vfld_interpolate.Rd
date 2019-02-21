@@ -6,7 +6,7 @@
 \usage{
 read_vfld_interpolate(file_name, parameter = NULL,
   lead_time = NA_real_, members = NA_character_, stations = NULL,
-  is_ensemble = FALSE)
+  ...)
 }
 \arguments{
 \item{file_name}{Name of the vfld file}
@@ -21,6 +21,8 @@ tibble.}
 
 \item{stations}{A data frame of stations to filter to. Must contain a column
 named SID.}
+
+\item{...}{Absorb arguments for other read_*_interpolate functions.}
 }
 \value{
 A data frame with columns SID, lat, lon, model_elevation, and a

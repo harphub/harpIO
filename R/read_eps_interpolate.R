@@ -41,6 +41,8 @@
 #'   model elevation to the observation elevation.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
+#' @param ... Arguments dependent on \code{file_format}. (More info to be
+#'   added).
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -65,7 +67,8 @@ read_eps_interpolate <- function(
   keep_model_t2m = FALSE,
   lapse_rate     = 0.0065,
   sqlite_path    = NULL,
-  return_data    = FALSE
+  return_data    = FALSE,
+  ...
 ) {
 
   # Sanity checks and organisation of members_in as a list
@@ -271,7 +274,8 @@ read_eps_interpolate <- function(
             members     = y$member,
             lead_time   = y$lead_time,
             stations    = stations,
-            is_ensemble = TRUE
+            is_ensemble = TRUE,
+            ...
           )
         )
       )
