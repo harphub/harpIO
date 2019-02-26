@@ -64,6 +64,9 @@ list of stations is used. This list can be accessed via
 \item{sqlite_path}{If specified, SQLite files are generated and written to
 this directory.}
 
+\item{...}{Arguments dependent on \code{file_format}. (More info to be
+added).}
+
 \item{correct_T2m}{Whether to correct the 2m temperature forecast from the
 model elevation to the observation elevation.}
 }

@@ -16,7 +16,7 @@ read_det_interpolate(start_date, end_date, det_model, parameter,
 \item{end_date}{Date of the last forecast to read.}
 
 \item{det_model}{The name of the deterministic model. Maybe expressed as a
-vector if more than onemodel is wanted.}
+vector if more than one model is wanted.}
 
 \item{parameter}{The parameters to read as a character vector. For reading
 from vfld files, set to NULL to read all parameters.}

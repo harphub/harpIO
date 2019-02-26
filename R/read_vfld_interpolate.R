@@ -59,40 +59,40 @@ read_vfld_interpolate <- function(
     stringr::str_trim(side = "both") %>%
     strsplit("\\s+")
 
-### SYNOP DATA
+  ### SYNOP DATA
 
-# The first row is num_synop, num_temp, vfld_version
+  # The first row is num_synop, num_temp, vfld_version
   num_synop    <- as.numeric(vfld_data[[1]][1])
   num_temp     <- as.numeric(vfld_data[[1]][2])
   vfld_version <- as.numeric(vfld_data[[1]][3])
 
-# The second row is the number of parameters
+  # The second row is the number of parameters
   num_param <- as.numeric(vfld_data[[2]])
 
   synop_start_row <- 3 + num_param
   synop_end_row   <- synop_start_row + num_synop - 1
 
-# The following num_param rows are parameter, accum_hours
-  params <- t(dplyr::bind_cols(vfld_data[3:(synop_start_row - 1)])) %>%
+  # The following num_param rows are parameter, accum_hours
+  params_synop <- t(dplyr::bind_cols(vfld_data[3:(synop_start_row - 1)])) %>%
     tibble::as_tibble()
-  colnames(params) <- c("parameter", "accum_hours")
-  params <- params %>%
+  colnames(params_synop) <- c("parameter", "accum_hours")
+  params_synop <- params_synop %>%
     dplyr::mutate(
       parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
-      units       = purrr::map_chr(parameter, "param_units"),
-      parameter   = purrr::map_chr(parameter, "harp_param"),
+      units       = purrr::map_chr(.data$parameter, "param_units"),
+      parameter   = purrr::map_chr(.data$parameter, "harp_param"),
       accum_hours = as.numeric(.data$accum_hours)
     )
 
-# The next num_synop rows are the synop data
+  # The next num_synop rows are the synop data
   synop_data <- t(dplyr::bind_cols(vfld_data[synop_start_row:synop_end_row])) %>%
     tibble::as_tibble() %>%
     dplyr::mutate_all(as.numeric)
-  colnames(synop_data) <- c("SID", "lat", "lon", params$parameter)
+  colnames(synop_data) <- c("SID", "lat", "lon", params_synop$parameter)
   synop_data$SID <- as.integer(synop_data$SID)
 
-# Filter to stations and correct 2m temperature if required - this might not be the place to do this now
-# Shouold be taken care of in read_members_interpolate.
+  # Filter to stations and correct 2m temperature if required - this might not be the place to do this now
+  # Shouold be taken care of in read_members_interpolate.
 
   # no_sid_col <- FALSE
   # if (!is.null(stations)) {
@@ -106,26 +106,26 @@ read_vfld_interpolate <- function(
   #   synop_data <- dplyr::inner_join(synop_data, stations, by = "SID")
   # }
 
-### TEMP DATA
+  ### TEMP DATA
 
-# The following two rows are the temp metadata
+  # The following two rows are the temp metadata
   num_temp_levels <- as.numeric(vfld_data[[(synop_end_row + 1)]])
   num_param       <- as.numeric(vfld_data[[(synop_end_row + 2)]])
   temp_start_row  <- synop_end_row + 3 + num_param
 
-# The following num_param rows are parameter, accum_hours
-  params <- t(dplyr::bind_cols(vfld_data[(synop_end_row + 3):(temp_start_row - 1)])) %>%
+  # The following num_param rows are parameter, accum_hours
+  params_temp<- t(dplyr::bind_cols(vfld_data[(synop_end_row + 3):(temp_start_row - 1)])) %>%
     tibble::as.tibble()
-  colnames(params) <- c("parameter", "accum_hours")
-  params <- params %>%
+  colnames(params_temp) <- c("parameter", "accum_hours")
+  params_temp <- params_temp %>%
     dplyr::mutate(
       parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
-      units       = purrr::map_chr(parameter, "param_units"),
-      parameter   = purrr::map_chr(parameter, "harp_param"),
+      units       = purrr::map_chr(.data$parameter, "param_units"),
+      parameter   = purrr::map_chr(.data$parameter, "harp_param"),
       accum_hours = as.numeric(.data$accum_hours)
     )
 
-# Loop over the temp stations
+  # Loop over the temp stations
   temp_data <- list()
   if (num_temp < 1) {
 
@@ -148,7 +148,7 @@ read_vfld_interpolate <- function(
         )
       ) %>%
         tibble::as_tibble()
-      colnames(temp_values) <- params$parameter
+      colnames(temp_values) <- params_temp$parameter
 
       temp_data[[temp_station]] <- temp_data[[temp_station]] %>%
         dplyr::bind_cols(temp_values)
@@ -162,7 +162,7 @@ read_vfld_interpolate <- function(
 
   }
 
-# Filter to stations and correct 2m temperature if required
+  # Filter to stations and correct 2m temperature if required
 
   # if (!is.null(stations)) {
   #   if (!grepl("SID", colnames(stations))) {
@@ -220,7 +220,7 @@ read_vfld_interpolate <- function(
 
   }
 
-# Extract the synop parameters
+  # Extract the synop parameters
 
   if (length(synop_parameters) > 0) {
     synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname"))
@@ -235,7 +235,7 @@ read_vfld_interpolate <- function(
     synop_data <- empty_data
   }
 
-# Extract the temp parameters
+  # Extract the temp parameters
 
   if (length(temp_parameters) > 0) {
     p_level_elements <- which(purrr::map_chr(temp_parameters, "levelType") == "pressure")
@@ -274,11 +274,36 @@ read_vfld_interpolate <- function(
 
   }
 
-  dplyr::full_join(
+  vfld_data <- dplyr::full_join(
     synop_data,
     temp_data,
     by     = c("SID", "lead_time", "member"),
     suffix = c("", ".temp")
   )
 
- }
+  params <- dplyr::bind_rows(params_synop, params_temp) %>%
+    dplyr::select(-.data$accum_hours) %>%
+    dplyr::filter(.data$parameter != "p")
+
+  param_units <- tibble::tibble(
+    parameter = colnames(vfld_data)
+  )
+
+  special_cases <- c("T2m", "RH2m", "Td2m", "S10m", "G10m", "D10m", "N75", "Q2m")
+  unwanted_rows <- c("SID", "lead_time", "member", "lat", "lon", "lat.temp", "lon.temp")
+  param_units <- param_units %>%
+    dplyr::filter(!.data$parameter %in% unwanted_rows) %>%
+    dplyr::mutate(
+      param_basename = purrr::map_chr(purrr::map(.data$parameter, parse_harp_parameter), "basename"),
+      param_basename = dplyr::case_when(
+        grepl(".temp", .data$param_basename) ~ gsub(".temp", "", .data$param_basename),
+        .data$parameter %in% special_cases   ~ .data$parameter,
+        TRUE ~ param_basename
+      )
+    ) %>%
+    dplyr::full_join(dplyr::rename(params, param_basename = .data$parameter), by = "param_basename") %>%
+    dplyr::select(-.data$param_basename)
+
+  list(fcst_data = vfld_data, units = param_units)
+
+}

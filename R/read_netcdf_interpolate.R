@@ -170,11 +170,24 @@ read_netcdf_interpolate <- function(
     netcdf_data <- netcdf_data[[1]]
   }
 
-  dplyr::inner_join(
+  get_netcdf_units <- function(param, nc_id){
+    tibble::tibble(
+      parameter = param,
+      units     = ncdf4::ncatt_get(nc_id, get_netcdf_param_MET(param), "units")$value
+    )
+  }
+
+  netcdf_id   <- ncdf4::nc_open(file_name)
+  param_units <- purrr::map_dfr(parameter, get_netcdf_units, netcdf_id)
+  ncdf4::nc_close(netcdf_id)
+
+  ncdf_data <- dplyr::inner_join(
     stations,
     netcdf_data,
     by = "SID"
   ) %>%
     dplyr::select(-.data$elev, -.data$name)
+
+  list(fcst_data = ncdf_data, units = param_units)
 
 }

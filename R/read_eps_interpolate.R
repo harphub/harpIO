@@ -282,9 +282,13 @@ read_eps_interpolate <- function(
 
     # Remove empty rows and join the forecast data to the metadata
 
+    param_units <- purrr::map_dfr(forecast_data$forecast, "units") %>%
+      dplyr::distinct()
+
     message("Joining data.")
 
     forecast_data <- forecast_data %>%
+      dplyr::mutate(forecast = purrr::map(.data$forecast, "fcst_data")) %>%
       dplyr::filter(purrr::map_lgl(.data$forecast, ~ !is.null(.x)))
 
     forecast_data <- purrr::map2_df(
@@ -343,7 +347,8 @@ read_eps_interpolate <- function(
 
     forecast_data <- forecast_data %>%
       tidyr::gather(key = "parameter", value = "forecast", !!!gather_cols) %>%
-      tidyr::drop_na(.data$forecast)
+      tidyr::drop_na(.data$forecast) %>%
+      dplyr::left_join(param_units, by = "parameter")
 
     # If sqlite_path is passed write data to sqlite files
 
@@ -379,6 +384,8 @@ read_eps_interpolate <- function(
           .data$validdate,
           member   = paste(.data$sub_model, .data$members_out, sep = "_"),
           .data$forecast,
+          .data$parameter,
+          .data$units,
           .data$file_name
         ) %>%
         dplyr::group_by(.data$file_name) %>%
