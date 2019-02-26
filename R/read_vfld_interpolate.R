@@ -78,7 +78,9 @@ read_vfld_interpolate <- function(
   colnames(params) <- c("parameter", "accum_hours")
   params <- params %>%
     dplyr::mutate(
-      parameter   = purrr::map_chr(.data$parameter, parse_v_parameter_synop),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
+      units       = purrr::map_chr(parameter, "param_units"),
+      parameter   = purrr::map_chr(parameter, "harp_param"),
       accum_hours = as.numeric(.data$accum_hours)
     )
 
@@ -117,7 +119,9 @@ read_vfld_interpolate <- function(
   colnames(params) <- c("parameter", "accum_hours")
   params <- params %>%
     dplyr::mutate(
-      parameter   = purrr::map_chr(.data$parameter, parse_v_parameter_temp),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
+      units       = purrr::map_chr(parameter, "param_units"),
+      parameter   = purrr::map_chr(parameter, "harp_param"),
       accum_hours = as.numeric(.data$accum_hours)
     )
 
