@@ -5,10 +5,11 @@
 \title{Get filename(s) for meteorological data}
 \usage{
 get_filenames(file_path = "", file_date = Sys.Date(),
-  start_date = NULL, end_date = NULL, by = "6h", parameter = NULL,
-  det_model = NULL, eps_model = NULL, sub_model = NULL,
-  lead_time = seq(0, 48, 3), members = NA_character_,
-  file_template = "FCTABLE", filenames_only = TRUE)
+  start_date = NULL, end_date = NULL, by = "6h", lags = NULL,
+  parameter = NULL, det_model = NULL, eps_model = NULL,
+  sub_model = NULL, lead_time = seq(0, 48, 3),
+  members = NA_character_, file_template = "FCTABLE",
+  filenames_only = TRUE)
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -29,6 +30,12 @@ The format is the same as that for \code{file_date}.}
 followed by a letter, where the letter gives the units - may be d for days,
 h for hours or m for minutes.}
 
+\item{lags}{For reading files from a lagged forecast with members run at
+different times, the lag times are set here. The times are expressed as a
+character vector, with a number followed by a letter giving the units. The
+avialable units are d, h, m, s for days, hours, minutes and seconds. If
+\{MBRx\} is in the template, it must be the same length as \code{members}.}
+
 \item{parameter}{If \{parameter\} exists in the the template this must be
 specified.}
 
@@ -44,7 +51,8 @@ specified.}
 \item{lead_time}{The lead times to be included in the file names if \{LDTx\}
 is in the template. Given as a vector of numbers.}
 
-\item{members}{The members to be included in the file names of \{MBRx\} is in}
+\item{members}{The members to be included in the file names of \{MBRx\} is in
+the template}
 
 \item{file_template}{The file type to generate the template for. Can be
 "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",

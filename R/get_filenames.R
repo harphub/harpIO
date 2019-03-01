@@ -16,6 +16,11 @@
 #' @param by The frequecny of the date range. Should be a string of a number
 #'   followed by a letter, where the letter gives the units - may be d for days,
 #'   h for hours or m for minutes.
+#' @param lags For reading files from a lagged forecast with members run at
+#'   different times, the lag times are set here. The times are expressed as a
+#'   character vector, with a number followed by a letter giving the units. The
+#'   avialable units are d, h, m, s for days, hours, minutes and seconds. If
+#'   \{MBRx\} is in the template, it must be the same length as \code{members}.
 #' @param parameter If \{parameter\} exists in the the template this must be
 #'   specified.
 #' @param det_model If \{det_model\} exists in the the template this must be
@@ -27,6 +32,7 @@
 #' @param lead_time The lead times to be included in the file names if \{LDTx\}
 #'   is in the template. Given as a vector of numbers.
 #' @param members The members to be included in the file names of \{MBRx\} is in
+#'   the template
 #' @param file_template The file type to generate the template for. Can be
 #'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 #'   "harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
@@ -70,6 +76,7 @@ get_filenames <- function(
   start_date     = NULL,
   end_date       = NULL,
   by             = "6h",
+  lags           = NULL,
   parameter      = NULL,
   det_model      = NULL,
   eps_model      = NULL,
@@ -99,6 +106,38 @@ get_filenames <- function(
       NA_real_
     )
   }
+  units_multiplier_vec <- Vectorize(units_multiplier, USE.NAMES = FALSE)
+
+  template <- get_template(file_template)
+
+  lags_passed  <- FALSE
+  if (!is.null(lags)) {
+    lags_passed <- TRUE
+    if (stringr::str_detect(template, "\\{MBR")) {
+      if (any(is.na(members))) {
+        stop("If lags are given with {MBR*} in the file_template, members must also be passed.", call. = FALSE)
+      }
+      if (length(lags) != length(members)) {
+        stop(
+          paste(
+            "The number of lags should be the same as the number of members.",
+            paste("Number of lags:   ", length(lags)),
+            paste("Number of members:", length(members)),
+            sep = "\n"
+          ),
+          call. = FALSE
+        )
+      }
+    }
+    lags_seconds <- unique(readr::parse_number(lags) * units_multiplier_vec(lags))
+    if (any(is.na(lags_seconds))) {
+      stop(
+        "Lags must be expressed as a number followed by a unit\n",
+        "Available units are d, h, m, s for days, hours, minutes, seconds respectively.",
+        call. = FALSE
+      )
+    }
+  }
 
   if (grepl("_det", file_template)) {
     if (!is.null(eps_model) & is.null(det_model)) {
@@ -107,46 +146,59 @@ get_filenames <- function(
     }
   }
 
-  template <- get_template(file_template)
-
   if (is.null(start_date)) {
 
-    if (lubridate::is.Date(file_date)) file_date <- lubridate::as_datetime(file_date) %>%
-        lubridate::seconds() %>%
-        unix2YMDh()
-    file_dates <- add_zeros(file_date)
-    if (is.na(file_dates)) stop(paste0("Incorrect format for file_date : ", file_date))
+    if (lubridate::is.Date(file_date)) {
+      file_dates <- lubridate::as_datetime(file_date) %>%
+        lubridate::seconds()
+    } else {
+      file_dates <- str_datetime_to_unixtime(file_date)
+    }
 
   } else {
 
-    if (is.null(end_date)) stop ("end_date must be passed as well as start_date")
-    start_date <- add_zeros(start_date)
-    end_date   <- add_zeros(end_date)
-    by_secs    <- readr::parse_number(by) * units_multiplier(by)
-
-    if (is.na(by_secs)) stop("Unable to parse units. Use d, h, m or s. e.g. by = '6h'")
-
-    file_dates <- seq(YMDhm2unix(start_date), YMDhm2unix(end_date), by = by_secs) %>%
-      unix2YMDhm()
+    if (is.null(end_date)) {
+      stop ("end_date must be passed as well as start_date", call. = FALSE)
+    }
+    file_dates <- seq_dates(start_date, end_date, by = by) %>%
+      str_datetime_to_unixtime()
   }
 
-  file_dates <- tibble::tibble(
-    fcdate = as.numeric(file_dates),
-    YYYY   = file_dates %>% lubridate::ymd_hm() %>% lubridate::year(),
-    MM     = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% formatC(width = 2, flag = "0"),
-    DD     = file_dates %>% lubridate::ymd_hm() %>% lubridate::day() %>% formatC(width = 2, flag = "0"),
-    HH     = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% formatC(width = 2, flag = "0"),
-    mm     = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% formatC(width = 2, flag = "0"),
-    M      = file_dates %>% lubridate::ymd_hm() %>% lubridate::month() %>% as.character(),
-    D      = file_dates %>% lubridate::ymd_hm() %>% lubridate::day() %>% as.character(),
-    H      = file_dates %>% lubridate::ymd_hm() %>% lubridate::hour() %>% as.character(),
-    m      = file_dates %>% lubridate::ymd_hm() %>% lubridate::minute() %>% as.character()
+  if (lags_passed) {
+    lag_col <- sort(unique(lags))
+  } else {
+    lag_col <- "0s"
+  }
+  file_lags <- tibble::tibble(
+    lag         = lag_col,
+    lag_seconds = readr::parse_number(.data$lag) * units_multiplier_vec(.data$lag)
   )
+
+  file_dates <- file_lags %>%
+    dplyr::mutate(
+      lag    = readr::parse_number(.data$lag),
+      fcdate = list(file_dates)
+    ) %>%
+    tidyr::unnest()
+  file_dates <- file_dates %>%
+    dplyr::mutate(
+      fcdate = .data$fcdate - .data$lag_seconds,
+      YYYY   = unix2datetime(.data$fcdate) %>% lubridate::year(),
+      MM     = unix2datetime(.data$fcdate) %>% lubridate::month() %>% formatC(width = 2, flag = "0"),
+      DD     = unix2datetime(.data$fcdate) %>% lubridate::day() %>% formatC(width = 2, flag = "0"),
+      HH     = unix2datetime(.data$fcdate) %>% lubridate::hour() %>% formatC(width = 2, flag = "0"),
+      mm     = unix2datetime(.data$fcdate) %>% lubridate::minute() %>% formatC(width = 2, flag = "0"),
+      M      = unix2datetime(.data$fcdate) %>% lubridate::month() %>% as.character(),
+      D      = unix2datetime(.data$fcdate) %>% lubridate::day() %>% as.character(),
+      H      = unix2datetime(.data$fcdate) %>% lubridate::hour() %>% as.character(),
+      m      = unix2datetime(.data$fcdate) %>% lubridate::minute() %>% as.character(),
+      fcdate = unixtime_to_str_datetime(.data$fcdate, YMDhm)
+    )
 
   strings_in_template <- names(file_dates)[stringr::str_detect(template, paste0("\\{", names(file_dates), "\\}"))]
 
   file_dates <- file_dates %>%
-    dplyr::select(.data$fcdate, !! rlang::quo(strings_in_template)) %>%
+    dplyr::select(.data$fcdate, .data$lag, !! rlang::quo(strings_in_template)) %>%
     dplyr::distinct()
 
   files <- file_path %>%
@@ -188,15 +240,17 @@ get_filenames <- function(
   }
 
   if (stringr::str_detect(template, "\\{LDT")) {
-    files <- lead_time %>%
-      purrr::map( ~ cbind(files, LDT = as.character(.x), stringsAsFactors = FALSE)) %>%
-      dplyr::bind_rows() %>%
-      tibble::as_tibble() %>%
+    files <- files %>%
+      dplyr::mutate(LDT = list(lead_time)) %>%
+      tidyr::unnest() %>%
       dplyr::mutate(
+        LDT = .data$LDT + .data$lag,
         LDT2 = formatC(as.numeric(.data$LDT), width = 2, flag = "0"),
         LDT3 = formatC(as.numeric(.data$LDT), width = 3, flag = "0"),
-        LDT4 = formatC(as.numeric(.data$LDT), width = 4, flag = "0")
-      )
+        LDT4 = formatC(as.numeric(.data$LDT), width = 4, flag = "0"),
+        LDT  = as.character(LDT)
+      ) %>%
+      dplyr::filter(as.numeric(.data$LDT) >= 0)
   } else {
     files <- files %>%
       dplyr::mutate(
@@ -205,10 +259,14 @@ get_filenames <- function(
   }
 
   if (stringr::str_detect(template, "\\{MBR")) {
-    files <- members %>%
-      purrr::map( ~ cbind(files, MBR = as.character(.x), stringsAsFactors = FALSE)) %>%
-      dplyr::bind_rows() %>%
-      tibble::as_tibble() %>%
+    files <- files %>%
+      dplyr::mutate(
+        MBR = purrr::map(
+          .data$lag,
+          ~ members[readr::parse_number(lags) == .x]
+        )
+      ) %>%
+      tidyr::unnest() %>%
       dplyr::mutate(
         MBR2 = formatC(as.numeric(.data$MBR), width = 2, flag = "0"),
         MBR3 = formatC(as.numeric(.data$MBR), width = 3, flag = "0"),

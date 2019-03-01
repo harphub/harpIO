@@ -6,7 +6,7 @@
 \usage{
 read_eps_interpolate(start_date, end_date, eps_model, parameter,
   lead_time = seq(0, 48, 3), members_in = seq(0, 9),
-  members_out = members_in, by = "6h", file_path = "",
+  members_out = members_in, lags = NULL, by = "6h", file_path = "",
   file_format = "vfld", file_template = "vfld", stations = NULL,
   correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
   sqlite_path = NULL, return_data = FALSE, ...)
@@ -31,6 +31,14 @@ the vignette for more details.}
 
 \item{members_out}{The ouput member numbers. Must be the same form as
 members_in. If not passed, members_out is set to the same as members_in.}
+
+\item{lags}{For reading files from a lagged forecast with members run at
+different times, the lag times are set here. The times are expressed as a
+character vector, or a list of character vectors in the case of multi model
+ensembles, with a number followed by a letter giving the units. The
+avialable units are d, h, m, s for days, hours, minutes and seconds. The
+lags argument, if not set to NULL must have exactly the same dimensions as
+members_in.}
 
 \item{by}{The time between forecasts. Should be a string of a number followed
 by a letter, where the letter gives the units - may be d for days, h for

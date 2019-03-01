@@ -18,9 +18,17 @@ read_fctable <- function(
 
     message("Reading: ", db_file)
 
-    list_count <- list_count + 1
-
     fcst_db    <- DBI::dbConnect(RSQLite::SQLite(), db_file)
+
+    fcst_cols <- DBI::dbListFields(fcst_db, "FC")
+    if (is.element("parameter", fcst_cols)) {
+      meta_cols <- c(meta_cols, "parameter")
+    }
+    if (is.element("units", fcst_cols)) {
+      meta_cols <- c(meta_cols, "units")
+    }
+
+    list_count <- list_count + 1
 
     fcst       <- dplyr::tbl(fcst_db, "FC") %>%
       dplyr::filter(between(fcdate, start_date, end_date))
@@ -43,7 +51,6 @@ read_fctable <- function(
         ) %>%
           unlist()
       } else {
-        fcst_cols <- DBI::dbListFields(fcst_db, "FC")
         col_members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
         col_members <- fcst_cols[grep(paste(col_members, collapse = "|"), fcst_cols)]
       }

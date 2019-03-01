@@ -13,6 +13,13 @@
 #'   the vignette for more details.
 #' @param members_out The ouput member numbers. Must be the same form as
 #'   members_in. If not passed, members_out is set to the same as members_in.
+#' @param lags For reading files from a lagged forecast with members run at
+#'   different times, the lag times are set here. The times are expressed as a
+#'   character vector, or a list of character vectors in the case of multi model
+#'   ensembles, with a number followed by a letter giving the units. The
+#'   avialable units are d, h, m, s for days, hours, minutes and seconds. The
+#'   lags argument, if not set to NULL must have exactly the same dimensions as
+#'   members_in.
 #' @param by The time between forecasts. Should be a string of a number followed
 #'   by a letter, where the letter gives the units - may be d for days, h for
 #'   hours or m for minutes.
@@ -58,6 +65,7 @@ read_eps_interpolate <- function(
   lead_time      = seq(0, 48, 3),
   members_in     = seq(0,9),
   members_out    = members_in,
+  lags           = NULL,
   by             = "6h",
   file_path      = "",
   file_format    = "vfld",
@@ -69,9 +77,14 @@ read_eps_interpolate <- function(
   sqlite_path    = NULL,
   return_data    = FALSE,
   ...
-) {
+){
 
   # Sanity checks and organisation of members_in as a list
+
+  lags_passed <- !is.null(lags)
+  if (!lags_passed) {
+    lags <- list()
+  }
 
   if (is.list(eps_model)) {
 
@@ -84,11 +97,24 @@ read_eps_interpolate <- function(
           "For multimodel, members_in must be a list with the",
           "same names as in the eps_model argument.",
           sep = "\n  "
-        )
+        ),
+        call. = FALSE
+      )
+    }
+
+    if (lags_passed && !is.list(lags)) {
+      stop(
+        paste(
+          "If lags are desired, you must treat as multimodel",
+          "with the same names as in the eps_model argument",
+          sep = "\n"
+        ),
+        call. = FALSE
       )
     }
 
     for (eps in eps_models) {
+
       if (!identical(eps_model[[eps]], names(members_in[[eps]]))) {
         stop(
           paste(
@@ -96,23 +122,41 @@ read_eps_interpolate <- function(
             paste0("eps_model = ", eps, ": ", paste0(eps_model[[eps]], collapse = ", ")),
             paste0("members_in = ", eps, ": ", paste0(names(members_in[[eps]]), collapse = ", ")),
             sep = "\n  "
-          )
+          ),
+          call. = FALSE
         )
       }
-    }
 
-    for (eps in eps_models) {
       if (!identical(names(members_out[[eps]]), names(members_in[[eps]]))) {
         stop(
           paste(
             "Model names specified in members_out do not match those in members_in.",
-            paste0("members_in = ", eps, ": ", paste0(names(members_in[[eps]]), collapse = ", ")),
+            paste0("members_in  = ", eps, ": ", paste0(names(members_in[[eps]]), collapse = ", ")),
             paste0("members_out = ", eps, ": ", paste0(names(members_out[[eps]]), collapse = ", ")),
             sep = "\n "
-          )
+          ),
+          call. = FALSE
         )
       }
+
+      if (!lags_passed) {
+        lags[[eps]] <- list()
+      }
+
+      if (lags_passed && !identical(names(lags[[eps]]), names(members_in[[eps]]))) {
+        stop(
+          paste(
+            "Model names specified in lags do not match those in members_in.",
+            paste0("members_in = ", eps, ": ", paste0(names(members_in[[eps]]), collapse = ", ")),
+            paste0("lags       = ", eps, ": ", paste0(names(lags[[eps]]), collapse = ", ")),
+            sep = "\n "
+          ),
+          call. = FALSE
+        )
+      }
+
       for (sub_eps in names(members_in[[eps]])) {
+
         if (length(members_out[[eps]][[sub_eps]]) != length(members_in[[eps]][[sub_eps]])) {
           stop(
             paste(
@@ -120,16 +164,34 @@ read_eps_interpolate <- function(
               paste0("members_in = ", eps, ": ", sub_eps, ": ", length(members_in[[eps]][[sub_eps]]), " members"),
               paste0("members_out = ", eps, ": ", sub_eps, ": ", length(members_out[[eps]][[sub_eps]]), " members"),
               sep = "\n "
-            )
+            ),
+          call. = FALSE
           )
         }
+        if (lags_passed && length(lags[[eps]][[sub_eps]]) != length(members_in[[eps]][[sub_eps]])) {
+          stop(
+            paste(
+              "Number of members specified in lags is not the same as in members_in.",
+              paste0("members_in = ", eps, ": ", sub_eps, ": ", length(members_in[[eps]][[sub_eps]]), " members"),
+              paste0("lags       = ", eps, ": ", sub_eps, ": ", length(lags[[eps]][[sub_eps]]), " members"),
+              sep = "\n "
+            ),
+          call. = FALSE
+          )
+        }
+
+        if (!lags_passed) {
+          lags[[eps]][[sub_eps]] <- rep(0, length(members_in[[eps]][[sub_eps]]))
+        }
+
       }
-    }
+
+    } # end loop over eps_models
 
   } else {
 
-    multimodel <- FALSE
-    eps_models <- eps_model
+    multimodel  <- FALSE
+    eps_models  <- eps_model
 
     if (length(eps_models) > 1) {
 
@@ -144,22 +206,29 @@ read_eps_interpolate <- function(
             "be passed as a named list with the names as those specified",
             "in eps_model",
             sep = "\n  "
-          )
+          ),
+          call. = FALSE
         )
       }
 
     } else {
 
       if (!is.list(members_in)) {
-        members_temp <- list()
+        members_temp               <- list()
         members_temp[[eps_models]] <- members_in
-        members_in <- members_temp
+        members_in                 <- members_temp
       }
       if (!is.list(members_out)) {
-        members_temp <- list()
+        members_temp               <- list()
         members_temp[[eps_models]] <- members_out
-        members_out <- members_temp
+        members_out                <- members_temp
       }
+      if (lags_passed && !is.list(lags)) {
+        lags_temp              <- list()
+        lags_temp[[eps_model]] <- lags
+        lags                   <- lags_temp
+      }
+
       if (!identical(eps_models, names(members_in)) | !identical(eps_models, names(members_out))) {
         stop(
           paste(
@@ -167,32 +236,64 @@ read_eps_interpolate <- function(
             "name in the list for members_in must match that specified",
             "in eps_model.",
             sep = "\n  "
-          )
+          ),
+          call. = FALSE
+        )
+      }
+
+      if (lags_passed && !identical(eps_models, names(lags)))  {
+        stop(
+          paste(
+            "If specifying lags as a named list for a single eps, the",
+            "name in the list for lags must match that specified",
+            "in eps_model.",
+            sep = "\n  "
+          ),
+          call. = FALSE
         )
       }
 
     }
 
-    members_in_temp <- list()
+    members_in_temp  <- list()
     members_out_temp <- list()
+    lags_temp        <- list()
     for (eps in eps_models) {
       if (length(members_out[[eps]]) != length(members_in[[eps]])) {
         stop(
           paste(
             "Number of members specified in members_out is not the same as in members_in.",
-            paste0("members_in = ", eps, ": ", length(members_in[[eps]]), " members"),
+            paste0("members_in  = ", eps, ": ", length(members_in[[eps]]), " members"),
             paste0("members_out = ", eps, ": ", length(members_out[[eps]]), " members"),
             sep = "\n "
-          )
+          ),
+          call. = FALSE
+        )
+      }
+      if (!lags_passed) {
+        lags[[eps]] <- rep(0, length(members_in[[eps]]))
+      }
+      if (length(lags[[eps]]) != length(members_in[[eps]])) {
+        stop(
+          paste(
+            "Number of members specified in lags is not the same as in members_in.",
+            paste0("members_in = ", eps, ": ", length(members_in[[eps]]), " members"),
+            paste0("lags       = ", eps, ": ", length(lags[[eps]]), " members"),
+            sep = "\n "
+          ),
+          call. = FALSE
         )
       }
       members_in_temp[[eps]]         <- list()
       members_out_temp[[eps]]        <- list()
+      lags_temp[[eps]]               <- list()
       members_in_temp[[eps]][[eps]]  <- members_in[[eps]]
       members_out_temp[[eps]][[eps]] <- members_out[[eps]]
+      lags_temp[[eps]][[eps]]        <- lags[[eps]]
     }
     members_in  <- members_in_temp
     members_out <- members_out_temp
+    lags        <- lags_temp
 
   } # end of input checks
 
@@ -206,7 +307,8 @@ read_eps_interpolate <- function(
     dplyr::mutate(sub_model = purrr::map(members_in, names)) %>%
     dplyr::mutate(
       member      = purrr::modify_depth(members_in, 2, `[`),
-      members_out = purrr::modify_depth(members_out, 2, `[`)
+      members_out = purrr::modify_depth(members_out, 2, `[`),
+      lag         = purrr::modify_depth(lags, 2, `[`)
     ) %>%
     tidyr::unnest()
 
@@ -230,12 +332,13 @@ read_eps_interpolate <- function(
     data_files <- members_in %>%
       dplyr::transmute(
         file_names = purrr::pmap(
-          list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member),
-          function(eps_model, sub_model, members) get_filenames(
+          list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member, lags = .data$lag),
+          function(eps_model, sub_model, members, lags) get_filenames(
             file_path      = file_path,
             start_date     = fcst_date,
             end_date       = fcst_date,
             by             = by,
+            lags           = lags,
             parameter      = parameter,
             eps_model      = eps_model,
             sub_model      = sub_model,
@@ -311,7 +414,8 @@ read_eps_interpolate <- function(
         -dplyr::contains("lat"),
         -dplyr::contains("lon"),
         -dplyr::contains("member"),
-        -dplyr::contains("SID")
+        -dplyr::contains("SID"),
+        -dplyr::contains("lag")
       ) %>%
       colnames()
     gather_cols <- rlang::syms(sqlite_params)

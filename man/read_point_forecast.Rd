@@ -5,8 +5,9 @@
 \title{Read point forecasts from FCTABLE files}
 \usage{
 read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
-  lead_time = seq(0, 48, 3), by = "1d", file_path = ".",
-  stations = NULL, members = NULL, accumulate = TRUE)
+  lead_time = seq(0, 48, 3), lags = "0s", by = "1d",
+  file_path = ".", drop_any_na = TRUE, stations = NULL,
+  members = NULL, accumulate = TRUE)
 }
 \arguments{
 \item{start_date}{Start date to read from. Should be numeric or character.
@@ -26,12 +27,24 @@ construct the filename, and in accumumlating precipitation.}
 \item{lead_time}{The lead times to be retrieved. Can be used to construct the
 file names and to set which lead times are retrieved.}
 
+\item{lags}{The lags that are used when the forecast is run. If, for example,
+the FCTABLE files are constructed from lagged model runs the lags must be
+given here to ensure that the correct file names are generated. If,
+however, you simply want to add lagged members to a forecast, you should do
+that using \link[harpPoint]{lag_members}.}
+
 \item{by}{Used in constructing the file names. A string of a number followed
 by a letter, where the letter can be "d" for days, "h" for hours, "m" for
 minutes and "s" for seconds. Should be set to the fastest varying time
 dimension in the desired file names.}
 
 \item{file_path}{The path to the data.}
+
+\item{drop_any_na}{Set to TRUE (the default) to remove all cases where there
+is at least one missing value. This ensures that when you come to analyse a
+forecast, only those forecasts with a full set of ensmeble members / data
+are read in. For reading lagged ensembles, this is automatically set to
+FALSE.}
 
 \item{stations}{The stations to retrieve forecasts for. This should be a
 vector of station ID numbers. Set to NULL to retrieve all stations.}

@@ -18,11 +18,21 @@
 #'   construct the filename, and in accumumlating precipitation.
 #' @param lead_time The lead times to be retrieved. Can be used to construct the
 #'   file names and to set which lead times are retrieved.
+#' @param lags The lags that are used when the forecast is run. If, for example,
+#'   the FCTABLE files are constructed from lagged model runs the lags must be
+#'   given here to ensure that the correct file names are generated. If,
+#'   however, you simply want to add lagged members to a forecast, you should do
+#'   that using \link[harpPoint]{lag_members}.
 #' @param by Used in constructing the file names. A string of a number followed
 #'   by a letter, where the letter can be "d" for days, "h" for hours, "m" for
 #'   minutes and "s" for seconds. Should be set to the fastest varying time
 #'   dimension in the desired file names.
 #' @param file_path The path to the data.
+#' @param drop_any_na Set to TRUE (the default) to remove all cases where there
+#'   is at least one missing value. This ensures that when you come to analyse a
+#'   forecast, only those forecasts with a full set of ensmeble members / data
+#'   are read in. For reading lagged ensembles, this is automatically set to
+#'   FALSE.
 #' @param stations The stations to retrieve forecasts for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #' @param members The members to retrieve if reading an EPS forecast. Normally a
@@ -51,8 +61,10 @@ read_point_forecast <- function(
   fcst_type,
   parameter,
   lead_time     = seq(0, 48, 3),
+  lags          = "0s",
   by            = "1d",
   file_path     = ".",
+  drop_any_na   = TRUE,
   stations      = NULL,
   members       = NULL,
   accumulate    = TRUE
@@ -79,6 +91,18 @@ read_point_forecast <- function(
     stop("Unknown fcst_type argument: ", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
   }
 
+  if (any(readr::parse_number(lags) != 0)) {
+    lags_passed <- TRUE
+  } else {
+    lags_passed <- FALSE
+  }
+
+  if (drop_any_na && !lags_passed) {
+    drop_function <- dplyr::all_vars(!is.na(.))
+  } else {
+    drop_function <- dplyr::any_vars(!is.na(.))
+  }
+
   parameter  <- parse_harp_parameter(parameter)
   param_name <- parameter$fullname
   if (parameter$accum > 0 && accumulate) {
@@ -101,6 +125,7 @@ read_point_forecast <- function(
       start_date    = start_date,
       end_date      = end_date,
       by            = by,
+      lags          = lags,
       parameter     = param_name,
       eps_model     = .x,
       lead_time     = lead_time,
@@ -148,7 +173,7 @@ read_point_forecast <- function(
     members   = members
   )
 
-  fcst <- purrr::map(fcst, tidyr::drop_na)
+  fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 
   if (parameter$accum > 0 && accumulate) {
 
@@ -178,6 +203,7 @@ read_point_forecast <- function(
           start_date    = start_date,
           end_date      = end_date,
           by            = by,
+          lags          = lags,
           parameter     = param_name,
           eps_model     = .x,
           lead_time     = .y,
@@ -196,7 +222,7 @@ read_point_forecast <- function(
           stations  = stations,
           members   = members
         )
-      ) %>% purrr::map(tidyr::drop_na)
+      ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 
       fcst       <- purrr::map2(fcst, fcst_lead_time_accum, dplyr::bind_rows)
       fcst_accum <- purrr::map(
