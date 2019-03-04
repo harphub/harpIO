@@ -91,7 +91,7 @@ read_point_forecast <- function(
     stop("Unknown fcst_type argument: ", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
   }
 
-  if (any(readr::parse_number(lags) != 0)) {
+  if (any(readr::parse_number(unlist(lags)) != 0)) {
     lags_passed <- TRUE
   } else {
     lags_passed <- FALSE
@@ -118,14 +118,32 @@ read_point_forecast <- function(
     )
   }
 
-  file_names <- purrr::map(
-    fcst_model,
+  if (is.list(lags)) {
+    if (length(lags) != length(fcst_model)) {
+      stop("lags must be a list of the same length as fcst_model.", call. = FALSE)
+    }
+  } else {
+    if (length(fcst_model) > 1) {
+      if (lags == "0s") {
+        lags <- as.list(rep("0s", length(fcst_model)))
+      } else {
+        stop("lags must be passed as a list of the same length as fcst_model.", call. = FALSE)
+      }
+    } else {
+      lags <- list(lags)
+    }
+  }
+
+  lag_table <- purrr::map2_dfr(fcst_model, lags, ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE))
+  file_names <- purrr::map2(
+    lag_table$fcst_model,
+    lag_table$lag,
     ~ get_filenames(
       file_path     = file_path,
       start_date    = start_date,
       end_date      = end_date,
       by            = by,
-      lags          = lags,
+      lags          = .y,
       parameter     = param_name,
       eps_model     = .x,
       lead_time     = lead_time,
@@ -137,12 +155,15 @@ read_point_forecast <- function(
     file_names,
     ~ { if (length(.x[!file.exists(.x)]) < 1) { "none" } else { .x[!file.exists(.x)] } }
   ) %>%
-    rlang::set_names(fcst_model)
+    rlang::set_names(lag_table$fcst_model) %>%
+    merge_names()
 
   available_files <- purrr::map(
     file_names,
     ~ .x[file.exists(.x)]
-  )
+  ) %>%
+    rlang::set_names(lag_table$fcst_model) %>%
+    merge_names()
 
   check_for_missing <- purrr::flatten_chr(missing_files)
   if (any(check_for_missing != "none")) {
@@ -203,7 +224,7 @@ read_point_forecast <- function(
           start_date    = start_date,
           end_date      = end_date,
           by            = by,
-          lags          = lags,
+          lags          = "0s",
           parameter     = param_name,
           eps_model     = .x,
           lead_time     = .y,
@@ -281,4 +302,15 @@ parse_accum <- function(prm) {
     "m" = prm$accum / 60,
     prm$accum
   )
+}
+
+merge_names <- function(x) {
+  names_x <- unique(names(x))
+  y       <- list()
+  for (element_x in names_x) {
+    x              <- unlist(x)
+    x_name         <- gsub("[[:digit:]]", "", names(x), perl = TRUE)
+    y[[element_x]] <- unname(x[x_name == element_x])
+  }
+  y
 }
