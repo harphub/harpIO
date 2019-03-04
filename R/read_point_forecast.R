@@ -161,9 +161,7 @@ read_point_forecast <- function(
   available_files <- purrr::map(
     file_names,
     ~ .x[file.exists(.x)]
-  ) %>%
-    rlang::set_names(lag_table$fcst_model) %>%
-    merge_names()
+  )
 
   check_for_missing <- purrr::flatten_chr(missing_files)
   if (any(check_for_missing != "none")) {
@@ -184,14 +182,17 @@ read_point_forecast <- function(
     stop("No forecast files found for ", paste(model_with_no_files, collapse = ", "), call. = FALSE)
   }
 
-  fcst <- purrr::map(
+  fcst <- purrr::map2(
     available_files,
-    read_fctable,
-    suppressMessages(str_datetime_to_unixtime(start_date)),
-    suppressMessages(str_datetime_to_unixtime(end_date)),
-    lead_time = lead_time,
-    stations  = stations,
-    members   = members
+    readr::parse_number(lag_table$lag),
+    ~ read_fctable(
+      .x,
+      suppressMessages(str_datetime_to_unixtime(start_date)),
+      suppressMessages(str_datetime_to_unixtime(end_date)),
+      lead_time = lead_time + .y,
+      stations  = stations,
+      members   = members
+    )
   )
 
   fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
@@ -287,7 +288,7 @@ read_point_forecast <- function(
   }
 
   fcst <- purrr::map(fcst, split_sub_models, member_regexp) %>%
-    rlang::set_names(fcst_model)
+    merge_names_df(lag_table$fcst_model)
 
   attr(fcst, "missing_files") <- missing_files
   class(fcst) <- "harp_fcst"
@@ -313,4 +314,14 @@ merge_names <- function(x) {
     y[[element_x]] <- unname(x[x_name == element_x])
   }
   y
+}
+
+merge_names_df <- function(df_list, df_names) {
+  names(df_list) <- df_names
+  merged <- list()
+  for (df_name in unique(df_names)) {
+    df_elements <- which(df_names == df_name)
+    merged[[df_name]] <- dplyr::bind_rows(df_list[df_elements])
+  }
+  merged
 }
