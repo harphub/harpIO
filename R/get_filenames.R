@@ -96,16 +96,6 @@ get_filenames <- function(
     )
   }
 
-  units_multiplier <- function(x) {
-    time_units <- stringr::str_extract(tolower(x), "[a-z]+")
-    switch(time_units,
-      "d" = 60 * 60 * 24,
-      "h" = 60 * 60,
-      "m" = 60,
-      "s" = 1,
-      NA_real_
-    )
-  }
   units_multiplier_vec <- Vectorize(units_multiplier, USE.NAMES = FALSE)
 
   template <- get_template(file_template)
@@ -320,3 +310,15 @@ get_filenames <- function(
   }
 
 }
+
+units_multiplier <- function(x) {
+  time_units <- stringr::str_extract(tolower(x), "[a-z]+")
+  switch(time_units,
+    "d" = 60 * 60 * 24,
+    "h" = 60 * 60,
+    "m" = 60,
+    "s" = 1,
+    NA_real_
+  )
+}
+

@@ -184,12 +184,12 @@ read_point_forecast <- function(
 
   fcst <- purrr::map2(
     available_files,
-    readr::parse_number(lag_table$lag),
+    lag_table$lag,
     ~ read_fctable(
       .x,
-      suppressMessages(str_datetime_to_unixtime(start_date)),
+      suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
       suppressMessages(str_datetime_to_unixtime(end_date)),
-      lead_time = lead_time + .y,
+      lead_time = lead_time + readr::parse_number(.y),
       stations  = stations,
       members   = members
     )
@@ -320,7 +320,7 @@ merge_names_df <- function(df_list, df_names) {
   names(df_list) <- df_names
   merged <- list()
   for (df_name in unique(df_names)) {
-    df_elements <- which(df_names == df_name)
+    df_elements       <- which(df_names == df_name)
     merged[[df_name]] <- dplyr::bind_rows(df_list[df_elements])
   }
   merged
