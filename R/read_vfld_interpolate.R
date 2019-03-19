@@ -223,7 +223,8 @@ read_vfld_interpolate <- function(
   # Extract the synop parameters
 
   if (length(synop_parameters) > 0) {
-    synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname"))
+    synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname")) %>%
+      intersect(colnames(synop_data))
     param_cols_out  <- rlang::syms(synop_parameter)
     synop_data      <- synop_data %>%
       dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%

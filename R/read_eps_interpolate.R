@@ -271,7 +271,7 @@ read_eps_interpolate <- function(
         )
       }
       if (!lags_passed) {
-        lags[[eps]] <- rep(0, length(members_in[[eps]]))
+        lags[[eps]] <- rep("0s", length(members_in[[eps]]))
       }
       if (length(lags[[eps]]) != length(members_in[[eps]])) {
         stop(
