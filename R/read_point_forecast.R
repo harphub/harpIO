@@ -213,42 +213,49 @@ read_point_forecast <- function(
     # accumulate_forecast returns a vector of missing lead times rather than data if some lead times
     # to compute an accumlation are missing.
 
+
     if (any(purrr::map_lgl(fcst_accum, is.numeric))) {
       lead_time_accum <- fcst_accum
+      unread_leads <- which(purrr::map_lgl(fcst_accum, is.numeric))
 
-
-      file_names <- purrr::map2(
-        fcst_model,
-        lead_time_accum,
+      file_names <- purrr::pmap(
+        list(
+          lag_table$fcst_model[unread_leads],
+          lag_table$lag[unread_leads],
+          lead_time_accum[unread_leads]
+        ),
         ~ get_filenames(
           file_path     = file_path,
           start_date    = start_date,
           end_date      = end_date,
           by            = by,
-          lags          = "0s",
+          lags          = .y,
           parameter     = param_name,
           eps_model     = .x,
-          lead_time     = .y,
+          lead_time     = ..3 - readr::parse_number(.y),
           file_template = file_template
         )
       )
 
-      fcst_lead_time_accum <- purrr::map2(
-        purrr::map(file_names, ~ .x[file.exists(.x)]),
-        lead_time_accum,
+      fcst_lead_time_accum <- purrr::pmap(
+        list(
+          purrr::map(file_names, ~ .x[file.exists(.x)]),
+          lag_table$lag[unread_leads],
+          lead_time_accum[unread_leads]
+        ),
         ~ read_fctable(
           .x,
-          suppressMessages(str_datetime_to_unixtime(start_date)),
+          suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
           suppressMessages(str_datetime_to_unixtime(end_date)),
-          lead_time = .y,
+          lead_time = ..3,
           stations  = stations,
           members   = members
         )
       ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 
-      fcst       <- purrr::map2(fcst, fcst_lead_time_accum, dplyr::bind_rows)
-      fcst_accum <- purrr::map(
-        fcst,
+      fcst[unread_leads]       <- purrr::map2(fcst[unread_leads], fcst_lead_time_accum, dplyr::bind_rows)
+      fcst_accum[unread_leads] <- purrr::map(
+        fcst[unread_leads],
         ~ accumulate_forecast(
           tidyr::gather(.x, dplyr::contains(fcst_suffix), key = "member", value = "forecast"),
           accum,
