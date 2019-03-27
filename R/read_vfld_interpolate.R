@@ -11,8 +11,9 @@
 #' @param lead_time Value to fill the lead_time column with in the output
 #'   tibble.
 #' @param members Value to fill the member column with in the output tibble.
-#' @param stations A data frame of stations to filter to. Must contain a column
-#'   named SID.
+#' @param init All initialisation data. For vfld, a list containing only a
+#'        data frame of stations to filter to. Must contain a column
+#'        named SID. Currently not used.
 #' @param ... Absorb arguments for other read_*_interpolate functions.
 #'
 #' @return A data frame with columns SID, lat, lon, model_elevation, and a
@@ -40,7 +41,7 @@ read_vfld_interpolate <- function(
   parameter   = NULL,
   lead_time   = NA_real_,
   members     = NA_character_,
-  stations    = NULL,
+  init        = list(),
   ...
 ) {
 
@@ -92,18 +93,18 @@ read_vfld_interpolate <- function(
   synop_data$SID <- as.integer(synop_data$SID)
 
   # Filter to stations and correct 2m temperature if required - this might not be the place to do this now
-  # Shouold be taken care of in read_members_interpolate.
+  # Should be taken care of in read_members_interpolate.
 
   # no_sid_col <- FALSE
-  # if (!is.null(stations)) {
-  #   if (!grepl("SID", colnames(stations))) {
+  # if (!is.null(init$stations)) {
+  #   if (!grepl("SID", colnames(init$stations))) {
   #     cat(
   #       "No SID column found in stations data frame. \n",
   #       "All stations will be kept."
   #     )
   #     no_sid_col <- TRUE
   #   }
-  #   synop_data <- dplyr::inner_join(synop_data, stations, by = "SID")
+  #   synop_data <- dplyr::inner_join(synop_data, init$stations, by = "SID")
   # }
 
   ### TEMP DATA

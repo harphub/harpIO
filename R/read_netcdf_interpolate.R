@@ -10,7 +10,8 @@
 #'   parameters are the names used in the netcdf files.
 #' @param lead_time The lead times to read (in hours).
 #' @param members The ensemble members to read.
-#' @param stations The stations to interpolate to. By default all of the
+#' @param init A list, currently containing only the stations to interpolate to.
+#'   By default all of the
 #'   stations from \link[harpIO]{station_list} that are inside the domain are
 #'   used.
 #' @param is_ensemble Logical - whether the file contains ensemble data. The
@@ -26,7 +27,7 @@ read_netcdf_interpolate <- function(
   parameter   = NULL,
   lead_time   = NA_real_,
   members     = NA_character_,
-  stations    = NULL,
+  init        = list(),
   is_ensemble = FALSE,
   ...
 ) {
@@ -64,6 +65,7 @@ read_netcdf_interpolate <- function(
   }
   lead_time <- unique(lead_time)
 
+  stations <- init$stations
   if (is.null(stations)) {
     warning("No stations specified for interpolating to. Default station list used.", call. = FALSE)
     stations <- station_list

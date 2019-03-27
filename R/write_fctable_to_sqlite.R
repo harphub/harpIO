@@ -35,6 +35,9 @@ write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_ke
   dbquery(sqlite_db, "PRAGMA synchronous = NORMAL")
 
   if (newfile) {
+    ## AD: this is dangerous: WAL does not work on network FS's like NFS, Lustre
+    ##     so for instance ecgate:/scratch is a problem
+
     dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
     dbquery(
       sqlite_db,

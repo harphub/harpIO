@@ -17,8 +17,7 @@
 #' get_grib_param_info("rh32h")
 #'
 get_grib_param_info <- function(param) {
-#  if (!is.harp_param(param)) param <- parse_harp_param(param)
-  if (!is.list(param)) param <- parse_harp_param(param)
+  if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
 
   levtype <- switch(param$levelType,
                     "height"   = 105,
@@ -52,24 +51,28 @@ get_grib_param_info <- function(param) {
       level_type   <-  levtype
       level_number <-  level
     },
+    "tcc"      =,
     "cctot"    = {
       short_name   <-  "tcc"
       param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
+    "hcc"      =,
     "cchigh"   = {
       short_name   <-  "hcc"
       param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
+    "mcc"      =,
     "ccmed"    = {
       short_name   <-  "mcc"
       param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
+    "lcc"      =,
     "cclow"    = {
       short_name   <-  "lcc"
       param_number <-  71
@@ -102,6 +105,7 @@ get_grib_param_info <- function(param) {
       level_type   <-  levtype
       level_number <-  level
     },
+    "mslp"     = ,
     "pmsl"     = {
       short_name   <-  "msl"
       param_number <-  1

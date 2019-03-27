@@ -32,7 +32,7 @@ dbclear <- function(db) {
 
 #  if (packageVersion('RSQLite')<'1.0.0') {for(i in dbListResults(db)) dbClearResult(i)}
 #  else for (i in dbListResults(db)) {if (dbIsValid(i)) dbClearResult(i)}
-  cat("warning: you shoudln't call dbclear anymore.")
+  cat("warning: you shouldn't call dbclear anymore.")
 }
 
 dbclose <- function(db) {
@@ -101,13 +101,15 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
     stop("FATAL DBFAILURE: Unable to acquire lock.")
   }
 
-### second stage (commit) will fail if another process is accessing the db (even just for reading)
+### second stage (commit) will fail if another process
+### is accessing the db (even just for reading)
   commitOK <- FALSE
   count <- 1
   while (!commitOK & count<=maxtry){
    DBI::dbClearResult(tryOK1)
     tryOK2 <- tryCatch(DBI::dbCommit(conn),
-                      error=function(e) {print(e);return(e)})  ### commit needs an EXCLUSIVE lock
+                      error=function(e) {print(e);return(e)})
+    ### commit needs an EXCLUSIVE lock
     if (inherits(tryOK2,"error")) {
       print(paste("FAILURE commit",count,"/",maxtry))
       print(tryOK2$message)

@@ -15,7 +15,7 @@
 #' @param data The location of the data
 #' @param meta If TRUE, also read all meta data (domain, time properties).
 #'
-#' @return A geofield object (if meta is TRUE) or a plain matrix. 
+#' @return A geofield object (if meta is TRUE) or a plain matrix.
 #' @export
 read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE) {
   if (!requireNamespace("h5", quietly=TRUE)) {
@@ -153,8 +153,10 @@ read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE) {
       else obsname <- sprintf("%is Accumulated precipitation", accum)
     }
     # turn the data into a geofield object
-    zz <- meteogrid::as.geofield(zz, domain=domain, time=gftime,
-      info=list(name=obsname, origin=basename(fName), accum=accum))
+    zz <- meteogrid::as.geofield(zz, domain=domain,
+                                 info=list(name=obsname, origin=basename(fName),
+                                           accum=accum,
+                                           time=list(basedate=edate, accum=accum)))
   }
   # close file
   h5::h5close(ff)
