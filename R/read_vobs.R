@@ -51,8 +51,12 @@ read_vobs <- function(file_name, missing_value = -99, ...) {
   colnames(params) <- c("parameter", "accum_hours")
   params <- params %>%
     dplyr::mutate(
-      parameter   = purrr::map_chr(.data$parameter, parse_v_parameter_synop),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
       accum_hours = as.numeric(.data$accum_hours)
+    ) %>%
+    dplyr::mutate(
+      units     = purrr::map_chr(.data$parameter, "param_units"),
+      parameter = purrr::map_chr(.data$parameter, "harp_param")
     )
 # In vobs PE can stupidly be 12h precipitation so is converted to Pcp - go figure!
   params <- params %>%
@@ -89,8 +93,12 @@ read_vobs <- function(file_name, missing_value = -99, ...) {
   colnames(params) <- c("parameter", "accum_hours")
   params <- params %>%
     dplyr::mutate(
-      parameter   = purrr::map_chr(.data$parameter, parse_v_parameter_temp),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
       accum_hours = as.numeric(.data$accum_hours)
+    ) %>%
+    dplyr::mutate(
+      units     = purrr::map_chr(.data$parameter, "param_units"),
+      parameter = purrr::map_chr(.data$parameter, "harp_param")
     )
 
 # Loop over the temp stations
