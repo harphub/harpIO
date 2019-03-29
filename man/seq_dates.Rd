@@ -8,10 +8,10 @@ seq_dates(start_date = NULL, end_date = NULL, by = "3h")
 }
 \arguments{
 \item{start_date}{Start date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.}
+string or numeric. Or a POSIXct (datetime).}
 
 \item{end_date}{End date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.}
+string or numeric. Or a POSIXct (datetime).}
 
 \item{by}{Increment of the sequence. Should be a string of a number followed
 by a letter, where the letter gives the units - may be d for days, h for

@@ -38,7 +38,7 @@ A list containing: \cr \code{model_data}: The 3d field (the 3rd
   full path to the forecast files.
 }
 \description{
-\code{read_members} reads all esemble members from a forecast file for a
+\code{read_members} reads all ensemble members from a forecast file for a
 single lead time. It is possible to read from grib or netcdf files via the
 helper functions. It is assumed that grib files only contain one member and
 ntcdf files contain all members.

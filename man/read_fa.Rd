@@ -4,11 +4,15 @@
 \alias{read_fa}
 \title{Read a field from an FA file}
 \usage{
-read_fa(infile, parameter, meta = TRUE, fa_type = "alaro",
-  fa_vector = FALSE, ...)
+read_fa(filename, parameter, meta = TRUE, fa_type = "arome",
+  fa_vector = TRUE, ...)
 }
 \arguments{
-\item{parameter}{The parameter to read. Standard HARP names are used.}
+\item{filename}{The FA file name. "file@arch" signifies a file inside a tar archive.
+It may also be a \code{FAfile} object.}
+
+\item{parameter}{The parameter to read. Standard HARP names are used, but full FA field names will also
+work.}
 
 \item{meta}{If TRUE, also read all meta data (domain, time properties).}
 
@@ -16,12 +20,10 @@ read_fa(infile, parameter, meta = TRUE, fa_type = "alaro",
 
 \item{fa_vector}{TRUE if the wind variable (speed, direction) must be calculated from components}
 
-\item{...}{Arguments for \code{Rfa::FAdec}}
-
-\item{filename}{The FA file name.}
+\item{...}{Ignored}
 }
 \value{
-A geofield object with 2d array and projection information
+A 2d geofield object (2d array with projection information)
 }
 \description{
 Read a field from an FA file

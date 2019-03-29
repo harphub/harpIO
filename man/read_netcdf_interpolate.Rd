@@ -5,7 +5,7 @@
 \title{Read a netcdf file and interpolate to stations.}
 \usage{
 read_netcdf_interpolate(file_name, parameter = NULL,
-  lead_time = NA_real_, members = NA_character_, stations = NULL,
+  lead_time = NA_real_, members = NA_character_, init = list(),
   is_ensemble = FALSE, ...)
 }
 \arguments{
@@ -18,7 +18,8 @@ parameters are the names used in the netcdf files.}
 
 \item{members}{The ensemble members to read.}
 
-\item{stations}{The stations to interpolate to. By default all of the
+\item{init}{A list, currently containing only the stations to interpolate to.
+By default all of the
 stations from \link[harpIO]{station_list} that are inside the domain are
 used.}
 

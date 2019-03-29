@@ -14,10 +14,10 @@
 #' @param filename The hdf5 file name.
 #' @param data The location of the data
 #' @param meta If TRUE, also read all meta data (domain, time properties).
-#'
+#' @param ... Ignored
 #' @return A geofield object (if meta is TRUE) or a plain matrix.
 #' @export
-read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE) {
+read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE, ...) {
   if (!requireNamespace("h5", quietly=TRUE)) {
     stop("The h5 package is not installed!", "Please install from CRAN.")
   }
