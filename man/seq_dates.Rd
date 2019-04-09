@@ -4,7 +4,7 @@
 \alias{seq_dates}
 \title{Generate a sequence of dates}
 \usage{
-seq_dates(start_date = NULL, end_date = NULL, by = "3h")
+seq_dates(start_date, end_date, by = "1h")
 }
 \arguments{
 \item{start_date}{Start date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
@@ -15,7 +15,7 @@ string or numeric.}
 
 \item{by}{Increment of the sequence. Should be a string of a number followed
 by a letter, where the letter gives the units - may be d for days, h for
-hours or m for minutes.}
+hours or m for minutes. The default is '1h'.}
 }
 \value{
 A sequence of date-times in YYYYMMDDhhmm format
@@ -24,7 +24,6 @@ A sequence of date-times in YYYYMMDDhhmm format
 Generate a sequence of dates
 }
 \examples{
-seq_dates()
 seq_dates(20170101, 20170131, by = "1d")
 seq_dates(201701010600, 201701051200)
 }
