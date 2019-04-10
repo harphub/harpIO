@@ -9,7 +9,6 @@
 #' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
 #' @param ... Ignored
 #' @return A 2d geofield object (2d array with projection information)
-#' @export
 #'
 #' @examples
 #' model_geofield <- read_fa(file_name, "t2m")
@@ -93,7 +92,6 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
 #' @param lead_time Not used, only added to to the output table. Must be a single number.
 #' @param ... Extra arguments for read_fa[tar]
 #' @return A tibble with interpolated forecasts for the stations list
-#' @export
 read_fa_interpolate <- function(file_name, parameter,
                                 lead_time=0, member=NULL, model=NULL,
                                 stations=NULL, method="closest", use_mask=FALSE,

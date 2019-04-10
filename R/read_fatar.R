@@ -7,7 +7,6 @@
 #' @param ... Arguments for \code{read_fa}
 #' @return A 2d geofield object (2d array with projection information).
 #'         If the parameter is not found, the geofield will have value NA.
-#' @export
 #'
 #' @examples
 #' model_geofield <- read_fatar(file_name, "t2m", lead_time=0)
@@ -93,7 +92,6 @@ read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NU
 #' @param ... Ignored and simply passed to read_fatar
 #' @return a list of two tibbles. One with interpolated forecasts for the stations list,
 #'         and one with parameter units.
-#' @export
 
 read_fatar_interpolate <- function(file_name, parameter,
                                    lead_time, members=NULL,

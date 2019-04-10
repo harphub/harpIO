@@ -6,7 +6,6 @@
 #' @param ... Arguments for \code{Rgrib2::Gdec}
 #'
 #' @return A geofield object with 2d array and projection information
-#' @export
 #'
 #' @examples
 #' file_name <- "/lustre/storeB/users/andrewts/mepsr_data/grib/fc2017052600+001grib_fp"
@@ -53,7 +52,6 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
 #' @param ... Arguments for \code{Rgrib2::Gdec}
 #'
 #' @return A tibble
-#' @export
 read_grib_interpolate <- function(filename, parameter,
                                   lead_time, members=NULL,
                                   init=list(), method=closest, use_lsm=FALSE, ...) {
