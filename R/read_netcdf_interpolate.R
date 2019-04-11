@@ -28,10 +28,10 @@ read_netcdf_interpolate <- function(
   lead_time   = NA_real_,
   members     = NA_character_,
   init        = list(),
-  is_ensemble = FALSE,
+  is_ensemble = !is.na(members),
   ...
 ) {
-
+  # is_ensemble <- !is.na(members) #AD: leave as function argument for now...
   if (!requireNamespace("miIO", quietly = TRUE)) {
     stop(
       paste0(

@@ -214,44 +214,53 @@ str_datetime_to_unixtime <- function(str_datetime) {
 #' Generate a sequence of dates
 #'
 #' @param start_date Start date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-#'   string or numeric. Or a POSIXct (datetime).
+#'   string or numeric.
 #' @param end_date End date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-#'   string or numeric. Or a POSIXct (datetime).
+#'   string or numeric.
 #' @param by Increment of the sequence. Should be a string of a number followed
 #'   by a letter, where the letter gives the units - may be d for days, h for
-#'   hours or m for minutes.
+#'   hours or m for minutes. The default is '1h'.
 #'
 #' @return A sequence of date-times in YYYYMMDDhhmm format
 #' @export
 #'
 #' @examples
-#' seq_dates()
 #' seq_dates(20170101, 20170131, by = "1d")
 #' seq_dates(201701010600, 201701051200)
-seq_dates <- function(start_date = NULL, end_date = NULL, by = "3h") {
+seq_dates <- function(start_date, end_date, by = "1h") {
 
-  if (is.null(start_date)) {
-    file_dates <- Sys.Date() %>% lubridate::as_datetime(file_date) %>% format("%Y%m%d%H%M")
+  if (lubridate::is.POSIXct(start_date)) {
+    start_date <- as.numeric(start_date)
   } else {
-    if (!lubridate::is.POSIXct(start_date)) {
-      start_date <- lubridate::ymd_hm(start_date, truncated=4)
-    }
-    if (is.null(end_date)) {
-      stop ("end_date must be passed as well as start_date")
-    } else if (!lubridate::is.POSIXct(end_date)) {
-      end_date <- lubridate::ymd_hm(end_date, truncated=4)
-    }
-
-    by_secs    <- parse_by(by)
-
-    if (is.na(by_secs)) stop("Unable to parse units. Use d, h, m or s. e.g. by = '6h'")
-    message(start_date)
-    message(end_date)
-    file_dates <- seq(as.numeric(start_date), as.numeric(end_date), by = by_secs) %>%
-      unix2YMDhm()
+    start_date <- suppressMessages(str_datetime_to_unixtime(start_date))
   }
 
-  file_dates
+  if (lubridate::is.POSIXct(start_date)) {
+    end_date <- as.numeric(end_date)
+  } else {
+    end_date <- suppressMessages(str_datetime_to_unixtime(end_date))
+  }
+
+  by_secs <- readr::parse_number(by) * units_multiplier(by)
+
+  if (is.na(by_secs)) stop("Unable to parse units. Use d, h, m or s. e.g. by = '6h'")
+
+  seq(start_date, end_date, by = by_secs) %>%
+    unix2YMDhm()
 
 }
+
+### Helper function to find the multiplier to convert a given time unit to seconds.
+
+units_multiplier <- function(x) {
+  time_units <- stringr::str_extract(tolower(x), "[a-z]+")
+  switch(time_units,
+    "d" = 60 * 60 * 24,
+    "h" = 60 * 60,
+    "m" = 60,
+    "s" = 1,
+    NA_real_
+  )
+}
+
 
