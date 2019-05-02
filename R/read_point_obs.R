@@ -110,7 +110,7 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
   for (in_file in files) {
     list_counter <- list_counter + 1
 
-    obs_db <- DBI::dbConnect(RSQLite::SQLite(), in_file, flags = SQLITE_RO, synchronous = NULL)
+    obs_db <- DBI::dbConnect(RSQLite::SQLite(), in_file, flags = RSQLite::SQLITE_RO, synchronous = NULL)
 
     message("\nReading: ", in_file)
     if (.sqlite_table == "SYNOP") {
