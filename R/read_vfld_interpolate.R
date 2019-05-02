@@ -191,7 +191,7 @@ read_vfld_interpolate <- function(
     } else {
       parameter <- purrr::map(parameter, parse_harp_parameter)
     }
-    param_level_type <- purrr::map(parameter, "levelType")
+    param_level_type <- purrr::map(parameter, "level_type")
     param_level      <- purrr::map(parameter, "level")
 
     is_synop <- function(.level_type, .level) {
@@ -240,7 +240,7 @@ read_vfld_interpolate <- function(
   # Extract the temp parameters
 
   if (length(temp_parameters) > 0) {
-    p_level_elements <- which(purrr::map_chr(temp_parameters, "levelType") == "pressure")
+    p_level_elements <- which(purrr::map_chr(temp_parameters, "level_type") == "pressure")
     if (length(p_level_elements) < length(temp_parameters)) {
       warning(
         paste0(

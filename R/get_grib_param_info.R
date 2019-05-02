@@ -19,19 +19,19 @@
 get_grib_param_info <- function(param) {
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
 
-  levtype <- switch(param$levelType,
+  levtype <- switch(param$level_type,
                     "height"   = 105,
                     "msl"      = 102,
                     "surf"     = 1,
                     "pressure" = 100,
                     "model"    = 109,
-                    NULL) 
+                    NULL)
   level <- param$level
-  if (param$basename %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
+  if (tolower(param$basename) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
     stop("Level must be supplied for ", param$fullname)
   }
 
-  switch(param$basename,
+  switch(tolower(param$basename),
     "pcp"      = {
       short_name   <-  "tp"
       param_number <-  61

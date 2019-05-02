@@ -4,12 +4,10 @@
 \alias{read_grib_interpolate}
 \title{Read a field from a grib file & interpolate}
 \usage{
-read_grib_interpolate(filename, parameter, lead_time, members = NULL,
+read_grib_interpolate(file_name, parameter, lead_time, members = NULL,
   init = list(), method = closest, use_lsm = FALSE, ...)
 }
 \arguments{
-\item{filename}{The grib file name.}
-
 \item{parameter}{The parameter to read. Standard HARP names are used.}
 
 \item{lead_time}{lead time}
@@ -20,6 +18,8 @@ read_grib_interpolate(filename, parameter, lead_time, members = NULL,
 station locations and (possibly) pre-calculated interpolation weights etc.}
 
 \item{...}{Arguments for \code{Rgrib2::Gdec}}
+
+\item{filename}{The grib file name.}
 
 \item{meta}{If TRUE, also read all meta data (domain, time properties).}
 }

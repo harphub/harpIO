@@ -4,7 +4,7 @@
 #' any) and the base name of the parameter
 #'
 #' @param param Parameter name
-#' @return A list (of class harp_parameter) 
+#' @return A list (of class harp_parameter)
 #'   with \code{fullname}, \code{basename}, \code{level_type},
 #'   \code{level}, \code{accum}
 #' @export
@@ -23,12 +23,12 @@ parse_harp_parameter <- function(param) {
 
   fullname <- param
 
-  basename <- tolower(fullname)
+  basename <- fullname
   plen <- nchar(basename)
 
   ## 1. accumulated field? must be AccXXnnh (last character is h, m, s)
   ## we assume the only digits in the parameter name are for accumulation
-  if (grepl("^acc[[:alpha:]]+[[:digit:]]+[hms]", basename)){
+  if (grepl("^acc[[:alpha:]]+[[:digit:]]+[hms]", tolower(basename))){
     acc1 <- regexpr("[[:digit:]]", basename)
     accum <- as.numeric(substr(basename, acc1, plen-1))
     acc_unit <- substring(basename, plen)
@@ -107,7 +107,7 @@ is.synop <- function(prm) {
                  "u10m", "v10m", "s10m", "d10m", "g10m",
                  "t2m", "q2m", "rh2m", "td2m",
                  "tcc", "hcc", "mcc", "lcc", "cbase",
-#                 "cctot", "cchigh", "ccmed", "cclow", "cbase",
+                 "cctot", "cchigh", "ccmed", "cclow", "cbase",
                  "v75", "vis",
                  "tmax", "tmin", "gmax")
   sfc  <- switch(prm$level_type,

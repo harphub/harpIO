@@ -14,8 +14,6 @@
 #'   By default all of the
 #'   stations from \link[harpIO]{station_list} that are inside the domain are
 #'   used.
-#' @param is_ensemble Logical - whether the file contains ensemble data. The
-#'   default is FALSE (i.e. deterministic data).
 #' @param ... Absorb arguments for other read_*_interpolate functions.
 #'
 #' @return A data frame with the data read from the netcdf file.
@@ -28,10 +26,9 @@ read_netcdf_interpolate <- function(
   lead_time   = NA_real_,
   members     = NA_character_,
   init        = list(),
-  is_ensemble = !is.na(members),
   ...
 ) {
-  # is_ensemble <- !is.na(members) #AD: leave as function argument for now...
+
   if (!requireNamespace("miIO", quietly = TRUE)) {
     stop(
       paste0(
@@ -53,6 +50,8 @@ read_netcdf_interpolate <- function(
   }
 
 
+  if (is.null(init$is_ensemble)) init$is_ensemble <- FALSE
+
   empty_data <- empty_data_interpolate(members, lead_time)
 
   if (!file.exists(file_name)) {
@@ -60,7 +59,7 @@ read_netcdf_interpolate <- function(
     return(empty_data)
   }
 
-  if (is_ensemble) {
+  if (init$is_ensemble) {
     members   <- readr::parse_number(unique(members))
   }
   lead_time <- unique(lead_time)
@@ -74,7 +73,7 @@ read_netcdf_interpolate <- function(
   message("Reading:", file_name)
 
   # Need to get the model elevation before anything else
-  if (is_ensemble) {
+  if (init$is_ensemble) {
     prm_nc <- list(model_elevation = list(name = "surface_geopotential", mbr = 0))
   } else {
     prm_nc <- list(model_elevation = list(name = "surface_geopotential"))
@@ -90,7 +89,7 @@ read_netcdf_interpolate <- function(
       lead_time       = .data$LT
     )
 
-  if (is_ensemble) {
+  if (init$is_ensemble) {
     model_elevation <- dplyr::rename(model_elevation, model_elevation = .data$model_elevation.0)
   }
 
@@ -113,7 +112,7 @@ read_netcdf_interpolate <- function(
   get_netcdf_data <- function(.param, .file, .sites, .lead_time, .member, .is_ensemble) {
 
     nc_prm <- list()
-    if (is_ensemble) {
+    if (.is_ensemble) {
       nc_prm[[.param]] <- list(name = get_netcdf_param_MET(.param), mbr = .member)
     } else {
       nc_prm[[.param]] <- list(name = get_netcdf_param_MET(.param))
@@ -157,10 +156,10 @@ read_netcdf_interpolate <- function(
     stations,
     lead_time,
     members,
-    is_ensemble
+    init$is_ensemble
   )
 
-  if (is_ensemble) {
+  if (init$is_ensemble) {
     join_cols <- c("SID", "lead_time", "member")
   } else {
     join_cols <- c("SID", "lead_time")

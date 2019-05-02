@@ -4,7 +4,7 @@
 \alias{create_table}
 \title{Create a new table in an SQLite data base}
 \usage{
-create_table(db, name, data, primary = NULL)
+create_table(db, name, data, primary = NULL, show_query = FALSE)
 }
 \arguments{
 \item{db}{A database connection}

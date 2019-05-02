@@ -52,19 +52,27 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
 #' @param ... Arguments for \code{Rgrib2::Gdec}
 #'
 #' @return A tibble
-read_grib_interpolate <- function(filename, parameter,
+read_grib_interpolate <- function(file_name, parameter,
                                   lead_time, members=NULL,
                                   init=list(), method=closest, use_lsm=FALSE, ...) {
 
   if (!requireNamespace("meteogrid", quietly = TRUE)) {
     stop("Package meteogrid is not available.")
   }
+
+  if (file.exists(file_name)) {
+    message("Reading: ", file_name)
+  } else {
+    warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
+    return(empty_data)
+  }
+
   # TODO: grib-2 /can/ also have multiple members...
   #       multiple parameters
-  all_data <- read_grib(filename, parameter, lead_time, ...)
+  all_data <- read_grib(file_name, parameter, lead_time, ...)
 # fix the interpolation weights (they may already exist)
   if (is.null(init$weights) || attr(init$weights, "method") != method) {
-    init <- initialise_weights(model, domain=all_data, stations=init$stations,
+    init <- initialise_interpolation(domain=attr(all_data, "domain"), stations=init$stations,
                              method=method, use_mask=use_mask, drop_NA=TRUE)
     ## assign init to the calling function, so it can be re-used?
     assign("init", init, env = parent.frame())
@@ -80,7 +88,7 @@ read_grib_interpolate <- function(filename, parameter,
   for (nn in names(init$stations)) result[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
   if (!is.null(members)) result$members <- members
-  list(fc_data = result,
+  list(fcst_data = result,
        units = tibble::tibble(parameter = parameter,
                               units = attr(all_data, "info")$unit))
 

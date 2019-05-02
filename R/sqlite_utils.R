@@ -60,7 +60,7 @@ db.add.columns <- function(db, table, colnames, quiet=FALSE){
 ###                 safe for multiple processes accessing same file ###
 #######################################################################
 
-dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
+dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show_query = FALSE){
   tnames <- DBI::dbListFields(conn, table)
   if (length(setdiff(tolower(names(mydata)), tolower(tnames))) > 0) {
     cat("ERROR: The new data contains fields that do not exist in the data base table!\n",
@@ -88,7 +88,7 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
 
   prepOK <- FALSE
   count <- 1
-  message("sending query: ", sql_write)
+  if (show_query) message("sending query: ", sql_write)
   while (!prepOK & count<=maxtry){
     tryOK1 <- tryCatch(DBI::dbSendQuery(conn, sql_write, params=mydata),
                       error=function(e) {print(e);return(e)}) ### this needs RESERVED lock
@@ -215,7 +215,7 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 #' @param a data.frame. Only column names and type are used.
 #' @param primary Primary keys
 #' @export
-create_table <- function(db, name, data, primary=NULL) {
+create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
   if (DBI::dbExistsTable(db, name)) {
 ## TODO: check fields are the same!!!
     return(NULL)
@@ -234,21 +234,21 @@ create_table <- function(db, name, data, primary=NULL) {
                            paste(names(data), types, collapse=","),
                            paste(primary, collapse=","))
   }
-  message("Creation query: ", sql_create)
+  if (show_query) message("Creation query: ", sql_create)
   dbquery(db, sql_create)
   invisible(sql_create)
 }
 
-cleanup_table <- function(db, tabname, where.list) {
+cleanup_table <- function(db, tabname, where.list, show_query = FALSE) {
   # character values must be wrapped with single quotes in the SQL command!
   where.list <- lapply(where.list,
                        function(x) if (is.character(x)) paste0("'",x,"'")
                                    else x)
   wlist <- vapply(names(where.list), FUN.VAL="a",
                   FUN=function(cc) sprintf("%s=%s",cc,where.list[[cc]]))
-  sql_cleanup <- sprintf("DELETE FROM %s WHERE %s", 
+  sql_cleanup <- sprintf("DELETE FROM %s WHERE %s",
                          tabname, paste(wlist, collapse=" AND "))
-  message("Cleanup query: ", sql_cleanup)
+  if (show_query) message("Cleanup query: ", sql_cleanup)
   dbquery(db, sql_cleanup)
   invisible(sql_cleanup)
 }

@@ -76,7 +76,7 @@ topology, land/sea mask.}
 \item{clim_format}{The file format of the clim_file may be different
 than that of the forecast files.}
 
-\item{interp_method}{The method used for interpolating from forecast grid 
+\item{interp_method}{The method used for interpolating from forecast grid
 to station points. Default is "closest" (mearest neighbour).
 Alternatives include "bilin".}
 

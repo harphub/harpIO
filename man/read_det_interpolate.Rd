@@ -53,24 +53,23 @@ gridded files (e.g. grib, netcdf, FA), if no data frame of stations is
 passed a default list of stations is used. This list can be accessed via
 \code{station_list}.}
 
-\item{clim_file}{A file containing constant data for the domain:
-topology, land/sea mask.}
+\item{clim_file}{A file containing constant data for the domain: topology,
+land/sea mask.}
 
-\item{clim_format}{The file format of the clim_file may be different
-than that of the forecast files.}
+\item{clim_format}{The file format of the clim_file may be different than
+that of the forecast files.}
 
-\item{interpolation_method}{The method used for interpolating from forecast grid
-to station points. Default is "closest" (mearest neighbour).
+\item{interpolation_method}{The method used for interpolating from forecast
+grid to station points. Default is "closest" (mearest neighbour).
 Alternatives include "bilin".}
 
-\item{use_mask}{If TRUE, a land/sea mask is used when interpolating. It must be
-available in the forecast files or in a clim_file.}
+\item{use_mask}{If TRUE, a land/sea mask is used when interpolating. It must
+be available in the forecast files or in a clim_file.}
 
 \item{sqlite_path}{If specified, SQLite files are generated and written to
 this directory.}
 
-\item{...}{Arguments dependent on \code{file_format}, passed on to read_XXX_interpolate
-(More info to be added).}
+\item{...}{Arguments dependent on \code{file_format} (More info to be added).}
 
 \item{correct_T2m}{Whether to correct the 2m temperature forecast from the
 model elevation to the observation elevation.}

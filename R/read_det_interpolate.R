@@ -24,10 +24,10 @@
 #'   for ensemble member where x is the length of the string including leading
 #'   zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
 #'   will always be file_path/template.
-#' @param clim_file A file containing constant data for the domain:
-#'   topology, land/sea mask.
-#' @param clim_format The file format of the clim_file may be different
-#'   than that of the forecast files.
+#' @param clim_file A file containing constant data for the domain: topology,
+#'   land/sea mask.
+#' @param clim_format The file format of the clim_file may be different than
+#'   that of the forecast files.
 #' @param stations A data frame of stations with columns SID, lat, lon, elev. If
 #'   this is supplied the forecasts are interpolated to these stations. In the
 #'   case of vfld files, all stations found in the vfld are used. In the case of
@@ -36,15 +36,14 @@
 #'   \code{station_list}.
 #' @param correct_T2m Whether to correct the 2m temperature forecast from the
 #'   model elevation to the observation elevation.
-#' @param interpolation_method The method used for interpolating from forecast grid
-#'   to station points. Default is "closest" (mearest neighbour).
+#' @param interpolation_method The method used for interpolating from forecast
+#'   grid to station points. Default is "closest" (mearest neighbour).
 #'   Alternatives include "bilin".
-#' @param use_mask If TRUE, a land/sea mask is used when interpolating. It must be
-#'   available in the forecast files or in a clim_file.
+#' @param use_mask If TRUE, a land/sea mask is used when interpolating. It must
+#'   be available in the forecast files or in a clim_file.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
-#' @param ... Arguments dependent on \code{file_format}, passed on to read_XXX_interpolate
-#'   (More info to be added).
+#' @param ... Arguments dependent on \code{file_format} (More info to be added).
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -85,30 +84,38 @@ read_det_interpolate <- function(
     function_output <- list()
     list_counter    <- 0
   }
+
   # initialise interpolation weights
   # if no clim file given, use something from data_files
   # find first existing file (if none: give an error)
   # use that to get domain
   # TODO: maybe for GRIB, we would want to pass a FA climfile for initialisation?
   #       so should we use the same file_format?
+
   if (is.null(stations)) {
     warning(
       "No stations specified. Default station list used.",
-      call. = FALSE, immediate. = TRUE
+      call.      = FALSE,
+      immediate. = TRUE
     )
     stations <- get("station_list")
   }
+
   if (!is.null(clim_file)) {
-    message("Initialising interpolation")
-    init <- initialise_interpolation(file_format=clim_format,
-                                     clim_file=clim_file,
-                                     correct_t2m = correct_t2m,
-                                     method=interpolation_method,
-                                     use_mask=use_mask,
-                                     stations=stations )
+
+    message("Initialising interpolation.")
+    init <- initialise_interpolation(
+      file_format = clim_format,
+      clim_file   = clim_file,
+      correct_t2m = correct_t2m,
+      method      = interpolation_method,
+      use_mask    = use_mask,
+      stations    = stations
+    )
+
   } else {
     # just leave it uninitialised for now
-    init <- list(stations=stations)
+    init <- list(stations = stations)
   }
 
   for (fcst_date in all_dates) {
@@ -198,10 +205,6 @@ read_det_interpolate <- function(
       t2m_uncorrected <- paste0(t2m_param, "_uncorrected")
       t2m_col         <- rlang::sym(t2m_param)
       t2m_uc_col      <- rlang::sym(t2m_uncorrected)
-# AD: why inner join with stations (again)?
-#     if we make sure lat/lon are also in .data, it's not necessary, or is it?
-#     I think this is only necessary for vfld (which has not yet been filtered to desired stations)
-#     CAN WE AVOID THIS?
       forecast_data <- forecast_data %>%
         dplyr::inner_join(init$stations, by = "SID", suffix = c("", ".station")) %>%
         dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%

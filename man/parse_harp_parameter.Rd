@@ -10,7 +10,7 @@ parse_harp_parameter(param)
 \item{param}{Parameter name}
 }
 \value{
-A list (of class harp_parameter) 
+A list (of class harp_parameter)
   with \code{fullname}, \code{basename}, \code{level_type},
   \code{level}, \code{accum}
 }

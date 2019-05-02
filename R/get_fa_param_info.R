@@ -61,7 +61,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
     FAname <- sprintf(ftemplate, FAbase)
   } else {
     # -- no level information found: precip, clouds, radiation, CAPE...
-    FAname <- switch(param$basename,
+    FAname <- switch(tolower(param$basename),
       "mslp" = ,
       "pmsl" = "MSLPRESSURE     ",
       "cctot"=,
@@ -97,7 +97,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
     # fastest way (without C code) is rowSums()
     # ATTENTION: when applying a function, you may loose all geofield information
     # so we use a new wrapper "apply_geo3d"
-    apply_function <- switch(param$basename,
+    apply_function <- switch(tolower(param$basename),
               "s" = function(x) meteogrid::apply_geo3d(x, "norm", newname="Wind speed"),
               "g" = function(x) meteogrid::apply_geo3d(x, "norm", newname="Wind gust speed"),
               "d" = function(x) meteogrid::apply_geo3d(x, "wdir", newname="Wind direction"),

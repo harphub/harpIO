@@ -50,7 +50,7 @@
 #'   than that of the forecast files.
 #' @param correct_T2m Whether to correct the 2m temperature forecast from the
 #'   model elevation to the observation elevation.
-#' @param interp_method The method used for interpolating from forecast grid 
+#' @param interp_method The method used for interpolating from forecast grid
 #'   to station points. Default is "closest" (mearest neighbour).
 #'   Alternatives include "bilin".
 #' @param use_mask If TRUE, a land/sea mask is used when interpolating. It must be
@@ -308,7 +308,38 @@ read_eps_interpolate <- function(
     members_out <- members_out_temp
     lags        <- lags_temp
 
-  } # end of input checks
+  } # end handling of inputs related to multiple or single models
+
+  if (is.null(stations)) {
+    warning(
+      "No stations specified. Default station list used.",
+      call. = FALSE, immediate. = TRUE
+    )
+    stations <- get("station_list")
+  }
+
+  # initialise interpolation weights
+  # if no clim file given, use something from data_files:
+  # find first existing file (if none: give an error) and  use that to get domain
+  # TODO: maybe for GRIB, we would want to pass a FA climfile for initialisation?
+  #       so should we use the same file_format?
+
+  if (!is.null(clim_file)) {
+    message("Initialising interpolation.")
+    init <- initialise_interpolation(
+      file_format = clim_format,
+      clim_file   = clim_file,
+      correct_t2m = correct_t2m,
+      method      = interp_method,
+      use_mask    = use_mask,
+      stations    = stations,
+      is_ensemble = TRUE
+    )
+  } else {
+    # just leave it uninitialised for now
+    init <- list(stations = stations, is_ensemble = TRUE)
+  }
+
 
   ########################### THE ACTUAL WORK STARTS HERE! ##################################
 
@@ -334,32 +365,6 @@ read_eps_interpolate <- function(
     list_counter    <- 0
   }
 
-  # initialise interpolation weights
-  # if no clim file given, use something from data_files
-  # find first existing file (if none: give an error)
-  # use that to get domain
-  # TODO: maybe for GRIB, we would want to pass a FA climfile for initialisation?
-  #       so should we use the same file_format?
-  if (is.null(stations)) {
-    warning(
-      "No stations specified. Default station list used.",
-      call. = FALSE, immediate. = TRUE
-    )
-    stations <- get("station_list")
-  }
-
-  if (!is.null(clim_file)) {
-    message("Initialising interpolation")
-    init <- initialise_interpolation(file_format = clim_format,
-                                     clim_file   = clim_file,
-                                     correct_t2m = correct_t2m,
-                                     method      = interp_method,
-                                     use_mask    = use_mask,
-                                     stations    = stations )
-  } else {
-    # just leave it uninitialised for now
-    init <- list(stations = stations)
-  }
 
   for (fcst_date in all_dates) {
 
@@ -372,9 +377,13 @@ read_eps_interpolate <- function(
     data_files <- members_in %>%
       dplyr::transmute(
         file_names = purrr::pmap(
-          list(eps_model = .data$eps_model, sub_model = .data$sub_model, 
-               members = .data$member, lags = .data$lag),
-          function(eps_model, sub_model, members, lags) get_filenames(
+          list(
+            eps_model = .data$eps_model,
+            sub_model = .data$sub_model,
+            members   = .data$member,
+            lags      = .data$lag
+          ),
+          function(eps_model, sub_model, members, lags) get_filenames( # change to lambda function?
             file_path      = file_path,
             start_date     = fcst_date,
             end_date       = fcst_date,
