@@ -18,7 +18,7 @@ read_fctable <- function(
 
     message("Reading: ", db_file)
 
-    fcst_db    <- DBI::dbConnect(RSQLite::SQLite(), db_file)
+    fcst_db    <- DBI::dbConnect(RSQLite::SQLite(), db_file, flags = SQLITE_RO, synchronous = NULL)
 
     fcst_cols <- DBI::dbListFields(fcst_db, "FC")
     if (is.element("parameter", fcst_cols)) {
