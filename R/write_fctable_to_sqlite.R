@@ -35,7 +35,7 @@ write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_ke
   dbquery(sqlite_db, "PRAGMA synchronous = NORMAL")
 
   if (newfile) {
-    #dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
+ #   dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", tablename, "(",

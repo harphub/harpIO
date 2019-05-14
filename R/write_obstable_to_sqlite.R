@@ -38,7 +38,7 @@ write_obstable_to_sqlite <- function(
 
   if (newfile) {
 
-    #dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
+#    dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
     create_table()
 
   } else if (!DBI::dbExistsTable(sqlite_db, table_name)) {
