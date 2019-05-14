@@ -116,7 +116,7 @@ read_obs_convert <- function(
 
     if (!is.null(sqlite_path)) {
       purrr::walk2(synop_data$synop, synop_data$file_name, write_obstable_to_sqlite, table_name = "SYNOP")
-      purrr::walk2(temp_data$temp, temp_data$file_name, write_obstable_to_sqlite, table_name = "TEMP")
+      purrr::walk2(temp_data$temp, temp_data$file_name, write_obstable_to_sqlite, table_name = "TEMP", primary_key = (c("validdate", "SID", "p")))
     }
 
     if (return_data) {

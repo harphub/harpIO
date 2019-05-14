@@ -31,13 +31,14 @@ write_obstable_to_sqlite <- function(
       sqlite_db,
       paste0("CREATE TABLE ", table_name, "(",
         paste(col_names, col_types, collapse = ", "),
-        ", PRIMARY KEY(", paste(primary_key, collapse = ","), "))")
+        ")"
+      )
     )
   }
 
   if (newfile) {
 
-    dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
+    #dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
     create_table()
 
   } else if (!DBI::dbExistsTable(sqlite_db, table_name)) {
@@ -66,7 +67,7 @@ write_obstable_to_sqlite <- function(
 
   }
 
-  dbwrite(sqlite_db, table_name, obs_data)
+  db_clean_and_write(sqlite_db, table_name, obs_data, primary_key, index_constraint = "unique")
 
   dbclose(sqlite_db)
 

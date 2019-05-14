@@ -35,16 +35,17 @@ write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_ke
   dbquery(sqlite_db, "PRAGMA synchronous = NORMAL")
 
   if (newfile) {
-    dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
+    #dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", tablename, "(",
         paste(column_names, column_types, collapse = ", "),
-        ", PRIMARY KEY(",primary_key,"))")
+        ")"
+      )
     )
   }
 
-  dbwrite(sqlite_db, tablename, data)
+  db_clean_and_write(sqlite_db, tablename, data, primary_key, index_constraint = "unique")
   dbclose(sqlite_db)
 
 }
