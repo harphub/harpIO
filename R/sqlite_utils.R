@@ -364,15 +364,15 @@ db_clean_and_write <- function(
 # Generate a WHERE sql statement from a list
 ###############################################################
 generate_where <- function(where_list) {
+  paste(
+    "WHERE",
     paste(
-        "WHERE",
-        paste(
-            purrr::map2_chr(
-                names(where_list),
-                where_list,
-                ~ paste0(.x, " IN (", paste(.y, collapse = ","), ")")
-            ),
-            collapse = " AND "
-        )
+      purrr::map2_chr(
+        names(where_list),
+        where_list,
+        ~ paste0(.x, " IN (", paste(.y, collapse = ","), ")")
+      ),
+      collapse = " AND "
     )
+  )
 }

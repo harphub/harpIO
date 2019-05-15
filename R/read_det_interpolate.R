@@ -30,12 +30,15 @@
 #'   gridded files (e.g. grib, netcdf, FA), if no data frame of stations is
 #'   passed a default list of stations is used. This list can be accessed via
 #'   \code{station_list}.
-#' @param correct_T2m Whether to correct the 2m temperature forecast from the
-#'   model elevation to the observation elevation.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
 #' @param ... Arguments dependent on \code{file_format}. (More info to be
 #'   added).
+#' @param correct_t2m
+#' @param keep_model_t2m
+#' @param lapse_rate
+#' @param sqlite_template
+#' @param return_data
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -58,6 +61,7 @@ read_det_interpolate <- function(
   keep_model_t2m = FALSE,
   lapse_rate     = 0.0065,
   sqlite_path    = NULL,
+  sqlite_template = "fctable_det",
   return_data    = FALSE,
   ...
 ) {
@@ -207,7 +211,7 @@ read_det_interpolate <- function(
           file_name = purrr::map_chr(
             purrr::transpose(.),
             glue::glue_data,
-            get_template("fctable_det")
+            get_template(sqlite_template)
           )
         ) %>%
         tidyr::unnest()

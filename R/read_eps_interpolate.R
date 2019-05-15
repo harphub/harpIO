@@ -44,12 +44,15 @@
 #'   (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
 #'   list of stations is used. This list can be accessed via
 #'   \code{data(stations)}.
-#' @param correct_T2m Whether to correct the 2m temperature forecast from the
-#'   model elevation to the observation elevation.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
 #' @param ... Arguments dependent on \code{file_format}. (More info to be
 #'   added).
+#' @param correct_t2m
+#' @param keep_model_t2m
+#' @param lapse_rate
+#' @param sqlite_template
+#' @param return_data
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -62,20 +65,21 @@ read_eps_interpolate <- function(
   end_date,
   eps_model,
   parameter,
-  lead_time      = seq(0, 48, 3),
-  members_in     = seq(0,9),
-  members_out    = members_in,
-  lags           = NULL,
-  by             = "6h",
-  file_path      = "",
-  file_format    = "vfld",
-  file_template  = "vfld",
-  stations       = NULL,
-  correct_t2m    = TRUE,
-  keep_model_t2m = FALSE,
-  lapse_rate     = 0.0065,
-  sqlite_path    = NULL,
-  return_data    = FALSE,
+  lead_time       = seq(0, 48, 3),
+  members_in      = seq(0,9),
+  members_out     = members_in,
+  lags            = NULL,
+  by              = "6h",
+  file_path       = "",
+  file_format     = "vfld",
+  file_template   = "vfld",
+  stations        = NULL,
+  correct_t2m     = TRUE,
+  keep_model_t2m  = FALSE,
+  lapse_rate      = 0.0065,
+  sqlite_path     = NULL,
+  sqlite_template = "fctable_eps",
+  return_data     = FALSE,
   ...
 ){
 
@@ -475,7 +479,7 @@ read_eps_interpolate <- function(
           file_name = purrr::map_chr(
             purrr::transpose(.),
             glue::glue_data,
-            get_template("fctable")
+            get_template(sqlite_template)
           )
         ) %>%
         tidyr::unnest()

@@ -12,7 +12,7 @@
 #' @export
 #'
 #' @examples
-write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_key = "SID, fcdate, leadtime") {
+write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_key = c("SID", "fcdate", "leadtime")) {
 
   newfile <- FALSE
   if (!file.exists(filename)) {
