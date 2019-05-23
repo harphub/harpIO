@@ -84,7 +84,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
       "topo" = "SPECSURFGEOPOTEN",
       # accumulated radiation fields:
       "lwrad" = "SURFRAYT THER DE",  # thermal
-      "swrad" = "SURFRAYT SOLA DE") # direct + diffuse solar
+      "swrad" = "SURFRAYT SOLA DE", # direct + diffuse solar
       param$fullname)
   }
   FAname <- format(FAname, width=16)
