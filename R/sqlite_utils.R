@@ -223,10 +223,13 @@ create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
 ## TODO: check fields are the same!!!
     return(NULL)
   }
-  types <- vapply(seq_len(dim(data)[2]), function(x) switch(class(data[[x]]),
+  # NOTE: we a "POSIXct" type will be stored as "REAL"
+  # for "switch" to work OK, we need a single element, so class()[1] is chosen
+  types <- vapply(seq_len(dim(data)[2]), function(x) switch(class(data[[x]])[1],
                                              "integer"="INTEGER",
                                              "numeric"="REAL",
-                                             "character"="CHARACTER"), FUN.VAL="a")
+                                             "character"="CHARACTER",
+                                             "REAL"), FUN.VAL="a")
   if ( is.null(primary) ) {
     sql_create <- sprintf("CREATE TABLE %s ( %s )",
                            name,
