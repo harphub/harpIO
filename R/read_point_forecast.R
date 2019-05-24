@@ -324,12 +324,17 @@ merge_names <- function(x) {
   y
 }
 
+### This needs modifying to deal with lagged multimodel...
 merge_names_df <- function(df_list, df_names) {
   names(df_list) <- df_names
   merged <- list()
   for (df_name in unique(df_names)) {
     df_elements       <- which(df_names == df_name)
-    merged[[df_name]] <- dplyr::bind_rows(df_list[df_elements])
+    if (length(df_elements) > 1) {
+      merged[[df_name]] <- dplyr::bind_rows(df_list[df_elements])
+    } else {
+      merged[[df_name]] <- df_list[df_elements][[1]]
+    }
   }
   merged
 }
