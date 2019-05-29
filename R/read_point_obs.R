@@ -83,11 +83,12 @@ read_point_obs <- function(
   }
 
 
+  obs_column <- rlang::sym(parameter)
   if (gross_error_check) {
     if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter)
     if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter)
-    obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_param, min_allowed, max_allowed))
-    obs         <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
+    obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_column, min_allowed, max_allowed))
+    obs         <- dplyr::filter(obs, dplyr::between(!! obs_column, min_allowed, max_allowed))
   } else {
     obs_removed = "No gross error check done."
   }
@@ -136,7 +137,14 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
     DBI::dbDisconnect(obs_db)
   }
 
-  dplyr::bind_rows(.obs)
+  .obs <- dplyr::bind_rows(.obs)
+
+  if (.sqlite_table == "TEMP" && !is.null(.level)) {
+    param_name <- rlang::sym(paste0(rlang::quo_name(obs_param_quo), .level))
+    .obs       <- dplyr::rename(.obs, !! param_name := !! obs_param_quo)
+  }
+
+  .obs
 
 }
 
