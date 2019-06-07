@@ -23,7 +23,11 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
   }
   #
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
-    stop("Package Rgrib2 is not available.")
+    stop(
+      "read_grib requires the Rgrib2 package. Install with the following command:\n",
+      "devtools::install_github(\"adeckmyn/Rgrib2\")",
+      call. = FALSE
+    )
   }
   grib_info     <- Rgrib2::Gopen(filename)
   #
@@ -36,6 +40,11 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
     ) %>%
     dplyr::pull(position)
   #
+
+  if (length(grib_position) == 0) {
+    stop("Parameter \"", parameter, "\" not found in grib file.", call. = FALSE)
+  }
+
   # TODO: for "atmospheric" variables, read 3d data
   Rgrib2::Gdec(filename, grib_position, get.meta = meta, ...)
 }
@@ -54,10 +63,14 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
 #' @return A tibble
 read_grib_interpolate <- function(file_name, parameter,
                                   lead_time, members=NULL,
-                                  init=list(), method=closest, use_lsm=FALSE, ...) {
+                                  init=list(), method="closest", use_lsm=FALSE, ...) {
 
-  if (!requireNamespace("meteogrid", quietly = TRUE)) {
-    stop("Package meteogrid is not available.")
+  if (!requireNamespace("Rgrib2", quietly = TRUE)) {
+    stop(
+      "read_grib requires the Rgrib2 package. Install with the following command:\n",
+      "devtools::install_github(\"adeckmyn/Rgrib2\")",
+      call. = FALSE
+    )
   }
 
   if (file.exists(file_name)) {
@@ -72,8 +85,8 @@ read_grib_interpolate <- function(file_name, parameter,
   all_data <- read_grib(file_name, parameter, lead_time, ...)
 # fix the interpolation weights (they may already exist)
   if (is.null(init$weights) || attr(init$weights, "method") != method) {
-    init <- initialise_interpolation(domain=attr(all_data, "domain"), stations=init$stations,
-                             method=method, use_mask=use_mask, drop_NA=TRUE)
+    init <- initialise_weights(domain=attr(all_data, "domain"), stations=init$stations,
+                             method=method, use_mask=use_lsm, drop_NA=TRUE)
     ## assign init to the calling function, so it can be re-used?
     assign("init", init, env = parent.frame())
   }
