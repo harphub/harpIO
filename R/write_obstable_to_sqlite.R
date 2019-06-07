@@ -7,6 +7,10 @@ write_obstable_to_sqlite <- function(
   primary_key = c("SID", "validdate")
 ) {
 
+  obs_data <- dplyr::filter(obs_data, !is.na(.data$SID))
+
+  if (nrow(obs_data) == 0) return()
+
   newfile <- FALSE
   if (!file.exists(file_name)) {
     newfile <- TRUE

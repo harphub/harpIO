@@ -3,6 +3,7 @@
 get_min_obs_allowed <- function(parameter) {
   switch(parameter,
     "T2m"       = 223,
+    "Td2m"      = 223,
     "RH2m"      = 0,
     "Pmsl"      = 90000,
     "S10m"      = 0,
@@ -24,7 +25,8 @@ get_min_obs_allowed <- function(parameter) {
 #
 get_max_obs_allowed <- function(parameter) {
   switch(parameter,
-    "T2m"       = 323,
+    "T2m"       = 333,
+    "Td2m"      = 333,
     "RH2m"      = 100,
     "Pmsl"      = 110000,
     "S10m"      = 100,
