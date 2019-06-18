@@ -57,6 +57,14 @@ get_template <- function(template) {
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
     ),
 
+    "fctable_eps_all_cycles" = file.path(
+      "{file_path}",
+      "{eps_model}",
+      "{YYYY}", "{MM}",
+      "FCTABLE_{parameter}_{YYYY}{MM}+{LDT3}.sqlite"
+    ),
+
+
     "glameps_grib" = file.path(
       "{file_path}",
       "{eps_model}",
@@ -144,6 +152,12 @@ get_template <- function(template) {
       "{file_path}",
       "{sub_model}",
       "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
+    "vfld_noexp" = file.path(
+      "{file_path}",
+      "{sub_model}",
+      "vfldmbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
     "vobs" = file.path(

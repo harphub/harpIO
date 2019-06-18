@@ -44,142 +44,19 @@ read_vfld_interpolate <- function(
   ...
 ) {
 
-  empty_data <- empty_data_interpolate(members, lead_time)
+
+  empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
+
+  if (file.exists(vfile_name)) {
+    message("Reading: ", vfile_name)
+  } else {
+    warning("File not found: ", vfile_name, "\n", call. = FALSE, immediate. = TRUE)
+    return(empty_data)
+  }
 
   if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
 
-  if (file.exists(file_name)) {
-    message("Reading: ", file_name)
-  } else {
-    warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
-    return(empty_data)
-  }
-
-  file_connection <- file(file_name, "r")
-
-  # vfld metadata
-
-  vfld_metadata   <- scan(file_connection, nlines = 1, quiet = TRUE)
-
-  if (length(vfld_metadata) < 2 | length(vfld_metadata) > 3) {
-    warning("Unable to read: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
-    close(file_connection)
-    return(empty_data)
-  }
-
-  if (length(vfld_metadata) == 2) {
-    num_synop    <- vfld_metadata[1]
-    num_temp     <- 0
-    vfld_version <- vfld_metadata[2]
-  } else {
-    num_synop    <- vfld_metadata[1]
-    num_temp     <- vfld_metadata[2]
-    vfld_version <- vfld_metadata[3]
-  }
-
-  if (vfld_version < 2 | vfld_version > 4) {
-    warning("Unable to read: ", file_name, "\nvfld version = ", vfld_version, "\n", call. = FALSE, immediate. = TRUE)
-    close(file_connection)
-    return(empty_data)
-  }
-
-  # vfld synop data
-
-  if (vfld_version == 4) {
-
-    num_param    <- scan(file_connection, nmax = 1, quiet = TRUE)
-    params_synop <- read.table(
-      file_connection,
-      col.names        = c("parameter", "accum_hours"),
-      nrows            = num_param,
-      stringsAsFactors = FALSE
-    )
-
-  } else {
-
-    num_param       <- 15
-    num_temp_levels <- scan(file_connection, nmax = 1, quite = TRUE)
-    params_synop    <- data.frame(
-      parameter        = vfld_default_names("synop"),
-      accum_hours      = c(rep(7, 0), 12, rep(8, 0)),
-      stringsAsFactors = FALSE
-    )
-
-  }
-
-  params_synop <- dplyr::mutate(
-    params_synop,
-    parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
-    units       = purrr::map_chr(.data$parameter, "param_units"),
-    parameter   = purrr::map_chr(.data$parameter, "harp_param")
-  )
-
-  synop_data <- read.table(
-    file_connection,
-    col.names = c("SID", "lat", "lon", params_synop$parameter),
-    nrows     = num_synop
-  )
-
-  # vfld temp data
-
-  if (vfld_version == 4) {
-    temp_metadata   <- scan(file_connection, nmax = 2, quiet = TRUE)
-    num_temp_levels <- temp_metadata[1]
-    num_param       <- temp_metadata[2]
-    params_temp     <- read.table(
-      file_connection,
-      col.names        = c("parameter", "accum_hours"),
-      nrows            = num_param,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    num_param   <- 8
-    params_temp <- data.frame(
-      parameter        = vfld_default_names("temp"),
-      accum_hours      = rep(0, 8),
-      stringsAsFactors = FALSE
-    )
-  }
-
-  params_temp <- dplyr::mutate(
-    params_temp,
-    parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
-    units       = purrr::map_chr(.data$parameter, "param_units"),
-    parameter   = purrr::map_chr(.data$parameter, "harp_param")
-  )
-
-  temp_data    <- list()
-
-  if (num_temp < 1 | num_temp_levels < 1) {
-
-    temp_data <- empty_data
-
-  } else {
-
-    for (temp_station in 1:num_temp) {
-
-      station_metadata <- scan(file_connection, nmax = 4, quiet = TRUE)
-      temp_data[[temp_station]] <- data.frame(
-        SID             = rep(as.integer(station_metadata[1]), num_temp_levels),
-        lat             = rep(station_metadata[2], num_temp_levels),
-        lon             = rep(station_metadata[3], num_temp_levels),
-        model_elevation = rep(station_metadata[4], num_temp_levels)
-      ) %>%
-        dplyr::bind_cols(
-          read.table(
-            file_connection,
-            nrows = num_temp_levels,
-            col.names = params_temp$parameter
-          )
-        )
-
-    }
-
-    temp_data <- dplyr::bind_rows(temp_data)
-
-  }
-
-  close(file_connection)
+  vfld_data <- read_vfile(file_name, members = members, lead_time = lead_time, v_type = "vfld")
 
   # Parameter selection
 
@@ -207,18 +84,18 @@ read_vfld_interpolate <- function(
 
   } else { # Get all parameters from the file
 
-    synop_parameters <- synop_data %>%
+    synop_parameters <- vfld_data$synop %>%
       dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation) %>%
       colnames() %>%
       purrr::map(parse_harp_parameter)
 
-    if (num_temp < 1) {
+    if (ncol(vfld_data$temp) < 5) {
       temp_parameters <- NULL
     } else {
-      temp_parameters <- temp_data %>%
+      temp_parameters <- vfld_data$temp %>%
         dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation, -.data$p) %>%
         colnames() %>%
-        purrr::map(~ paste0(.x, unique(temp_data$p))) %>%
+        purrr::map(~ paste0(.x, unique(vfld_data$temp$p))) %>%
         unlist() %>%
         purrr::map(parse_harp_parameter)
     }
@@ -229,16 +106,16 @@ read_vfld_interpolate <- function(
 
   if (length(synop_parameters) > 0) {
     synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname")) %>%
-      intersect(colnames(synop_data))
+      intersect(colnames(vfld_data$synop))
     param_cols_out  <- rlang::syms(synop_parameter)
-    synop_data      <- synop_data %>%
+    vfld_data$synop      <- vfld_data$synop %>%
       dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
       dplyr::mutate(
         member    = members,
         lead_time = lead_time
       )
   } else {
-    synop_data <- empty_data
+    vfld_data$synop <- empty_data
   }
 
   # Extract the temp parameters
@@ -259,7 +136,7 @@ read_vfld_interpolate <- function(
       param_cols_in       <- rlang::syms(temp_parameter_base)
       temp_parameter_full <- purrr::map_chr(temp_parameters, "fullname")
       param_cols_out      <- rlang::syms(temp_parameter_full)
-      temp_data <- temp_data %>%
+      vfld_data$temp <- vfld_data$temp %>%
         dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
         tidyr::gather(key = param, value = forecast, !!!param_cols_in) %>%
         dplyr::mutate(param = paste0(.data$param, .data$p)) %>%
@@ -271,25 +148,25 @@ read_vfld_interpolate <- function(
           lead_time = lead_time
         )
     } else {
-      temp_data <- empty_data
+      vfld_data$temp <- empty_data
     }
 
   } else {
 
-    temp_data <- empty_data
+    vfld_data$temp <- empty_data
 
   }
 
+  params <- dplyr::bind_rows(vfld_data$synop_params, vfld_data$temp_params) %>%
+    dplyr::select(-.data$accum_hours) %>%
+    dplyr::filter(.data$parameter != "p")
+
   vfld_data <- dplyr::full_join(
-    synop_data,
-    temp_data,
+    vfld_data$synop,
+    vfld_data$temp,
     by     = c("SID", "lead_time", "member"),
     suffix = c("", ".temp")
   )
-
-  params <- dplyr::bind_rows(params_synop, params_temp) %>%
-    dplyr::select(-.data$accum_hours) %>%
-    dplyr::filter(.data$parameter != "p")
 
   param_units <- tibble::tibble(
     parameter = colnames(vfld_data)
@@ -304,38 +181,14 @@ read_vfld_interpolate <- function(
       param_basename = dplyr::case_when(
         grepl(".temp", .data$param_basename) ~ gsub(".temp", "", .data$param_basename),
         .data$parameter %in% special_cases   ~ .data$parameter,
+        grepl("Acc[[:alpha:]]+[[:digit:]]+[[:alpha:]]", .data$parameter, perl = TRUE) ~ .data$parameter,
         TRUE ~ param_basename
       )
     ) %>%
     dplyr::full_join(dplyr::rename(params, param_basename = .data$parameter), by = "param_basename") %>%
     dplyr::select(-.data$param_basename)
 
-  list(fcst_data = vfld_data, units = param_units)
+  list(fcst_data = tibble::as_tibble(vfld_data), units = tibble::as_tibble(param_units))
 
 }
 
-vfld_default_names <- function(obs_type) {
-  if (obs_type == "synop") {
-    c("FI",
-      "NN",
-      "DD",
-      "FF",
-      "TT",
-      "RH",
-      "PS",
-      "PE",
-      "QQ",
-      "VI",
-      "TD",
-      "TX",
-      "TN",
-      "GW",
-      "GX",
-      "WX"
-    )
-  } else if (obs_type == "temp") {
-    c("PP","FI","TT","RH","DD","FF","QQ","TD")
-  } else {
-    NA_character_
-  }
-}
