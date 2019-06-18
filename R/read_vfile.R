@@ -158,8 +158,12 @@ read_vfile <- function(
 
   close(file_connection)
 
-  synop_data[,5:ncol(synop_data)][synop_data[,5:ncol(synop_data)] == missing_value] <- NA
-  temp_data[,5:ncol(temp_data)][temp_data[,5:ncol(temp_data)] == missing_value] <- NA
+  if (ncol(synop_data) > 4) {
+    synop_data[,5:ncol(synop_data)][synop_data[,5:ncol(synop_data)] == missing_value] <- NA
+  }
+  if (ncol(temp_data) > 4) {
+    temp_data[,5:ncol(temp_data)][temp_data[,5:ncol(temp_data)] == missing_value] <- NA
+  }
 
   list(synop = synop_data, temp = temp_data, synop_params = params_synop, temp_params = params_temp)
 
