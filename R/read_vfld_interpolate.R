@@ -55,79 +55,102 @@ read_vfld_interpolate <- function(
     return(empty_data)
   }
 
-  vfld_data <- readr::read_lines(file_name) %>%
-    stringr::str_trim(side = "both") %>%
-    strsplit("\\s+")
+  file_connection <- file(file_name, "r")
 
-  ### SYNOP DATA
+  # vfld metadata
 
-  # The first row is num_synop, num_temp, vfld_version
-  num_synop    <- as.numeric(vfld_data[[1]][1])
-  num_temp     <- as.numeric(vfld_data[[1]][2])
-  vfld_version <- as.numeric(vfld_data[[1]][3])
+  vfld_metadata   <- scan(file_connection, nlines = 1, quiet = TRUE)
 
-  # The second row is the number of parameters
-  num_param <- as.numeric(vfld_data[[2]])
+  if (length(vfld_metadata) < 2 | length(vfld_metadata) > 3) {
+    warning("Unable to read: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
+    close(file_connection)
+    return(empty_data)
+  }
 
-  synop_start_row <- 3 + num_param
-  synop_end_row   <- synop_start_row + num_synop - 1
+  if (length(vfld_metadata) == 2) {
+    num_synop    <- vfld_metadata[1]
+    num_temp     <- 0
+    vfld_version <- vfld_metadata[2]
+  } else {
+    num_synop    <- vfld_metadata[1]
+    num_temp     <- vfld_metadata[2]
+    vfld_version <- vfld_metadata[3]
+  }
 
-  # The following num_param rows are parameter, accum_hours
-  params_synop <- t(dplyr::bind_cols(vfld_data[3:(synop_start_row - 1)])) %>%
-    tibble::as_tibble()
-  colnames(params_synop) <- c("parameter", "accum_hours")
-  params_synop <- params_synop %>%
-    dplyr::mutate(
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
-      units       = purrr::map_chr(.data$parameter, "param_units"),
-      parameter   = purrr::map_chr(.data$parameter, "harp_param"),
-      accum_hours = as.numeric(.data$accum_hours)
+  if (vfld_version < 2 | vfld_version > 4) {
+    warning("Unable to read: ", file_name, "\nvfld version = ", vfld_version, "\n", call. = FALSE, immediate. = TRUE)
+    close(file_connection)
+    return(empty_data)
+  }
+
+  # vfld synop data
+
+  if (vfld_version == 4) {
+
+    num_param    <- scan(file_connection, nmax = 1, quiet = TRUE)
+    params_synop <- read.table(
+      file_connection,
+      col.names        = c("parameter", "accum_hours"),
+      nrows            = num_param,
+      stringsAsFactors = FALSE
     )
 
-  # The next num_synop rows are the synop data
-  synop_data <- t(dplyr::bind_cols(vfld_data[synop_start_row:synop_end_row])) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate_all(as.numeric)
-  colnames(synop_data) <- c("SID", "lat", "lon", params_synop$parameter)
-  synop_data$SID <- as.integer(synop_data$SID)
+  } else {
 
-  # Filter to stations and correct 2m temperature if required - this might not be the place to do this now
-  # Shouold be taken care of in read_members_interpolate.
-
-  # no_sid_col <- FALSE
-  # if (!is.null(stations)) {
-  #   if (!grepl("SID", colnames(stations))) {
-  #     cat(
-  #       "No SID column found in stations data frame. \n",
-  #       "All stations will be kept."
-  #     )
-  #     no_sid_col <- TRUE
-  #   }
-  #   synop_data <- dplyr::inner_join(synop_data, stations, by = "SID")
-  # }
-
-  ### TEMP DATA
-
-  # The following two rows are the temp metadata
-  num_temp_levels <- as.numeric(vfld_data[[(synop_end_row + 1)]])
-  num_param       <- as.numeric(vfld_data[[(synop_end_row + 2)]])
-  temp_start_row  <- synop_end_row + 3 + num_param
-
-  # The following num_param rows are parameter, accum_hours
-  params_temp<- t(dplyr::bind_cols(vfld_data[(synop_end_row + 3):(temp_start_row - 1)])) %>%
-    tibble::as.tibble()
-  colnames(params_temp) <- c("parameter", "accum_hours")
-  params_temp <- params_temp %>%
-    dplyr::mutate(
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
-      units       = purrr::map_chr(.data$parameter, "param_units"),
-      parameter   = purrr::map_chr(.data$parameter, "harp_param"),
-      accum_hours = as.numeric(.data$accum_hours)
+    num_param       <- 15
+    num_temp_levels <- scan(file_connection, nmax = 1, quite = TRUE)
+    params_synop    <- data.frame(
+      parameter        = vfld_default_names("synop"),
+      accum_hours      = c(rep(7, 0), 12, rep(8, 0)),
+      stringsAsFactors = FALSE
     )
 
-  # Loop over the temp stations
-  temp_data <- list()
-  if (num_temp < 1) {
+  }
+
+  params_synop <- dplyr::mutate(
+    params_synop,
+    parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
+    units       = purrr::map_chr(.data$parameter, "param_units"),
+    parameter   = purrr::map_chr(.data$parameter, "harp_param")
+  )
+
+  synop_data <- read.table(
+    file_connection,
+    col.names = c("SID", "lat", "lon", params_synop$parameter),
+    nrows     = num_synop
+  )
+
+  # vfld temp data
+
+  if (vfld_version == 4) {
+    temp_metadata   <- scan(file_connection, nmax = 2, quiet = TRUE)
+    num_temp_levels <- temp_metadata[1]
+    num_param       <- temp_metadata[2]
+    params_temp     <- read.table(
+      file_connection,
+      col.names        = c("parameter", "accum_hours"),
+      nrows            = num_param,
+      stringsAsFactors = FALSE
+    )
+  } else {
+    num_param   <- 8
+    params_temp <- data.frame(
+      parameter        = vfld_default_names("temp"),
+      accum_hours      = rep(0, 8),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  params_temp <- dplyr::mutate(
+    params_temp,
+    parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
+    units       = purrr::map_chr(.data$parameter, "param_units"),
+    parameter   = purrr::map_chr(.data$parameter, "harp_param")
+  )
+
+  temp_data    <- list()
+
+  if (num_temp < 1 | num_temp_levels < 1) {
 
     temp_data <- empty_data
 
@@ -135,48 +158,30 @@ read_vfld_interpolate <- function(
 
     for (temp_station in 1:num_temp) {
 
-      temp_data[[temp_station]] <- tibble::tibble(
-        SID             = rep(vfld_data[[temp_start_row]][1], num_temp_levels),
-        lat             = rep(vfld_data[[temp_start_row]][2], num_temp_levels),
-        lon             = rep(vfld_data[[temp_start_row]][3], num_temp_levels),
-        model_elevation = rep(vfld_data[[temp_start_row]][4], num_temp_levels)
-      )
-
-      temp_values <- t(
-        dplyr::bind_cols(
-          vfld_data[(temp_start_row + 1):(temp_start_row + num_temp_levels)]
-        )
+      station_metadata <- scan(file_connection, nmax = 4, quiet = TRUE)
+      temp_data[[temp_station]] <- data.frame(
+        SID             = rep(as.integer(station_metadata[1]), num_temp_levels),
+        lat             = rep(station_metadata[2], num_temp_levels),
+        lon             = rep(station_metadata[3], num_temp_levels),
+        model_elevation = rep(station_metadata[4], num_temp_levels)
       ) %>%
-        tibble::as_tibble()
-      colnames(temp_values) <- params_temp$parameter
+        dplyr::bind_cols(
+          read.table(
+            file_connection,
+            nrows = num_temp_levels,
+            col.names = params_temp$parameter
+          )
+        )
 
-      temp_data[[temp_station]] <- temp_data[[temp_station]] %>%
-        dplyr::bind_cols(temp_values)
-
-      temp_start_row <- temp_start_row + num_temp_levels + 1
     }
 
-    temp_data <- dplyr::bind_rows(temp_data) %>%
-      dplyr::mutate_all(as.numeric) %>%
-      dplyr::mutate(SID = as.integer(.data$SID))
+    temp_data <- dplyr::bind_rows(temp_data)
 
   }
 
-  # Filter to stations and correct 2m temperature if required
+  close(file_connection)
 
-  # if (!is.null(stations)) {
-  #   if (!grepl("SID", colnames(stations))) {
-  #     if (!no_sid_col) {
-  #       cat(
-  #         "No SID column found in stations data frame. \n",
-  #         "All stations will be kept."
-  #       )
-  #     }
-  #   }
-  #   temp_data <- dplyr::inner_join(temp_data, stations, by = "SID")
-  # }
-
-  ### GET THE PARAMETER(S)
+  # Parameter selection
 
   if (!is.null(parameter)) {
 
@@ -307,4 +312,30 @@ read_vfld_interpolate <- function(
 
   list(fcst_data = vfld_data, units = param_units)
 
+}
+
+vfld_default_names <- function(obs_type) {
+  if (obs_type == "synop") {
+    c("FI",
+      "NN",
+      "DD",
+      "FF",
+      "TT",
+      "RH",
+      "PS",
+      "PE",
+      "QQ",
+      "VI",
+      "TD",
+      "TX",
+      "TN",
+      "GW",
+      "GX",
+      "WX"
+    )
+  } else if (obs_type == "temp") {
+    c("PP","FI","TT","RH","DD","FF","QQ","TD")
+  } else {
+    NA_character_
+  }
 }
