@@ -274,6 +274,9 @@ db_clean_and_write <- function(
     }
   }
 
+  index_name <- paste("index", paste(index_cols, collapse = "_"), sep = "_")
+  index_spec <- paste0(db_table, "(", paste(index_cols, collapse = ","), ")")
+
   transaction_OK <- tryCatch(
     DBI::dbWithTransaction(db_conn, {
 
@@ -338,14 +341,11 @@ db_clean_and_write <- function(
   )
 
   if (inherits(transaction_OK, "error") | is.null(transaction_OK)) {
-    stop("Unable to to write to database file.", call. = FALSE)
+    stop("Unable to to write to database file.\n", transaction_OK$message, call. = FALSE)
   }
 
   index_constraint <- match.arg(index_constraint)
   if (index_constraint == "none") index_constraint <- ""
-
-  index_name <- paste("index", paste(index_cols, collapse = "_"), sep = "_")
-  index_spec <- paste0(db_table, "(", paste(index_cols, collapse = ","), ")")
 
   SQL_add_index <- paste(
     "CREATE",

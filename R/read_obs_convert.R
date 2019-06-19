@@ -42,8 +42,13 @@ read_obs_convert <- function(
   sqlite_template      = "{sqlite_path}/OBSTABLE_{YYYY}.sqlite",
   return_data          = FALSE,
   iterations_per_write = 24,
+  sqlite_synchronous   = c("off", "normal", "full", "extra"),
+  sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
   ...
 ) {
+
+  sqlite_synchronous  <- match.arg(sqlite_synchronous)
+  sqlite_journal_mode <- match.arg(sqlite_journal_mode)
 
   all_dates <- seq_dates(start_date, end_date, by)
 
@@ -115,8 +120,24 @@ read_obs_convert <- function(
       tidyr::nest(.key = "temp")
 
     if (!is.null(sqlite_path)) {
-      purrr::walk2(synop_data$synop, synop_data$file_name, write_obstable_to_sqlite, table_name = "SYNOP")
-      purrr::walk2(temp_data$temp, temp_data$file_name, write_obstable_to_sqlite, table_name = "TEMP", primary_key = (c("validdate", "SID", "p")))
+      purrr::walk2(
+        synop_data$synop,
+        synop_data$file_name,
+        write_obstable_to_sqlite,
+        table_name   = "SYNOP",
+        primary_key  = c("validdate", "SID"),
+        synchronous  = sqlite_synchronous,
+        journal_mode = sqlite_journal_mode
+      )
+      purrr::walk2(
+        temp_data$temp,
+        temp_data$file_name,
+        write_obstable_to_sqlite,
+        table_name   = "TEMP",
+        primary_key  = c("validdate", "SID", "p"),
+        synchronous  = sqlite_synchronous,
+        journal_mode = sqlite_journal_mode
+      )
     }
 
     if (return_data) {

@@ -51,20 +51,25 @@ read_det_interpolate <- function(
   end_date,
   det_model,
   parameter,
-  lead_time      = seq(0, 48, 3),
-  by             = "6h",
-  file_path      = "",
-  file_format    = "vfld",
-  file_template  = "vfld",
-  stations       = NULL,
-  correct_t2m    = TRUE,
-  keep_model_t2m = FALSE,
-  lapse_rate     = 0.0065,
-  sqlite_path    = NULL,
-  sqlite_template = "fctable_det",
-  return_data    = FALSE,
+  lead_time            = seq(0, 48, 3),
+  by                   = "6h",
+  file_path            = "",
+  file_format          = "vfld",
+  file_template        = "vfld",
+  stations             = NULL,
+  correct_t2m          = TRUE,
+  keep_model_t2m       = FALSE,
+  lapse_rate           = 0.0065,
+  sqlite_path          = NULL,
+  sqlite_template      = "fctable_det",
+  sqlite_synchronous   = c("off", "normal", "full", "extra"),
+  sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  return_data          = FALSE,
   ...
 ) {
+
+  sqlite_synchronous  <- match.arg(sqlite_synchronous)
+  sqlite_journal_mode <- match.arg(sqlite_journal_mode)
 
   # Loop over dates to prevent excessive data volumes in memory
 
@@ -196,7 +201,7 @@ read_det_interpolate <- function(
 
     if (!is.null(sqlite_path)) {
 
-      message("Writing data.")
+      message("Preparing data to write.")
       sqlite_data <- forecast_data %>%
         dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$det_model) %>%
         tidyr::nest() %>%
@@ -208,11 +213,7 @@ read_det_interpolate <- function(
           LDT3      = formatC(lead_time, width = 3, flag = "0")
         ) %>%
         dplyr::mutate(
-          file_name = purrr::map_chr(
-            purrr::transpose(.),
-            glue::glue_data,
-            get_template(sqlite_template)
-          )
+          file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
         ) %>%
         tidyr::unnest()
 
@@ -231,7 +232,13 @@ read_det_interpolate <- function(
         dplyr::group_by(.data$file_name) %>%
         tidyr::nest()
 
-      purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
+      purrr::walk2(
+        sqlite_data$data,
+        sqlite_data$file_name,
+        write_fctable_to_sqlite,
+        synchronous  = sqlite_synchronous,
+        journal_mode = sqlite_journal_mode
+      )
 
     }
 

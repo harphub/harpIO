@@ -64,6 +64,12 @@ get_template <- function(template) {
       "FCTABLE_{parameter}_{YYYY}{MM}+{LDT3}.sqlite"
     ),
 
+    "fctable_eps_all_leads" = file.path(
+      "{file_path}",
+      "{eps_model}",
+      "{YYYY}", "{MM}",
+      "FCTABLE_{parameter}_{YYYY}{MM}_{HH}.sqlite"
+    ),
 
     "glameps_grib" = file.path(
       "{file_path}",

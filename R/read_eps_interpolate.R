@@ -65,23 +65,28 @@ read_eps_interpolate <- function(
   end_date,
   eps_model,
   parameter,
-  lead_time       = seq(0, 48, 3),
-  members_in      = seq(0,9),
-  members_out     = members_in,
-  lags            = NULL,
-  by              = "6h",
-  file_path       = "",
-  file_format     = "vfld",
-  file_template   = "vfld",
-  stations        = NULL,
-  correct_t2m     = TRUE,
-  keep_model_t2m  = FALSE,
-  lapse_rate      = 0.0065,
-  sqlite_path     = NULL,
-  sqlite_template = "fctable_eps",
-  return_data     = FALSE,
+  lead_time            = seq(0, 48, 3),
+  members_in           = seq(0,9),
+  members_out          = members_in,
+  lags                 = NULL,
+  by                   = "6h",
+  file_path            = "",
+  file_format          = "vfld",
+  file_template        = "vfld",
+  stations             = NULL,
+  correct_t2m          = TRUE,
+  keep_model_t2m       = FALSE,
+  lapse_rate           = 0.0065,
+  sqlite_path          = NULL,
+  sqlite_template      = "fctable_eps",
+  sqlite_synchronous   = c("off", "normal", "full", "extra"),
+  sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  return_data          = FALSE,
   ...
 ){
+
+  sqlite_synchronous  <- match.arg(sqlite_synchronous)
+  sqlite_journal_mode <- match.arg(sqlite_journal_mode)
 
   # Sanity checks and organisation of members_in as a list
 
@@ -474,13 +479,11 @@ read_eps_interpolate <- function(
           MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
           HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
           LDT3      = formatC(lead_time, width = 3, flag = "0")
-        ) %>%
+        )
+
+      sqlite_data <- sqlite_data %>%
         dplyr::mutate(
-          file_name = purrr::map_chr(
-            purrr::transpose(.),
-            glue::glue_data,
-            get_template(sqlite_template)
-          )
+          file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
         ) %>%
         tidyr::unnest()
 
@@ -499,7 +502,13 @@ read_eps_interpolate <- function(
         dplyr::group_by(.data$file_name) %>%
         tidyr::nest()
 
-      purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
+      purrr::walk2(
+        sqlite_data$data,
+        sqlite_data$file_name,
+        write_fctable_to_sqlite,
+        synchronous  = sqlite_synchronous,
+        journal_mode = sqlite_journal_mode
+      )
 
     }
 
