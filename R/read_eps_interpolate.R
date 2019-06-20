@@ -469,7 +469,7 @@ read_eps_interpolate <- function(
 
     if (!is.null(sqlite_path)) {
 
-      message("Writing data.")
+      message("Preparing data to write.")
       sqlite_data <- forecast_data %>%
         dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
         tidyr::nest() %>%
