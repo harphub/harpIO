@@ -14,7 +14,7 @@
 get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
   ### FA names are very inconsistent ("_" vs "." separators...)
   ### so we have to do some hard-coding
-  hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "rh2m", "g10m", "pmsl", "td2m", "topo", "lsm")
+  hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m", "g10m", "pmsl", "td2m", "topo", "lsm")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
   # generic templates (there are exceptions!)
@@ -24,6 +24,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
                      "u10m" = "CLSVENT.ZONAL   ",
                      "v10m" = "CLSVENT.MERIDIEN",
                      "s10m" = c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN"),
+                     "d10m" = c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN"),
                      "rh2m" = "CLSHUMI.RELATIVE",
                      "pmsl" = "MSLPRESSURE     ",
                      "g10m" = c("CLSU.RAF.MOD.XFU", "CLSV.RAF.MOD.XFU"),
@@ -81,6 +82,9 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
                else "SURFACCPLUIE",
       #
       "topo" = "SPECSURFGEOPOTEN",
+      # accumulated radiation fields:
+      "lwrad" = "SURFRAYT THER DE",  # thermal
+      "swrad" = "SURFRAYT SOLA DE", # direct + diffuse solar
       param$fullname)
   }
   FAname <- format(FAname, width=16)
