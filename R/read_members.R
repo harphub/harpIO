@@ -1,6 +1,6 @@
 #' Read ensemble members from a forecast file
 #'
-#' \code{read_members} reads all esemble members from a forecast file for a
+#' \code{read_members} reads all ensemble members from a forecast file for a
 #' single lead time. It is possible to read from grib or netcdf files via the
 #' helper functions. It is assumed that grib files only contain one member and
 #' ntcdf files contain all members.

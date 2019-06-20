@@ -9,8 +9,8 @@ read_eps_interpolate(start_date, end_date, eps_model, parameter,
   members_out = members_in, lags = NULL, by = "6h", file_path = "",
   file_format = "vfld", file_template = "vfld", stations = NULL,
   correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
-  sqlite_path = NULL, sqlite_template = "fctable_eps",
-  return_data = FALSE, ...)
+  clim_file = NULL, clim_format = NULL, interp_method = "closest",
+  use_mask = FALSE, sqlite_path = NULL, return_data = FALSE, ...)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to read.}
@@ -69,6 +69,19 @@ stations in this data frame are selected. In the case of gridded files
 (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
 list of stations is used. This list can be accessed via
 \code{data(stations)}.}
+
+\item{clim_file}{A file containing constant data for the domain:
+topology, land/sea mask.}
+
+\item{clim_format}{The file format of the clim_file may be different
+than that of the forecast files.}
+
+\item{interp_method}{The method used for interpolating from forecast grid
+to station points. Default is "closest" (mearest neighbour).
+Alternatives include "bilin".}
+
+\item{use_mask}{If TRUE, a land/sea mask is used when interpolating. It must be
+available in the forecast files or in a clim_file.}
 
 \item{sqlite_path}{If specified, SQLite files are generated and written to
 this directory.}

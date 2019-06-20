@@ -3,15 +3,6 @@
 ### NEED DOCUMENTING. Not exporting for now.
 
 
-# faTar -----------------------------------------
-# for fa files archived in .tar files (note that FC_file should add an attribute "filename"!)
-read_faTar <- function(infile, ...) {
-  archname <- infile
-  fafile <- attributes(infile)$filename
-
-  read_fa(infile=fafile, archname=archname, ...)
-}
-
 #  inca_ascii -----------------------------------
 read_inca_ascii <- function(infile, parameter, domain, ...) {
   # you absolutely /need/ to know nx!

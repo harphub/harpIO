@@ -13,7 +13,7 @@
 #'   \code{by}. If \code{start_date} is passed then \code{file_date} is ignored.
 #'   The format is the same as that for \code{file_date}.
 #' @param end_date The end of a date range. Same format as for \code{file_date}.
-#' @param by The frequecny of the date range. Should be a string of a number
+#' @param by The frequency of the date range. Should be a string of a number
 #'   followed by a letter, where the letter gives the units - may be d for days,
 #'   h for hours or m for minutes.
 #' @param lags For reading files from a lagged forecast with members run at
@@ -140,7 +140,9 @@ get_filenames <- function(
 
     if (lubridate::is.Date(file_date)) {
       file_dates <- lubridate::as_datetime(file_date) %>%
-        lubridate::seconds()
+        as.numeric()
+    } else if (lubridate::is.POSIXct(file_date)) {
+      file_dates <- as.numeric(file_date)
     } else {
       file_dates <- str_datetime_to_unixtime(file_date)
     }

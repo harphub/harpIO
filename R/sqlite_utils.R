@@ -10,8 +10,13 @@
 
 ### little convenience functions:
 
-# Note - these fuctions are not exported.
+# Note - these fuctions are not exported. #AD: WHY NOT?
 
+#' @param dbfile Name of an SQLite file. If it does not exist, it is created.
+#' @param lock If TRUE, file locking is used.
+#'   Set to FALSE on network file systems like NFS and lustre.
+#' @value A data base connection
+#' @export
 dbopen <- function(dbfile, lock) {
   if (packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only
 function correctly with package DBI version 0.5 or higher.")
@@ -30,9 +35,9 @@ dbclear <- function(db) {
   # in recent RSQLite, some strangeness may happen!
   # dbListResults is deprecated, so we can't do anything here!
 
-  #  if (packageVersion('RSQLite')<'1.0.0') {for(i in dbListResults(db)) dbClearResult(i)}
-  #  else for (i in dbListResults(db)) {if (dbIsValid(i)) dbClearResult(i)}
-  cat("warning: you shoudln't call dbclear anymore.")
+#  if (packageVersion('RSQLite')<'1.0.0') {for(i in dbListResults(db)) dbClearResult(i)}
+#  else for (i in dbListResults(db)) {if (dbIsValid(i)) dbClearResult(i)}
+  cat("warning: you shouldn't call dbclear anymore.")
 }
 
 dbclose <- function(db) {
@@ -44,16 +49,18 @@ dbclose <- function(db) {
 db.add.columns <- function(db, table, colnames, quiet=FALSE){
   for (col in colnames){
     if (!quiet) cat("ADDING NEW COLUMN",col,"TO TABLE",table,"\n")
-    SQLadd <- paste("ALTER TABLE",table,"ADD",col,"REAL DEFAULT NULL")
-    dbquery(db, SQLadd)
+    sql_add <- paste("ALTER TABLE",table,"ADD",col,"REAL DEFAULT NULL")
+    dbquery(db, sql_add)
   }
 }
 
-####################################################################
-### Robust dbwrite: write a full data.frame to an existing table ###
-####################################################################
+#######################################################################
+### Robust dbwrite: write a full data.frame to an existing table    ###
+###                 wait for file locks to avoid data corruption    ###
+###                 safe for multiple processes accessing same file ###
+#######################################################################
 
-dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
+dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show_query = FALSE){
   tnames <- DBI::dbListFields(conn, table)
   if (length(setdiff(tolower(names(mydata)), tolower(tnames))) > 0) {
     cat("ERROR: The new data contains fields that do not exist in the data base table!\n",
@@ -68,11 +75,11 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
   if (!is.null(rounding)) {
     # notice that we include the "," in the substitution string to avoid partial fit
     for (f in intersect(names(rounding), names(mydata))) {
-      sub(paste0(":",f,",") ,sprintf("round(:%s, %i),",f, rounding[[f]]), SQL)
+      sub(paste0(":",f,",") ,sprintf("round(:%s, %i),",f, rounding[[f]]), sql_write)
     }
   }
 
-  if (packageVersion('DBI')<'0.3.0') {
+  if (packageVersion('DBI') < '0.3.0') {
     dbBegin <- get("dbBeginTransaction", envir = asNamespace("DBI"))
   } else if (packageVersion("RSQLite") < "1.0.0") {
     stop("RSQLite version is inconsistent with DBI. Consider upgrading.")
@@ -81,9 +88,12 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
 
   prepOK <- FALSE
   count <- 1
+  if (show_query) message("sending query: ", sql_write)
   while (!prepOK & count<=maxtry){
+
     tryOK1 <- tryCatch(DBI::dbSendQuery(conn, SQL, params=mydata),
       error=function(e) {print(e);return(e)}) ### this needs RESERVED lock
+
     if (inherits(tryOK1,"error")) {
       print(paste("FAILURE dbSendQuery",count,"/",maxtry))
       print(tryOK1$message)
@@ -101,13 +111,16 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5){
     stop("FATAL DBFAILURE: Unable to acquire lock.")
   }
 
+
   ### second stage (commit) will fail if another process is accessing the db (even just for reading)
+
   commitOK <- FALSE
   count <- 1
   while (!commitOK & count<=maxtry){
     DBI::dbClearResult(tryOK1)
     tryOK2 <- tryCatch(DBI::dbCommit(conn),
       error=function(e) {print(e);return(e)})  ### commit needs an EXCLUSIVE lock
+    
     if (inherits(tryOK2,"error")) {
       print(paste("FAILURE commit",count,"/",maxtry))
       print(tryOK2$message)
@@ -198,34 +211,49 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 }
 
 #############################
-
-create_table <- function(db, tab) {
-  if (DBI::dbExistsTable(db, tab$name)) {
-    ## TODO: check fields are the same!!!
-
+#' Create a new table in an SQLite data base
+#'
+#' @param db A database connection
+#' @param name A name for the table. If it already exists, nothing happens.
+#' @param a data.frame. Only column names and type are used.
+#' @param primary Primary keys
+#' @export
+create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
+  if (DBI::dbExistsTable(db, name)) {
+## TODO: check fields are the same!!!
     return(NULL)
   }
-  if ( is.null(tab$primary) || is.na(tab$primary) || tab$primary=="") {
-    sql.create <- sprintf("CREATE TABLE %s ( %s )",
-      tab$name,
-      paste(tab$fields, tab$types,collapse=","))
+  types <- vapply(seq_len(dim(data)[2]), function(x) switch(class(data[[x]]),
+                                             "integer"="INTEGER",
+                                             "numeric"="REAL",
+                                             "character"="CHARACTER"), FUN.VAL="a")
+  if ( is.null(primary) ) {
+    sql_create <- sprintf("CREATE TABLE %s ( %s )",
+                           name,
+                           paste(names(data), types, collapse=","))
   } else {
-    sql.create <- sprintf("CREATE TABLE %s ( %s , PRIMARY KEY(%s))",
-      tab$name,
-      paste(tab$fields, tab$types,collapse=","),
-      paste(tab$primary,collapse=","))
+    sql_create <- sprintf("CREATE TABLE %s ( %s , PRIMARY KEY(%s))",
+                           name,
+                           paste(names(data), types, collapse=","),
+                           paste(primary, collapse=","))
   }
-  dbquery(db, sql.create)
-  invisible(sql.create)
+  if (show_query) message("Creation query: ", sql_create)
+  dbquery(db, sql_create)
+  invisible(sql_create)
 }
 
-cleanup_table <- function(db, tabname, where.list) {
+cleanup_table <- function(db, tabname, where.list, show_query = FALSE) {
   # character values must be wrapped with single quotes in the SQL command!
-  where.list <- lapply(where.list, function(x) if (is.character(x)) paste0("'",x,"'") else x)
+  where.list <- lapply(where.list,
+                       function(x) if (is.character(x)) paste0("'",x,"'")
+                                   else x)
   wlist <- vapply(names(where.list), FUN.VAL="a",
-    FUN=function(cc) sprintf("%s=%s",cc,where.list[[cc]]))
-  sql.cleanup <- sprintf("DELETE FROM %s WHERE %s", tabname, paste(wlist, collapse=" AND "))
-  dbquery(db, sql.cleanup)
+                  FUN=function(cc) sprintf("%s=%s",cc,where.list[[cc]]))
+  sql_cleanup <- sprintf("DELETE FROM %s WHERE %s",
+                         tabname, paste(wlist, collapse=" AND "))
+  if (show_query) message("Cleanup query: ", sql_cleanup)
+  dbquery(db, sql_cleanup)
+  invisible(sql_cleanup)
 }
 
 ################################################################
