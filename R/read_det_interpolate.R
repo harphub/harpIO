@@ -149,7 +149,7 @@ read_det_interpolate <- function(
         filenames_only = FALSE
       )
     ) %>%
-    dplyr::bind_rows()
+      dplyr::bind_rows()
 
     # Get the data
 
@@ -248,7 +248,9 @@ read_det_interpolate <- function(
           MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
           HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
           LDT3      = formatC(lead_time, width = 3, flag = "0")
-        ) %>%
+        )
+
+      sqlite_data <- sqlite_data %>%
         dplyr::mutate(
           file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
         ) %>%

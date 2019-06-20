@@ -65,6 +65,8 @@ read_grib_interpolate <- function(file_name, parameter,
                                   lead_time, members=NULL,
                                   init=list(), method="closest", use_lsm=FALSE, ...) {
 
+  stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
+
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
     stop(
       "read_grib requires the Rgrib2 package. Install with the following command:\n",
@@ -85,7 +87,7 @@ read_grib_interpolate <- function(file_name, parameter,
   all_data <- read_grib(file_name, parameter, lead_time, ...)
 # fix the interpolation weights (they may already exist)
   if (is.null(init$weights) || attr(init$weights, "method") != method) {
-    init <- initialise_weights(domain=attr(all_data, "domain"), stations=init$stations,
+    init <- initialise_weights(model, domain=all_data, stations=init$stations,
                              method=method, use_mask=use_lsm, drop_NA=TRUE)
     ## assign init to the calling function, so it can be re-used?
     assign("init", init, env = parent.frame())
