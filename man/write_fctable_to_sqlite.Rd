@@ -5,7 +5,7 @@
 \title{Write a \code{harp_fcst} object to an sqlite file.}
 \usage{
 write_fctable_to_sqlite(data, filename, tablename = "FC",
-  primary_key = "SID, fcdate, leadtime")
+  primary_key = c("SID", "fcdate", "leadtime"))
 }
 \arguments{
 \item{data}{The fcst data to write.}

@@ -44,6 +44,7 @@
 #'   (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
 #'   list of stations is used. This list can be accessed via
 #'   \code{data(stations)}.
+
 #' @param clim_file A file containing constant data for the domain:
 #'   topology, land/sea mask.
 #' @param clim_format The file format of the clim_file may be different
@@ -59,6 +60,10 @@
 #'   this directory.
 #' @param ... Arguments dependent on \code{file_format}. (More info to be
 #'   added).
+#' @param keep_model_t2m
+#' @param lapse_rate
+#' @param sqlite_template
+#' @param return_data
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -87,10 +92,16 @@ read_eps_interpolate <- function(
   clim_format    = NULL,
   interp_method  = "closest",
   use_mask       = FALSE,
-  sqlite_path    = NULL,
-  return_data    = FALSE,
+  sqlite_path          = NULL,
+  sqlite_template      = "fctable_eps",
+  sqlite_synchronous   = c("off", "normal", "full", "extra"),
+  sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  return_data          = FALSE,
   ...
 ){
+
+  sqlite_synchronous  <- match.arg(sqlite_synchronous)
+  sqlite_journal_mode <- match.arg(sqlite_journal_mode)
 
   # Sanity checks and organisation of members_in as a list
 
@@ -511,13 +522,11 @@ read_eps_interpolate <- function(
           MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
           HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
           LDT3      = formatC(lead_time, width = 3, flag = "0")
-        ) %>%
+        )
+
+      sqlite_data <- sqlite_data %>%
         dplyr::mutate(
-          file_name = purrr::map_chr(
-            purrr::transpose(.),
-            glue::glue_data,
-            get_template("fctable")
-          )
+          file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
         ) %>%
         tidyr::unnest()
 
@@ -536,7 +545,13 @@ read_eps_interpolate <- function(
         dplyr::group_by(.data$file_name) %>%
         tidyr::nest()
 
-      purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
+      purrr::walk2(
+        sqlite_data$data,
+        sqlite_data$file_name,
+        write_fctable_to_sqlite,
+        synchronous  = sqlite_synchronous,
+        journal_mode = sqlite_journal_mode
+      )
 
     }
 

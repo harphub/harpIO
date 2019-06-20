@@ -45,9 +45,7 @@ read_vfld_interpolate <- function(
   ...
 ) {
 
-  empty_data <- empty_data_interpolate(members, lead_time)
-
-  if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
+  empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
 
   if (file.exists(file_name)) {
     message("Reading: ", file_name)
@@ -56,128 +54,11 @@ read_vfld_interpolate <- function(
     return(empty_data)
   }
 
-  vfld_data <- readr::read_lines(file_name) %>%
-    stringr::str_trim(side = "both") %>%
-    strsplit("\\s+")
+  if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
 
-  ### SYNOP DATA
+  vfld_data <- read_vfile(file_name, members = members, lead_time = lead_time, v_type = "vfld")
 
-  # The first row is num_synop, num_temp, vfld_version
-  num_synop    <- as.numeric(vfld_data[[1]][1])
-  num_temp     <- as.numeric(vfld_data[[1]][2])
-  vfld_version <- as.numeric(vfld_data[[1]][3])
-
-  # The second row is the number of parameters
-  num_param <- as.numeric(vfld_data[[2]])
-
-  synop_start_row <- 3 + num_param
-  synop_end_row   <- synop_start_row + num_synop - 1
-
-  # The following num_param rows are parameter, accum_hours
-  params_synop <- t(dplyr::bind_cols(vfld_data[3:(synop_start_row - 1)])) %>%
-    tibble::as_tibble()
-  colnames(params_synop) <- c("parameter", "accum_hours")
-  params_synop <- params_synop %>%
-    dplyr::mutate(
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
-      units       = purrr::map_chr(.data$parameter, "param_units"),
-      parameter   = purrr::map_chr(.data$parameter, "harp_param"),
-      accum_hours = as.numeric(.data$accum_hours)
-    )
-
-  # The next num_synop rows are the synop data
-  synop_data <- t(dplyr::bind_cols(vfld_data[synop_start_row:synop_end_row])) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate_all(as.numeric)
-  colnames(synop_data) <- c("SID", "lat", "lon", params_synop$parameter)
-  synop_data$SID <- as.integer(synop_data$SID)
-
-  # Filter to stations and correct 2m temperature if required - this might not be the place to do this now
-  # Should be taken care of in read_members_interpolate.
-
-  # no_sid_col <- FALSE
-  # if (!is.null(init$stations)) {
-  #   if (!grepl("SID", colnames(init$stations))) {
-  #     cat(
-  #       "No SID column found in stations data frame. \n",
-  #       "All stations will be kept."
-  #     )
-  #     no_sid_col <- TRUE
-  #   }
-  #   synop_data <- dplyr::inner_join(synop_data, init$stations, by = "SID")
-  # }
-
-  ### TEMP DATA
-
-  # The following two rows are the temp metadata
-  num_temp_levels <- as.numeric(vfld_data[[(synop_end_row + 1)]])
-  num_param       <- as.numeric(vfld_data[[(synop_end_row + 2)]])
-  temp_start_row  <- synop_end_row + 3 + num_param
-
-  # The following num_param rows are parameter, accum_hours
-  params_temp<- t(dplyr::bind_cols(vfld_data[(synop_end_row + 3):(temp_start_row - 1)])) %>%
-    tibble::as.tibble()
-  colnames(params_temp) <- c("parameter", "accum_hours")
-  params_temp <- params_temp %>%
-    dplyr::mutate(
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
-      units       = purrr::map_chr(.data$parameter, "param_units"),
-      parameter   = purrr::map_chr(.data$parameter, "harp_param"),
-      accum_hours = as.numeric(.data$accum_hours)
-    )
-
-  # Loop over the temp stations
-  temp_data <- list()
-  if (num_temp < 1) {
-
-    temp_data <- empty_data
-
-  } else {
-
-    for (temp_station in 1:num_temp) {
-
-      temp_data[[temp_station]] <- tibble::tibble(
-        SID             = rep(vfld_data[[temp_start_row]][1], num_temp_levels),
-        lat             = rep(vfld_data[[temp_start_row]][2], num_temp_levels),
-        lon             = rep(vfld_data[[temp_start_row]][3], num_temp_levels),
-        model_elevation = rep(vfld_data[[temp_start_row]][4], num_temp_levels)
-      )
-
-      temp_values <- t(
-        dplyr::bind_cols(
-          vfld_data[(temp_start_row + 1):(temp_start_row + num_temp_levels)]
-        )
-      ) %>%
-        tibble::as_tibble()
-      colnames(temp_values) <- params_temp$parameter
-
-      temp_data[[temp_station]] <- temp_data[[temp_station]] %>%
-        dplyr::bind_cols(temp_values)
-
-      temp_start_row <- temp_start_row + num_temp_levels + 1
-    }
-
-    temp_data <- dplyr::bind_rows(temp_data) %>%
-      dplyr::mutate_all(as.numeric) %>%
-      dplyr::mutate(SID = as.integer(.data$SID))
-
-  }
-
-  # Filter to stations and correct 2m temperature if required
-
-  # if (!is.null(stations)) {
-  #   if (!grepl("SID", colnames(stations))) {
-  #     if (!no_sid_col) {
-  #       cat(
-  #         "No SID column found in stations data frame. \n",
-  #         "All stations will be kept."
-  #       )
-  #     }
-  #   }
-  #   temp_data <- dplyr::inner_join(temp_data, stations, by = "SID")
-  # }
-
-  ### GET THE PARAMETER(S)
+  # Parameter selection
 
   if (!is.null(parameter)) {
 
@@ -203,18 +84,18 @@ read_vfld_interpolate <- function(
 
   } else { # Get all parameters from the file
 
-    synop_parameters <- synop_data %>%
+    synop_parameters <- vfld_data$synop %>%
       dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation) %>%
       colnames() %>%
       purrr::map(parse_harp_parameter)
 
-    if (num_temp < 1) {
+    if (ncol(vfld_data$temp) < 5) {
       temp_parameters <- NULL
     } else {
-      temp_parameters <- temp_data %>%
+      temp_parameters <- vfld_data$temp %>%
         dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation, -.data$p) %>%
         colnames() %>%
-        purrr::map(~ paste0(.x, unique(temp_data$p))) %>%
+        purrr::map(~ paste0(.x, unique(vfld_data$temp$p))) %>%
         unlist() %>%
         purrr::map(parse_harp_parameter)
     }
@@ -225,16 +106,16 @@ read_vfld_interpolate <- function(
 
   if (length(synop_parameters) > 0) {
     synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname")) %>%
-      intersect(colnames(synop_data))
+      intersect(colnames(vfld_data$synop))
     param_cols_out  <- rlang::syms(synop_parameter)
-    synop_data      <- synop_data %>%
+    vfld_data$synop      <- vfld_data$synop %>%
       dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
       dplyr::mutate(
         member    = members,
         lead_time = lead_time
       )
   } else {
-    synop_data <- empty_data
+    vfld_data$synop <- empty_data
   }
 
   # Extract the temp parameters
@@ -255,7 +136,7 @@ read_vfld_interpolate <- function(
       param_cols_in       <- rlang::syms(temp_parameter_base)
       temp_parameter_full <- purrr::map_chr(temp_parameters, "fullname")
       param_cols_out      <- rlang::syms(temp_parameter_full)
-      temp_data <- temp_data %>%
+      vfld_data$temp <- vfld_data$temp %>%
         dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
         tidyr::gather(key = param, value = forecast, !!!param_cols_in) %>%
         dplyr::mutate(param = paste0(.data$param, .data$p)) %>%
@@ -267,25 +148,25 @@ read_vfld_interpolate <- function(
           lead_time = lead_time
         )
     } else {
-      temp_data <- empty_data
+      vfld_data$temp <- empty_data
     }
 
   } else {
 
-    temp_data <- empty_data
+    vfld_data$temp <- empty_data
 
   }
 
+  params <- dplyr::bind_rows(vfld_data$synop_params, vfld_data$temp_params) %>%
+    dplyr::select(-.data$accum_hours) %>%
+    dplyr::filter(.data$parameter != "p")
+
   vfld_data <- dplyr::full_join(
-    synop_data,
-    temp_data,
+    vfld_data$synop,
+    vfld_data$temp,
     by     = c("SID", "lead_time", "member"),
     suffix = c("", ".temp")
   )
-
-  params <- dplyr::bind_rows(params_synop, params_temp) %>%
-    dplyr::select(-.data$accum_hours) %>%
-    dplyr::filter(.data$parameter != "p")
 
   param_units <- tibble::tibble(
     parameter = colnames(vfld_data)
@@ -300,12 +181,14 @@ read_vfld_interpolate <- function(
       param_basename = dplyr::case_when(
         grepl(".temp", .data$param_basename) ~ gsub(".temp", "", .data$param_basename),
         .data$parameter %in% special_cases   ~ .data$parameter,
+        grepl("Acc[[:alpha:]]+[[:digit:]]+[[:alpha:]]", .data$parameter, perl = TRUE) ~ .data$parameter,
         TRUE ~ param_basename
       )
     ) %>%
     dplyr::full_join(dplyr::rename(params, param_basename = .data$parameter), by = "param_basename") %>%
     dplyr::select(-.data$param_basename)
 
-  list(fcst_data = vfld_data, units = param_units)
+  list(fcst_data = tibble::as_tibble(vfld_data), units = tibble::as_tibble(param_units))
 
 }
+

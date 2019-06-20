@@ -64,6 +64,7 @@ read_point_forecast <- function(
   lags          = "0s",
   by            = "1d",
   file_path     = ".",
+  file_template = NULL,
   drop_any_na   = TRUE,
   stations      = NULL,
   members       = NULL,
@@ -72,12 +73,12 @@ read_point_forecast <- function(
 
   switch(tolower(fcst_type),
     "eps" = {
-      file_template <- "fctable_eps"
+      file_template <- ifelse(is.null(file_template), "fctable_eps", file_template)
       member_regexp <- "[[:graph:]]+(?=_mbr[[:digit:]]+)"
       fcst_suffix   <- "_mbr"
     },
     "det" = {
-      file_template <- "fctable_det"
+      file_template <- ifelse(is.null(file_template), "fctable_det", file_template)
       member_regexp <- "[[:graph:]]+(?=_det)"
       fcst_suffix   <- "_det"
     },
@@ -323,12 +324,17 @@ merge_names <- function(x) {
   y
 }
 
+### This needs modifying to deal with lagged multimodel...
 merge_names_df <- function(df_list, df_names) {
   names(df_list) <- df_names
   merged <- list()
   for (df_name in unique(df_names)) {
     df_elements       <- which(df_names == df_name)
-    merged[[df_name]] <- dplyr::bind_rows(df_list[df_elements])
+    if (length(df_elements) > 1) {
+      merged[[df_name]] <- dplyr::bind_rows(df_list[df_elements])
+    } else {
+      merged[[df_name]] <- df_list[df_elements][[1]]
+    }
   }
   merged
 }

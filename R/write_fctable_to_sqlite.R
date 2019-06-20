@@ -12,7 +12,14 @@
 #' @export
 #'
 #' @examples
-write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_key = "SID, fcdate, leadtime") {
+write_fctable_to_sqlite <- function(
+  data,
+  filename,
+  tablename = "FC",
+  primary_key  = c("fcdate", "leadtime", "SID"),
+  synchronous  = "off",
+  journal_mode = "delete"
+) {
 
   newfile <- FALSE
   if (!file.exists(filename)) {
@@ -32,22 +39,22 @@ write_fctable_to_sqlite <- function(data, filename, tablename = "FC", primary_ke
 
   sqlite_db <- dbopen(filename)
 
-  dbquery(sqlite_db, "PRAGMA synchronous = NORMAL")
+  dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
   if (newfile) {
-    ## AD: this is dangerous: WAL does not work on network FS's like NFS, Lustre
-    ##     so for instance ecgate:/scratch is a problem
+    
+    dbquery(sqlite_db, paste("PRAGMA journal_mode =", toupper(journal_mode)))
 
-    dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", tablename, "(",
         paste(column_names, column_types, collapse = ", "),
-        ", PRIMARY KEY(",primary_key,"))")
+        ")"
+      )
     )
   }
 
-  dbwrite(sqlite_db, tablename, data)
+  db_clean_and_write(sqlite_db, tablename, data, primary_key, index_constraint = "unique")
   dbclose(sqlite_db)
 
 }

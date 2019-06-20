@@ -44,6 +44,11 @@
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
 #' @param ... Arguments dependent on \code{file_format} (More info to be added).
+#' @param keep_model_t2m
+#' @param lapse_rate
+#' @param sqlite_template
+#' @param return_data
+
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -70,12 +75,16 @@ read_det_interpolate <- function(
   interpolation_method = "closest",
   use_mask             = FALSE,
   sqlite_path          = NULL,
+  sqlite_template      = "fctable_det",
+  sqlite_synchronous   = c("off", "normal", "full", "extra"),
+  sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
   return_data          = FALSE,
   ...
 ) {
 
-  # ... : passed to read_XXX_interpolate
-  # all that is needed for init_fcmodel : named arguments
+  sqlite_synchronous  <- match.arg(sqlite_synchronous)
+  sqlite_journal_mode <- match.arg(sqlite_journal_mode)
+
   # Loop over dates to prevent excessive data volumes in memory
 
   all_dates <- seq_dates(start_date, end_date, by)
@@ -229,7 +238,7 @@ read_det_interpolate <- function(
 
     if (!is.null(sqlite_path)) {
 
-      message("Writing data.")
+      message("Preparing data to write.")
       sqlite_data <- forecast_data %>%
         dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$det_model) %>%
         tidyr::nest() %>%
@@ -241,11 +250,7 @@ read_det_interpolate <- function(
           LDT3      = formatC(lead_time, width = 3, flag = "0")
         ) %>%
         dplyr::mutate(
-          file_name = purrr::map_chr(
-            purrr::transpose(.),
-            glue::glue_data,
-            get_template("fctable_det")
-          )
+          file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
         ) %>%
         tidyr::unnest()
 
@@ -264,7 +269,13 @@ read_det_interpolate <- function(
         dplyr::group_by(.data$file_name) %>%
         tidyr::nest()
 
-      purrr::walk2(sqlite_data$data, sqlite_data$file_name, write_fctable_to_sqlite)
+      purrr::walk2(
+        sqlite_data$data,
+        sqlite_data$file_name,
+        write_fctable_to_sqlite,
+        synchronous  = sqlite_synchronous,
+        journal_mode = sqlite_journal_mode
+      )
 
     }
 

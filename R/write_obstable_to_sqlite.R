@@ -3,9 +3,15 @@
 write_obstable_to_sqlite <- function(
   obs_data,
   file_name,
-  table_name  = "SYNOP",
-  primary_key = c("SID", "validdate")
+  table_name   = "SYNOP",
+  primary_key  = c("validdate", "SID"),
+  synchronous  = "off",
+  journal_mode = "delete"
 ) {
+
+  obs_data <- dplyr::filter(obs_data, !is.na(.data$SID))
+
+  if (nrow(obs_data) == 0) return()
 
   newfile <- FALSE
   if (!file.exists(file_name)) {
@@ -24,20 +30,21 @@ write_obstable_to_sqlite <- function(
   message("Writing to: ", table_name, " in ", file_name, "\n")
 
   sqlite_db <- dbopen(file_name)
-  dbquery(sqlite_db, "PRAGMA synchronous = NORMAL")
+  dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
   create_table <- function() {
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", table_name, "(",
         paste(col_names, col_types, collapse = ", "),
-        ", PRIMARY KEY(", paste(primary_key, collapse = ","), "))")
+        ")"
+      )
     )
   }
 
   if (newfile) {
 
-    dbquery(sqlite_db, "PRAGMA journal_mode = WAL")
+    dbquery(sqlite_db, paste("PRAGMA journal_mode =", toupper(journal_mode)))
     create_table()
 
   } else if (!DBI::dbExistsTable(sqlite_db, table_name)) {
@@ -66,7 +73,7 @@ write_obstable_to_sqlite <- function(
 
   }
 
-  dbwrite(sqlite_db, table_name, obs_data)
+  db_clean_and_write(sqlite_db, table_name, obs_data, primary_key, index_constraint = "unique")
 
   dbclose(sqlite_db)
 

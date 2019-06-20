@@ -156,11 +156,12 @@ get_filenames <- function(
       str_datetime_to_unixtime()
   }
 
-  if (lags_passed) {
-    lag_col <- sort(unique(lags))
-  } else {
-    lag_col <- "0s"
+  if (!lags_passed) {
+    lags <- "0s"
   }
+
+  lag_col <- sort(unique(lags))
+
   file_lags <- tibble::tibble(
     lag         = lag_col,
     lag_seconds = readr::parse_number(.data$lag) * units_multiplier_vec(.data$lag)
@@ -279,7 +280,7 @@ get_filenames <- function(
 
   files <- files %>%
     dplyr::mutate(
-      file_name = purrr::map_chr(purrr::transpose(files), glue::glue_data, template)
+      file_name = as.vector(glue::glue_data(files, template))
     )
 
   if (is.na(eps_model)) {
@@ -313,14 +314,4 @@ get_filenames <- function(
 
 }
 
-units_multiplier <- function(x) {
-  time_units <- stringr::str_extract(tolower(x), "[a-z]+")
-  switch(time_units,
-    "d" = 60 * 60 * 24,
-    "h" = 60 * 60,
-    "m" = 60,
-    "s" = 1,
-    NA_real_
-  )
-}
 

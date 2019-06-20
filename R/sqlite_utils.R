@@ -28,12 +28,12 @@ function correctly with package DBI version 0.5 or higher.")
   else {
     DBI::dbConnect(RSQLite::SQLite(), dbname=dbfile, vfs="unix-none")  # for Lustre, NFS
   }
-### WARNING: this turns off file locking completely!
+  ### WARNING: this turns off file locking completely!
 }
 
 dbclear <- function(db) {
-# in recent RSQLite, some strangeness may happen!
-# dbListResults is deprecated, so we can't do anything here!
+  # in recent RSQLite, some strangeness may happen!
+  # dbListResults is deprecated, so we can't do anything here!
 
 #  if (packageVersion('RSQLite')<'1.0.0') {for(i in dbListResults(db)) dbClearResult(i)}
 #  else for (i in dbListResults(db)) {if (dbIsValid(i)) dbClearResult(i)}
@@ -41,7 +41,7 @@ dbclear <- function(db) {
 }
 
 dbclose <- function(db) {
-#  bclear(db)
+  #  bclear(db)
   invisible(DBI::dbDisconnect(db))
 }
 
@@ -64,16 +64,16 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show
   tnames <- DBI::dbListFields(conn, table)
   if (length(setdiff(tolower(names(mydata)), tolower(tnames))) > 0) {
     cat("ERROR: The new data contains fields that do not exist in the data base table!\n",
-        "Consider re-creating SQLite file.\n")
+      "Consider re-creating SQLite file.\n")
     stop("Can not write data.")
   }
 
-  sql_write <- paste0("REPLACE into ",table," (",paste(names(mydata),collapse=","),") ",
-                " values ",
-                "(:", paste(names(mydata),collapse=",:"),")")
+  SQL <- paste0("REPLACE into ",table," (",paste(names(mydata),collapse=","),") ",
+    " values ",
+    "(:", paste(names(mydata),collapse=",:"),")")
 
   if (!is.null(rounding)) {
-  # notice that we include the "," in the substitution string to avoid partial fit
+    # notice that we include the "," in the substitution string to avoid partial fit
     for (f in intersect(names(rounding), names(mydata))) {
       sub(paste0(":",f,",") ,sprintf("round(:%s, %i),",f, rounding[[f]]), sql_write)
     }
@@ -90,8 +90,10 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show
   count <- 1
   if (show_query) message("sending query: ", sql_write)
   while (!prepOK & count<=maxtry){
-    tryOK1 <- tryCatch(DBI::dbSendQuery(conn, sql_write, params=mydata),
-                      error=function(e) {print(e);return(e)}) ### this needs RESERVED lock
+
+    tryOK1 <- tryCatch(DBI::dbSendQuery(conn, SQL, params=mydata),
+      error=function(e) {print(e);return(e)}) ### this needs RESERVED lock
+
     if (inherits(tryOK1,"error")) {
       print(paste("FAILURE dbSendQuery",count,"/",maxtry))
       print(tryOK1$message)
@@ -109,15 +111,16 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show
     stop("FATAL DBFAILURE: Unable to acquire lock.")
   }
 
-### second stage (commit) will fail if another process
-### is accessing the db (even just for reading)
+
+  ### second stage (commit) will fail if another process is accessing the db (even just for reading)
+
   commitOK <- FALSE
   count <- 1
   while (!commitOK & count<=maxtry){
-   DBI::dbClearResult(tryOK1)
+    DBI::dbClearResult(tryOK1)
     tryOK2 <- tryCatch(DBI::dbCommit(conn),
-                      error=function(e) {print(e);return(e)})
-    ### commit needs an EXCLUSIVE lock
+      error=function(e) {print(e);return(e)})  ### commit needs an EXCLUSIVE lock
+    
     if (inherits(tryOK2,"error")) {
       print(paste("FAILURE commit",count,"/",maxtry))
       print(tryOK2$message)
@@ -152,7 +155,7 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
   count <- 1
   while (!sendOK & count<=maxtry){
     result <- tryCatch(DBI::dbSendQuery(conn, sql),
-                       error=function(e) {print(e); return(e)})
+      error=function(e) {print(e); return(e)})
     if (inherits(result,"error")) {
       print(paste("FAILURE dbSendQuery",count,"/",maxtry))
       print(result$message)
@@ -167,14 +170,14 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
   }
   if (!sendOK) stop("FATAL DBFAILURE: Unable to query database.")
 
-#-- if the sql statement doesn't return data (not a select), there is nothing more to do:
-# Note $completed has changed to $has.completed in newer versions of DBI
+  #-- if the sql statement doesn't return data (not a select), there is nothing more to do:
+  # Note $completed has changed to $has.completed in newer versions of DBI
   lCompleted <- DBI::dbGetInfo(result)$has.completed
   if (is.null(lCompleted)) lCompleted <- DBI::dbGetInfo(result)$completed
   if (is.null(lCompleted)) {
-     cat("Problem with dbGetInfo result\n")
-     print(DBI::dbGetInfo(result))
-     stop("ABORTING!")
+    cat("Problem with dbGetInfo result\n")
+    print(DBI::dbGetInfo(result))
+    stop("ABORTING!")
   }
   if (lCompleted) {
     # do I have to clear the result even if it is completed? YES!
@@ -182,13 +185,13 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
     return(TRUE)
   }
 
-# not yet completed: so we are expecting a return result
+  # not yet completed: so we are expecting a return result
   fetchOK <- FALSE
   count <- 1
-   while (!fetchOK & count<=maxtry){
+  while (!fetchOK & count<=maxtry){
     if (packageVersion('DBI')<'0.3.0') dbFetch <- get("fetch", envir = asNamespace("DBI"))
     data <- tryCatch(DBI::dbFetch(result,n=-1),
-                     error=function(e) {print(e);return(e)})
+      error=function(e) {print(e);return(e)})
     if (inherits(data,"error")) {
       print(paste("FAILURE dbFetch",count,"/",maxtry))
       print(data$message)
@@ -253,4 +256,151 @@ cleanup_table <- function(db, tabname, where.list, show_query = FALSE) {
   invisible(sql_cleanup)
 }
 
+################################################################
+# Combine clean and write in a single transaction.
+# Takes checks from dbwrite to deal with file locking etc.
+################################################################
 
+db_clean_and_write <- function(
+  db_conn,
+  db_table,
+  df,
+  index_cols,
+  index_constraint = c("none", "unique"),
+  rounding         = NULL,
+  maxtry           = 20,
+  sleep            = 5
+) {
+
+  table_cols <- DBI::dbListFields(db_conn, db_table)
+  if (length(setdiff(tolower(names(df)), tolower(table_cols))) > 0) {
+    stop(
+      paste(
+        "The data to be written contains columns that do not exist in the data base table!\n",
+        "Consider re-creating SQLite file.\n"
+      ), call. = FALSE
+    )
+  }
+
+  if (!all(index_cols %in% colnames(df))) {
+    stop("'index_cols' must be column names in 'df'", call. = FALSE)
+  }
+
+  where_list <- purrr::map(index_cols, ~ unique(df[[.x]])) %>%
+    purrr::set_names(index_cols)
+
+  SQL_delete <- paste("DELETE FROM", db_table, generate_where(where_list))
+
+  SQL_insert <- paste0(
+    "INSERT into ", db_table, " (", paste(colnames(df), collapse = ","), ") ",
+    " values (:", paste(colnames(df), collapse = ",:"), ")"
+  )
+
+  if (!is.null(rounding)) {
+    for (f in intersect(names(rounding), names(df))) {
+      sub(paste0(":", f, ","), sprintf("round(:%s, %i),", f, rounding[[f]]), SQL_insert)
+    }
+  }
+
+  index_name <- paste("index", paste(index_cols, collapse = "_"), sep = "_")
+  index_spec <- paste0(db_table, "(", paste(index_cols, collapse = ","), ")")
+
+  transaction_OK <- tryCatch(
+    DBI::dbWithTransaction(db_conn, {
+
+      clean_OK <- FALSE
+      count    <- 1
+
+      while (!clean_OK & count <= maxtry) {
+
+        results_set_clean <- tryCatch(
+          DBI::dbSendStatement(db_conn, SQL_delete),
+          error = function(err) err
+        )
+
+
+        if (inherits(results_set_clean, "error" )) {
+          print(paste("FAILURE dbSendStatement:", count, "/" , maxtry))
+          print(results_set_clean$message)
+          Sys.sleep(sleep)
+          count <- count + 1
+        } else {
+          clean_OK <- TRUE
+        }
+
+      }
+
+      if (!clean_OK) {
+        DBI::dbBreak()
+      } else {
+        DBI::dbClearResult(results_set_clean)
+      }
+
+      insert_OK <- FALSE
+      count     <- 1
+
+      while (!insert_OK & count <= maxtry) {
+
+        results_set_insert <- tryCatch(
+          DBI::dbSendStatement(db_conn, SQL_insert, params = df),
+          error = function(err) err
+        )
+
+
+        if (inherits(results_set_insert, "error" )) {
+          print(paste("FAILURE dbSendStatement:", count, "/" , maxtry))
+          print(results_set_insert$message)
+          Sys.sleep(sleep)
+          count <- count + 1
+        } else {
+          insert_OK <- TRUE
+        }
+
+      }
+
+      if (!insert_OK) {
+        DBI::dbBreak()
+      } else {
+        DBI::dbClearResult(results_set_insert)
+      }
+
+    }),
+    error = function(err) err
+  )
+
+  if (inherits(transaction_OK, "error") | is.null(transaction_OK)) {
+    stop("Unable to to write to database file.\n", transaction_OK$message, call. = FALSE)
+  }
+
+  index_constraint <- match.arg(index_constraint)
+  if (index_constraint == "none") index_constraint <- ""
+
+  SQL_add_index <- paste(
+    "CREATE",
+    index_constraint,
+    "INDEX IF NOT EXISTS",
+    index_name,
+    "ON",
+    index_spec
+  )
+
+  dbquery(db_conn, SQL_add_index)
+}
+
+
+###############################################################
+# Generate a WHERE sql statement from a list
+###############################################################
+generate_where <- function(where_list) {
+  paste(
+    "WHERE",
+    paste(
+      purrr::map2_chr(
+        names(where_list),
+        where_list,
+        ~ paste0(.x, " IN (", paste(.y, collapse = ","), ")")
+      ),
+      collapse = " AND "
+    )
+  )
+}
