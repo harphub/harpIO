@@ -32,7 +32,7 @@ write_obstable_to_sqlite <- function(
   sqlite_db <- dbopen(file_name)
   dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
-  create_table <- function() {
+  create_obs_table <- function() {
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", table_name, "(",
@@ -45,11 +45,11 @@ write_obstable_to_sqlite <- function(
   if (newfile) {
 
     dbquery(sqlite_db, paste("PRAGMA journal_mode =", toupper(journal_mode)))
-    create_table()
+    create_obs_table()
 
   } else if (!DBI::dbExistsTable(sqlite_db, table_name)) {
 
-    create_table()
+    create_obs_table()
 
   } else {
 
