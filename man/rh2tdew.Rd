@@ -4,12 +4,12 @@
 \alias{rh2tdew}
 \title{Standard Magnus formula for dewpoint temperature}
 \usage{
-rh2tdew(T, RH, tuning = c(a = 17.67, b = 243.5))
+rh2tdew(tc, rh, tuning = c(17.67, 243.5))
 }
 \arguments{
-\item{T}{Temperature in degrees Celsius (Kelvin is also OK). Could be a geofield.}
+\item{tc}{Temperature in degrees Celsius (Kelvin is also OK). Could be a geofield.}
 
-\item{RH}{Relative humidity 0..1 (percentage is also OK).}
+\item{rh}{Relative humidity 0..1 (percentage is also OK).}
 
 \item{tuning}{A vector with two tuning parameters for the formula. Default is from NOAA.}
 }

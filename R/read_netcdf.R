@@ -57,6 +57,7 @@ read_netcdf <- function(filename, parameter, member, lead_time, level = NULL) {
   if (length(lead_time_index) == 0) stop("Requested lead time ", lead_time, " not found")
 
   member_index <- which(nc_members == member)
+  # AD: this will currently always fail on deterministic netcdf output!
   if (length(member_index) == 0) stop("Requested member ", member, " not found")
 
   if (!is.null(level)) {

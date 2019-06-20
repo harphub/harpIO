@@ -11,8 +11,9 @@
 #' @param lead_time Value to fill the lead_time column with in the output
 #'   tibble.
 #' @param members Value to fill the member column with in the output tibble.
-#' @param stations A data frame of stations to filter to. Must contain a column
-#'   named SID.
+#' @param init All initialisation data. For vfld, a list containing only a
+#'        data frame of stations to filter to. Must contain a column
+#'        named SID. Currently not used.
 #' @param ... Absorb arguments for other read_*_interpolate functions.
 #'
 #' @return A data frame with columns SID, lat, lon, model_elevation, and a
@@ -40,10 +41,9 @@ read_vfld_interpolate <- function(
   parameter   = NULL,
   lead_time   = NA_real_,
   members     = NA_character_,
-  stations    = NULL,
+  init        = list(),
   ...
 ) {
-
 
   empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
 
@@ -72,7 +72,7 @@ read_vfld_interpolate <- function(
     } else {
       parameter <- purrr::map(parameter, parse_harp_parameter)
     }
-    param_level_type <- purrr::map(parameter, "levelType")
+    param_level_type <- purrr::map(parameter, "level_type")
     param_level      <- purrr::map(parameter, "level")
 
     is_synop <- function(.level_type, .level) {
@@ -121,7 +121,7 @@ read_vfld_interpolate <- function(
   # Extract the temp parameters
 
   if (length(temp_parameters) > 0) {
-    p_level_elements <- which(purrr::map_chr(temp_parameters, "levelType") == "pressure")
+    p_level_elements <- which(purrr::map_chr(temp_parameters, "level_type") == "pressure")
     if (length(p_level_elements) < length(temp_parameters)) {
       warning(
         paste0(

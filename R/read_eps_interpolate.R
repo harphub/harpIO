@@ -44,11 +44,22 @@
 #'   (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
 #'   list of stations is used. This list can be accessed via
 #'   \code{data(stations)}.
+
+#' @param clim_file A file containing constant data for the domain:
+#'   topology, land/sea mask.
+#' @param clim_format The file format of the clim_file may be different
+#'   than that of the forecast files.
+#' @param correct_T2m Whether to correct the 2m temperature forecast from the
+#'   model elevation to the observation elevation.
+#' @param interp_method The method used for interpolating from forecast grid
+#'   to station points. Default is "closest" (mearest neighbour).
+#'   Alternatives include "bilin".
+#' @param use_mask If TRUE, a land/sea mask is used when interpolating. It must be
+#'   available in the forecast files or in a clim_file.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
 #' @param ... Arguments dependent on \code{file_format}. (More info to be
 #'   added).
-#' @param correct_t2m
 #' @param keep_model_t2m
 #' @param lapse_rate
 #' @param sqlite_template
@@ -65,18 +76,22 @@ read_eps_interpolate <- function(
   end_date,
   eps_model,
   parameter,
-  lead_time            = seq(0, 48, 3),
-  members_in           = seq(0,9),
-  members_out          = members_in,
-  lags                 = NULL,
-  by                   = "6h",
-  file_path            = "",
-  file_format          = "vfld",
-  file_template        = "vfld",
-  stations             = NULL,
-  correct_t2m          = TRUE,
-  keep_model_t2m       = FALSE,
-  lapse_rate           = 0.0065,
+  lead_time      = seq(0, 48, 3),
+  members_in     = seq(0,9),
+  members_out    = members_in,
+  lags           = NULL,
+  by             = "6h",
+  file_path      = "",
+  file_format    = "vfld",
+  file_template  = "vfld",
+  stations       = NULL,
+  correct_t2m    = TRUE,
+  keep_model_t2m = FALSE,
+  lapse_rate     = 0.0065,
+  clim_file      = NULL,
+  clim_format    = NULL,
+  interp_method  = "closest",
+  use_mask       = FALSE,
   sqlite_path          = NULL,
   sqlite_template      = "fctable_eps",
   sqlite_synchronous   = c("off", "normal", "full", "extra"),
@@ -304,7 +319,38 @@ read_eps_interpolate <- function(
     members_out <- members_out_temp
     lags        <- lags_temp
 
-  } # end of input checks
+  } # end handling of inputs related to multiple or single models
+
+  if (is.null(stations)) {
+    warning(
+      "No stations specified. Default station list used.",
+      call. = FALSE, immediate. = TRUE
+    )
+    stations <- get("station_list")
+  }
+
+  # initialise interpolation weights
+  # if no clim file given, use something from data_files:
+  # find first existing file (if none: give an error) and  use that to get domain
+  # TODO: maybe for GRIB, we would want to pass a FA climfile for initialisation?
+  #       so should we use the same file_format?
+
+  if (!is.null(clim_file)) {
+    message("Initialising interpolation.")
+    init <- initialise_interpolation(
+      file_format = clim_format,
+      clim_file   = clim_file,
+      correct_t2m = correct_t2m,
+      method      = interp_method,
+      use_mask    = use_mask,
+      stations    = stations,
+      is_ensemble = TRUE
+    )
+  } else {
+    # just leave it uninitialised for now
+    init <- list(stations = stations, is_ensemble = TRUE)
+  }
+
 
   ########################### THE ACTUAL WORK STARTS HERE! ##################################
 
@@ -330,6 +376,7 @@ read_eps_interpolate <- function(
     list_counter    <- 0
   }
 
+
   for (fcst_date in all_dates) {
 
     if (return_data) list_counter <- list_counter + 1
@@ -341,8 +388,13 @@ read_eps_interpolate <- function(
     data_files <- members_in %>%
       dplyr::transmute(
         file_names = purrr::pmap(
-          list(eps_model = .data$eps_model, sub_model = .data$sub_model, members = .data$member, lags = .data$lag),
-          function(eps_model, sub_model, members, lags) get_filenames(
+          list(
+            eps_model = .data$eps_model,
+            sub_model = .data$sub_model,
+            members   = .data$member,
+            lags      = .data$lag
+          ),
+          function(eps_model, sub_model, members, lags) get_filenames( # change to lambda function?
             file_path      = file_path,
             start_date     = fcst_date,
             end_date       = fcst_date,
@@ -385,8 +437,7 @@ read_eps_interpolate <- function(
             parameter   = parameter,
             members     = y$member,
             lead_time   = y$lead_time,
-            stations    = stations,
-            is_ensemble = TRUE,
+            init        = init,
             ...
           )
         )
@@ -435,16 +486,8 @@ read_eps_interpolate <- function(
       t2m_col         <- rlang::sym(t2m_param)
       t2m_uc_col      <- rlang::sym(t2m_uncorrected)
 
-      if (is.null(stations)) {
-        warning(
-          "No stations specified for 2m temperature correction. Default station list used.",
-          call. = FALSE
-        )
-        stations <- station_list
-      }
-
       forecast_data <- forecast_data %>%
-        dplyr::inner_join(stations, by = "SID", suffix = c("", ".station")) %>%
+        dplyr::inner_join(init$stations, by = "SID", suffix = c("", ".station")) %>%
         dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%
         dplyr::mutate(
           !! t2m_param := !! t2m_uc_col + lapse_rate * (.data$model_elevation - .data$elev)

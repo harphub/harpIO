@@ -26,7 +26,7 @@ The format is the same as that for \code{file_date}.}
 
 \item{end_date}{The end of a date range. Same format as for \code{file_date}.}
 
-\item{by}{The frequecny of the date range. Should be a string of a number
+\item{by}{The frequency of the date range. Should be a string of a number
 followed by a letter, where the letter gives the units - may be d for days,
 h for hours or m for minutes.}
 

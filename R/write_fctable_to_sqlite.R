@@ -42,7 +42,9 @@ write_fctable_to_sqlite <- function(
   dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
   if (newfile) {
+    
     dbquery(sqlite_db, paste("PRAGMA journal_mode =", toupper(journal_mode)))
+
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", tablename, "(",

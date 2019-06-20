@@ -17,22 +17,21 @@
 #' get_grib_param_info("rh32h")
 #'
 get_grib_param_info <- function(param) {
-#  if (!is.harp_param(param)) param <- parse_harp_param(param)
-  if (!is.list(param)) param <- parse_harp_param(param)
+  if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
 
-  levtype <- switch(param$levelType,
+  levtype <- switch(param$level_type,
                     "height"   = 105,
                     "msl"      = 102,
                     "surf"     = 1,
                     "pressure" = 100,
                     "model"    = 109,
-                    NULL) 
+                    NULL)
   level <- param$level
-  if (param$basename %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
+  if (tolower(param$basename) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
     stop("Level must be supplied for ", param$fullname)
   }
 
-  switch(param$basename,
+  switch(tolower(param$basename),
     "pcp"      = {
       short_name   <-  "tp"
       param_number <-  61
@@ -52,24 +51,28 @@ get_grib_param_info <- function(param) {
       level_type   <-  levtype
       level_number <-  level
     },
+    "tcc"      =,
     "cctot"    = {
       short_name   <-  "tcc"
       param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
+    "hcc"      =,
     "cchigh"   = {
       short_name   <-  "hcc"
       param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
+    "mcc"      =,
     "ccmed"    = {
       short_name   <-  "mcc"
       param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
+    "lcc"      =,
     "cclow"    = {
       short_name   <-  "lcc"
       param_number <-  71
@@ -102,6 +105,7 @@ get_grib_param_info <- function(param) {
       level_type   <-  levtype
       level_number <-  level
     },
+    "mslp"     = ,
     "pmsl"     = {
       short_name   <-  "msl"
       param_number <-  1

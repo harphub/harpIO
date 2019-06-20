@@ -5,8 +5,7 @@
 \title{Read data from a vfld file}
 \usage{
 read_vfld_interpolate(file_name, parameter = NULL,
-  lead_time = NA_real_, members = NA_character_, stations = NULL,
-  ...)
+  lead_time = NA_real_, members = NA_character_, init = list(), ...)
 }
 \arguments{
 \item{file_name}{Name of the vfld file}
@@ -19,8 +18,9 @@ tibble.}
 
 \item{members}{Value to fill the member column with in the output tibble.}
 
-\item{stations}{A data frame of stations to filter to. Must contain a column
-named SID.}
+\item{init}{All initialisation data. For vfld, a list containing only a
+data frame of stations to filter to. Must contain a column
+named SID. Currently not used.}
 
 \item{...}{Absorb arguments for other read_*_interpolate functions.}
 }

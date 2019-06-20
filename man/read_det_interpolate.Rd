@@ -8,8 +8,9 @@ read_det_interpolate(start_date, end_date, det_model, parameter,
   lead_time = seq(0, 48, 3), by = "6h", file_path = "",
   file_format = "vfld", file_template = "vfld", stations = NULL,
   correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
-  sqlite_path = NULL, sqlite_template = "fctable_det",
-  return_data = FALSE, ...)
+  clim_file = NULL, clim_format = NULL,
+  interpolation_method = "closest", use_mask = FALSE,
+  sqlite_path = NULL, return_data = FALSE, ...)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to read.}
@@ -52,13 +53,28 @@ gridded files (e.g. grib, netcdf, FA), if no data frame of stations is
 passed a default list of stations is used. This list can be accessed via
 \code{station_list}.}
 
+\item{clim_file}{A file containing constant data for the domain: topology,
+land/sea mask.}
+
+\item{clim_format}{The file format of the clim_file may be different than
+that of the forecast files.}
+
+\item{interpolation_method}{The method used for interpolating from forecast
+grid to station points. Default is "closest" (mearest neighbour).
+Alternatives include "bilin".}
+
+\item{use_mask}{If TRUE, a land/sea mask is used when interpolating. It must
+be available in the forecast files or in a clim_file.}
+
 \item{sqlite_path}{If specified, SQLite files are generated and written to
 this directory.}
 
-\item{return_data}{}
 
-\item{...}{Arguments dependent on \code{file_format}. (More info to be
-added).}
+\item{...}{Arguments dependent on \code{file_format} (More info to be added).}
+
+\item{correct_T2m}{Whether to correct the 2m temperature forecast from the
+model elevation to the observation elevation.}
+
 }
 \value{
 A tibble with columns eps_model, sub_model, fcdate, lead_time,
