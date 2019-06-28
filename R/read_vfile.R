@@ -67,11 +67,12 @@ read_vfile <- function(
       accum_hours      = rep(0, num_param),
       stringsAsFactors = FALSE
     )
-    if (v_type == "vobs") {
-      params_synop$parameter[params_synop$parameter == "PE"]   <- "PE12"
-      params_synop$accum_hours[params_synop$parameter == "PE"] <- 12
-    }
 
+  }
+
+  if (v_type == "vobs") {
+    params_synop$parameter[params_synop$parameter == "PE"]   <- "PE12"
+    params_synop$accum_hours[params_synop$parameter == "PE"] <- 12
   }
 
   params_synop <- dplyr::mutate(

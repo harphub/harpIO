@@ -88,6 +88,7 @@ read_obs_convert <- function(
         YYYY        = substr(.data$fcdate, 1, 4),
         MM          = substr(.data$fcdate, 5, 6),
         DD          = substr(.data$fcdate, 7, 8),
+        HH          = substr(.data$fcdate, 9, 10),
         obs         = purrr::map(file_name, read_func, ...),
         sqlite_path = ifelse(is.null(sqlite_path), NA, sqlite_path)
       ) %>%
@@ -109,6 +110,9 @@ read_obs_convert <- function(
       dplyr::group_by(.data$file_name) %>%
       tidyr::nest(.key = "synop")
 
+    synop_params <- purrr::map_df(obs_data$obs, "synop_params") %>%
+      dplyr::distinct()
+
     temp_data <- obs_data %>%
       dplyr::transmute(
         .data$file_name,
@@ -119,6 +123,9 @@ read_obs_convert <- function(
       dplyr::group_by(.data$file_name) %>%
       tidyr::nest(.key = "temp")
 
+    temp_params <- purrr::map_df(obs_data$obs, "temp_params") %>%
+      dplyr::distinct()
+
     if (!is.null(sqlite_path)) {
       purrr::walk2(
         synop_data$synop,
@@ -126,6 +133,7 @@ read_obs_convert <- function(
         write_obstable_to_sqlite,
         table_name   = "SYNOP",
         primary_key  = c("validdate", "SID"),
+        params_table = synop_params,
         synchronous  = sqlite_synchronous,
         journal_mode = sqlite_journal_mode
       )
@@ -135,13 +143,19 @@ read_obs_convert <- function(
         write_obstable_to_sqlite,
         table_name   = "TEMP",
         primary_key  = c("validdate", "SID", "p"),
+        params_table = temp_params,
         synchronous  = sqlite_synchronous,
         journal_mode = sqlite_journal_mode
       )
     }
 
     if (return_data) {
-      function_output[[i]] <- list(synop = synop_data, temp = temp_data)
+      function_output[[i]] <- list(
+        synop        = synop_data,
+        temp         = temp_data,
+        synop_params = synop_params,
+        temp_params  = temp_params
+      )
     }
 
   }
@@ -153,7 +167,9 @@ read_obs_convert <- function(
         purrr::flatten_dfr(),
       temp  = purrr::map(function_output, "temp") %>%
         purrr::map(dplyr::pull, .data$temp) %>%
-        purrr::flatten_dfr()
+        purrr::flatten_dfr(),
+      synop_params = dplyr::distinct(purrr::map_df(function_output, "synop_params")),
+      temp_params  = dplyr::distinct(purrr::map_df(function_output, "temp_params"))
     )
   }
 

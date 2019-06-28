@@ -5,6 +5,7 @@ write_obstable_to_sqlite <- function(
   file_name,
   table_name   = "SYNOP",
   primary_key  = c("validdate", "SID"),
+  params_table = NULL,
   synchronous  = "off",
   journal_mode = "delete"
 ) {
@@ -27,6 +28,13 @@ write_obstable_to_sqlite <- function(
   real_cols    <- setdiff(col_names, integer_cols)
   col_types    <- c(rep("INTEGER", length(integer_cols)), rep("REAL", length(real_cols)))
 
+  if (!is.null(params_table) && nrow(params_table) > 0) {
+    params_cols  <- colnames(params_table)
+    params_types <- toupper(unname(sapply(params_table, class)))
+    params_types <- gsub("CHARACTER", "VARCHAR", params_types)
+    params_types <- gsub("NUMERIC", "REAL", params_types)
+  }
+
   message("Writing to: ", table_name, " in ", file_name, "\n")
 
   sqlite_db <- dbopen(file_name)
@@ -42,14 +50,32 @@ write_obstable_to_sqlite <- function(
     )
   }
 
+  create_params_table <- function() {
+    dbquery(
+      sqlite_db,
+      paste0("CREATE TABLE ", paste0(table_name, "_params"), "(",
+        paste(params_cols, params_types, collapse = ", "),
+        ")"
+      )
+    )
+  }
+
   if (newfile) {
 
     dbquery(sqlite_db, paste("PRAGMA journal_mode =", toupper(journal_mode)))
     create_obs_table()
+    if (!is.null(params_table) && nrow(params_table) > 0) {
+      create_params_table()
+      dbwrite(sqlite_db, paste0(table_name, "_params"), params_table)
+    }
 
   } else if (!DBI::dbExistsTable(sqlite_db, table_name)) {
 
     create_obs_table()
+    if (!is.null(params_table) && nrow(params_table) > 0) {
+      create_params_table()
+      dbwrite(sqlite_db, paste0(table_name, "_params"), params_table)
+    }
 
   } else {
 
@@ -60,8 +86,15 @@ write_obstable_to_sqlite <- function(
     new_cols <- setdiff(col_names, cols_db_name)
 
     if (length(new_cols) > 0) {
+
       db.add.columns(sqlite_db, table_name, new_cols)
       cols_db_name <- c(cols_db_name, new_cols)
+
+      if (!is.null(params_table) && nrow(params_table) > 0) {
+        rows_to_add <- dplyr::filter(params_table, .data$parameter %in% new_cols)
+        dbwrite(sqlite_db, paste0(table_name, "_params"), rows_to_add)
+      }
+
     }
 
     # Set columns that exist in db schema, but not in the data to NA

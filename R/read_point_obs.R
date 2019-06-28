@@ -57,7 +57,7 @@ read_point_obs <- function(
   date_end   <- suppressMessages(str_datetime_to_unixtime(end_date))
 
   harp_param <- parse_harp_parameter(parameter)
-  if (!is.null(harp_param$levelType) && harp_param$levelType == "pressure") {
+  if (!is.null(harp_param$level_type) && harp_param$level_type == "pressure") {
     sqlite_table <- "TEMP"
     obs_param    <- rlang::sym(harp_param$basename)
   } else {
@@ -106,8 +106,9 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
 
   obs_param_quo <- rlang::enquo(.obs_param)
 
-  .obs <- list()
+  .obs         <- list()
   list_counter <- 0
+
   for (in_file in files) {
     list_counter <- list_counter + 1
 
@@ -118,11 +119,22 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
         dplyr::select(validdate, SID, !!obs_param_quo) %>%
         dplyr::filter(validdate >= .date_start & validdate <= .date_end)
+        if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
+          .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
+            dplyr::filter(parameter == rlang::quo_name(obs_param_quo)) %>%
+            dplyr::pull(units)
+        }
     } else {
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
         dplyr::select(validdate, SID, p, !!obs_param_quo) %>%
         dplyr::filter(validdate >= .date_start & validdate <= .date_end) %>%
         dplyr::filter(p == .level)
+        if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
+          .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
+            dplyr::filter(parameter == rlang::quo_name(obs_param_quo)) %>%
+            dplyr::pull(units) %>%
+            unique()
+        }
     }
 
     if (!is.null(.stations)) {
@@ -133,6 +145,11 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
     .obs[[list_counter]] <- .obs[[list_counter]] %>%
       dplyr::collect(n = Inf) %>%
       tidyr::drop_na()
+
+    if (length(.obs_units) > 0) {
+      .obs[[list_counter]] <- .obs[[list_counter]] %>%
+        dplyr::mutate(units = .obs_units)
+    }
 
     DBI::dbDisconnect(obs_db)
   }
