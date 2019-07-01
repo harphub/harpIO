@@ -192,7 +192,8 @@ read_point_forecast <- function(
       suppressMessages(str_datetime_to_unixtime(end_date)),
       lead_time = lead_time + readr::parse_number(.y),
       stations  = stations,
-      members   = members
+      members   = members,
+      param     = parameter
     )
   )
 
@@ -250,7 +251,8 @@ read_point_forecast <- function(
           suppressMessages(str_datetime_to_unixtime(end_date)),
           lead_time = ..3,
           stations  = stations,
-          members   = members
+          members   = members,
+          param     = parameter
         )
       ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 

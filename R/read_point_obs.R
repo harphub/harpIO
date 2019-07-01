@@ -104,7 +104,8 @@ read_point_obs <- function(
 # Read data from a set of obstable files
 read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_end, .stations, .level = NULL) {
 
-  obs_param_quo <- rlang::enquo(.obs_param)
+  obs_param_quo  <- rlang::enquo(.obs_param)
+  obs_param_name <- rlang::quo_name(obs_param_quo)
 
   .obs         <- list()
   list_counter <- 0
@@ -121,8 +122,10 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
         dplyr::filter(validdate >= .date_start & validdate <= .date_end)
         if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
           .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
-            dplyr::filter(parameter == rlang::quo_name(obs_param_quo)) %>%
+            dplyr::filter(parameter == obs_param_name) %>%
             dplyr::pull(units)
+        } else {
+          .obs_units <- NULL
         }
     } else {
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
@@ -131,9 +134,11 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
         dplyr::filter(p == .level)
         if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
           .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
-            dplyr::filter(parameter == rlang::quo_name(obs_param_quo)) %>%
+            dplyr::filter(parameter == obs_param_name) %>%
             dplyr::pull(units) %>%
             unique()
+        } else {
+          .obs_units <- NULL
         }
     }
 
@@ -149,6 +154,9 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
     if (length(.obs_units) > 0) {
       .obs[[list_counter]] <- .obs[[list_counter]] %>%
         dplyr::mutate(units = .obs_units)
+    } else {
+      .obs[[list_counter]] <- .obs[[list_counter]] %>%
+        dplyr::mutate(units = guess_units(.obs[[list_counter]], obs_param_name))
     }
 
     DBI::dbDisconnect(obs_db)

@@ -7,18 +7,20 @@ read_fctable <- function(
   end_date,
   lead_time = NULL,
   stations  = NULL,
-  members   = NULL
+  members   = NULL,
+  param     = NULL
 ) {
 
   fcst_out   <- list()
   list_count <- 0
-  meta_cols  <- c("SID", "fcdate", "leadtime", "validdate")
 
   for (db_file in db_files) {
 
+    meta_cols  <- c("SID", "fcdate", "leadtime", "validdate")
+
     message("Reading: ", db_file)
 
-    fcst_db    <- DBI::dbConnect(RSQLite::SQLite(), db_file, flags = RSQLite::SQLITE_RO, synchronous = NULL)
+    fcst_db   <- DBI::dbConnect(RSQLite::SQLite(), db_file, flags = RSQLite::SQLITE_RO, synchronous = NULL)
 
     fcst_cols <- DBI::dbListFields(fcst_db, "FC")
     if (is.element("parameter", fcst_cols)) {
@@ -27,6 +29,7 @@ read_fctable <- function(
     if (is.element("units", fcst_cols)) {
       meta_cols <- c(meta_cols, "units")
     }
+    data_cols <- setdiff(fcst_cols, meta_cols)
 
     list_count <- list_count + 1
 
@@ -63,6 +66,13 @@ read_fctable <- function(
     fcst_out[[list_count]] <- dplyr::collect(fcst, n = Inf)
 
     DBI::dbDisconnect(fcst_db)
+
+    if (!is.element("units", meta_cols)) {
+      fcst_out[[list_count]] <- fcst_out[[list_count]] %>%
+        dplyr::mutate(units = guess_units(fcst_out[[list_count]], param))
+      meta_cols              <- c(meta_cols, "units")
+      fcst_out[[list_count]] <- fcst_out[[list_count]][c(meta_cols, data_cols)]
+    }
 
   }
 
