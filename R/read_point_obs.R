@@ -118,24 +118,24 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
     message("\nReading: ", in_file)
     if (.sqlite_table == "SYNOP") {
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
-        dplyr::select(validdate, SID, !!obs_param_quo) %>%
-        dplyr::filter(validdate >= .date_start & validdate <= .date_end)
+        dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, !!obs_param_quo) %>%
+        dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
         if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
           .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
-            dplyr::filter(parameter == obs_param_name) %>%
-            dplyr::pull(units)
+            dplyr::filter(.data$parameter == obs_param_name) %>%
+            dplyr::pull(.data$units)
         } else {
           .obs_units <- NULL
         }
     } else {
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
-        dplyr::select(validdate, SID, p, !!obs_param_quo) %>%
-        dplyr::filter(validdate >= .date_start & validdate <= .date_end) %>%
-        dplyr::filter(p == .level)
+        dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, .data$p, !!obs_param_quo) %>%
+        dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end) %>%
+        dplyr::filter(.data$p == .level)
         if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
           .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
-            dplyr::filter(parameter == obs_param_name) %>%
-            dplyr::pull(units) %>%
+            dplyr::filter(.data$parameter == obs_param_name) %>%
+            dplyr::pull(.data$units) %>%
             unique()
         } else {
           .obs_units <- NULL
@@ -144,7 +144,7 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
 
     if (!is.null(.stations)) {
       .obs[[list_counter]] <- .obs[[list_counter]] %>%
-        dplyr::filter(SID %in% .stations)
+        dplyr::filter(.data$SID %in% .stations)
     }
 
     .obs[[list_counter]] <- .obs[[list_counter]] %>%
