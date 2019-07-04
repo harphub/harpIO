@@ -4,10 +4,10 @@
 \alias{get_template}
 \title{Get File Name Template}
 \usage{
-get_template(template)
+get_template(.template)
 }
 \arguments{
-\item{template}{The file type to generate the template for. Can be
+\item{.template}{The file type to generate the template for. Can be
 "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 "meps_smhi", "meps_fmi", "arome_arctic", "harmonie_grib",
 "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or "fctable". If

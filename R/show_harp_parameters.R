@@ -4,7 +4,7 @@
 #'
 #' @export
 #'
-show_harp_parameters <- function() {
+show_harp_parameters <- function(cf_name = FALSE) {
 
   harp_params <- tibble::tribble(
     ~harp_parameter_name, ~description,
@@ -31,6 +31,14 @@ show_harp_parameters <- function() {
     "vis"       , "Horizontal visibility",
     "Z"         , "Height above sea level"
   )
+
+  if (cf_name) {
+    harp_params <- dplyr::transmute(
+      harp_params,
+      .data$harp_parameter_name,
+      cf_name = get_netcdf_param_MET(.data$harp_parameter_name)
+    )
+  }
 
   print(dplyr::arrange(harp_params, .data$harp_parameter_name), n = nrow(harp_params))
   cat(

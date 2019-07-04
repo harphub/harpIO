@@ -4,7 +4,7 @@
 \alias{show_harp_parameters}
 \title{Show default harp parameter names}
 \usage{
-show_harp_parameters()
+show_harp_parameters(cf_name = FALSE)
 }
 \description{
 Prints a table of default parameter names in harp and their descriptions

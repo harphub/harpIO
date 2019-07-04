@@ -1,6 +1,6 @@
 #' Get File Name Template
 #'
-#' @param template The file type to generate the template for. Can be
+#' @param .template The file type to generate the template for. Can be
 #'   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
 #'   "meps_smhi", "meps_fmi", "arome_arctic", "harmonie_grib",
 #'   "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or "fctable". If
@@ -15,63 +15,110 @@
 #' get_template("harmoneps_grib")
 #' get_template("harmonie_grib_fp")
 #'
-get_template <- function(template) {
-  template <- switch(tolower(template),
+get_template <- function(.template) {
 
-    "arome_arctic_extracted" =  file.path(
+  template <- file_templates() %>%
+    dplyr::filter(.data$template_name == .template) %>%
+    dplyr::pull(.data$template)
+
+  if (length(template) < 1) {
+    template <- file.path("{file_path}", template)
+  }
+
+  template
+
+}
+
+#' Show built in file templates
+#'
+#' @param template_row Some of the templates are too wide to show on the screen,
+#'   so to show a template in full, pass the row number of the template you want
+#'   to show in full in \code{template_row}
+#'
+#' @export
+#'
+#' @examples
+#' show_file_templates()
+#' show_file_templates(1)
+#' show_file_templates(18)
+show_file_templates <- function(template_row = NULL) {
+
+  templates     <- dplyr::arrange(file_templates(), .data$template_name)
+  num_templates <- nrow(templates)
+
+  if (is.null(template_row)) {
+    print(templates, n = nrow(templates))
+  } else {
+    if (template_row < 1 | template_row > num_templates) {
+      stop("\"template_row\" must be between 1 and ", num_templates, call. = FALSE)
+    }
+    cat(
+      "\ntemplate_name\n", templates$template_name[template_row], "\n",
+      "\ntemplate\n", templates$template[template_row], "\n"
+    )
+  }
+
+}
+
+file_templates <- function() {
+  tibble::tribble(
+
+    ~template_name, ~template,
+
+    "arome_arctic_extracted" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/DNMI_AROME_ARCTIC",
       "{YYYY}", "{MM}", "{DD}",
       "arome_arctic_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "arome_arctic_full" =  file.path(
+    "arome_arctic_full" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/DNMI_AROME_ARCTIC",
       "{YYYY}", "{MM}", "{DD}",
       "arome_arctic_full_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "arome_arctic_sfx" =  file.path(
+    "arome_arctic_sfx" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/DNMI_AROME_ARCTIC",
       "{YYYY}", "{MM}", "{DD}",
       "arome_arctic_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "fctable" = file.path(
+    "fctable" , file.path(
       "{file_path}",
       "{eps_model}",
       "{YYYY}", "{MM}",
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
     ),
 
-    "fctable_det" = file.path(
+    "fctable_det" , file.path(
       "{file_path}",
       "{det_model}",
       "{YYYY}", "{MM}",
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}.sqlite"
     ),
 
-    "fctable_eps" = file.path(
+    "fctable_eps" , file.path(
       "{file_path}",
       "{eps_model}",
       "{YYYY}", "{MM}",
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
     ),
 
-    "fctable_eps_all_cycles" = file.path(
+    "fctable_eps_all_cycles" , file.path(
       "{file_path}",
       "{eps_model}",
       "{YYYY}", "{MM}",
       "FCTABLE_{parameter}_{YYYY}{MM}+{LDT3}.sqlite"
     ),
 
-    "fctable_eps_all_leads" = file.path(
+    "fctable_eps_all_leads" , file.path(
       "{file_path}",
       "{eps_model}",
       "{YYYY}", "{MM}",
       "FCTABLE_{parameter}_{YYYY}{MM}_{HH}.sqlite"
     ),
 
-    "glameps_grib" = file.path(
+    "glameps_grib" , file.path(
       "{file_path}",
       "{eps_model}",
       "{sub_model}",
@@ -80,98 +127,97 @@ get_template <- function(template) {
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib"
     ),
 
-    "harmoneps_grib" = file.path(
+    "harmoneps_grib" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "mbr{MBR3}",
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib"
     ),
 
-    "harmoneps_grib_fp" = file.path(
+    "harmoneps_grib_fp" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "mbr{MBR3}",
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_fp"
     ),
 
-    "harmoneps_grib_sfx" = file.path(
+    "harmoneps_grib_sfx" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "mbr{MBR3}",
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_sfx"
     ),
 
-    "harmonie_grib" = file.path(
+    "harmonie_grib" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib"
     ),
 
-    "harmonie_grib_fp" =file.path(
+    "harmonie_grib_fp" ,file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_fp"
     ),
 
-    "harmonie_grib_sfx" = file.path(
+    "harmonie_grib_sfx" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_sfx"
     ),
 
-    "meps_cntrl_extracted" =  file.path(
+    "meps_cntrl_extracted" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
       "meps_mbr0_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "meps_cntrl_sfx" =  file.path(
+    "meps_cntrl_sfx" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
       "meps_mbr0_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "meps_extracted" =  file.path(
+    "meps_extracted" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
       "meps_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "meps_full" =  file.path(
+    "meps_full" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
       "meps_full_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "meps_sfx" =  file.path(
+    "meps_sfx" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
       "meps_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
-    "obstable" = file.path(
+    "obstable" , file.path(
       "{file_path}",
       "OBSTABLE_{YYYY}.sqlite"
     ),
 
-    "vfld" = file.path(
+    "vfld" , file.path(
       "{file_path}",
       "{sub_model}",
       "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
-    "vfld_noexp" = file.path(
+    "vfld_noexp" , file.path(
       "{file_path}",
       "{sub_model}",
       "vfldmbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
-    "vobs" = file.path(
+    "vobs" , file.path(
       "{file_path}",
       "vobs{YYYY}{MM}{DD}{HH}"
-    ),
+    )
 
-    file.path("{file_path}", template)
   )
-  template
+
 }
