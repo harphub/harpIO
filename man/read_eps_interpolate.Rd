@@ -10,7 +10,11 @@ read_eps_interpolate(start_date, end_date, eps_model, parameter,
   file_format = "vfld", file_template = "vfld", stations = NULL,
   correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
   clim_file = NULL, clim_format = NULL, interp_method = "closest",
-  use_mask = FALSE, sqlite_path = NULL, return_data = FALSE, ...)
+  use_mask = FALSE, sqlite_path = NULL,
+  sqlite_template = "fctable_eps", sqlite_synchronous = c("off",
+  "normal", "full", "extra"), sqlite_journal_mode = c("delete",
+  "truncate", "persist", "memory", "wal", "off"), return_data = FALSE,
+  ...)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to read.}
@@ -90,6 +94,9 @@ this directory.}
 
 \item{...}{Arguments dependent on \code{file_format}. (More info to be
 added).}
+
+\item{correct_T2m}{Whether to correct the 2m temperature forecast from the
+model elevation to the observation elevation.}
 }
 \value{
 A tibble with columns eps_model, sub_model, fcdate, lead_time,

@@ -8,7 +8,10 @@ read_obs_convert(start_date, end_date, by = "3h", obs_path = ".",
   obs_format = "vobs", obsfile_template = "vobs", parameter = NULL,
   sqlite_path = NULL,
   sqlite_template = "{sqlite_path}/OBSTABLE_{YYYY}.sqlite",
-  return_data = FALSE, iterations_per_write = 24, ...)
+  return_data = FALSE, iterations_per_write = 24,
+  sqlite_synchronous = c("off", "normal", "full", "extra"),
+  sqlite_journal_mode = c("delete", "truncate", "persist", "memory",
+  "wal", "off"), ...)
 }
 \arguments{
 \item{start_date}{First to read observations for. Must be at least YYYYMMDD
