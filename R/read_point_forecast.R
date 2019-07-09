@@ -60,15 +60,17 @@ read_point_forecast <- function(
   fcst_model,
   fcst_type,
   parameter,
-  lead_time     = seq(0, 48, 3),
-  lags          = "0s",
-  by            = "1d",
-  file_path     = ".",
-  file_template = NULL,
-  drop_any_na   = TRUE,
-  stations      = NULL,
-  members       = NULL,
-  accumulate    = TRUE
+  lead_time           = seq(0, 48, 3),
+  lags                = "0s",
+  by                  = "1d",
+  file_path           = ".",
+  file_template       = NULL,
+  drop_any_na         = TRUE,
+  stations            = NULL,
+  members             = NULL,
+  accumulate          = TRUE,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
+  get_lat_and_lon     = FALSE
 ) {
 
   switch(tolower(fcst_type),
@@ -104,11 +106,16 @@ read_point_forecast <- function(
     drop_function <- dplyr::any_vars(!is.na(.))
   }
 
-  parameter  <- parse_harp_parameter(parameter)
+  vertical_coordinate <- match.arg(vertical_coordinate)
+
+  parameter  <- parse_harp_parameter(parameter, vertical_coordinate)
   param_name <- parameter$fullname
   if (parameter$accum > 0 && accumulate) {
     param_name <- parameter$basename
     lead_time  <- lead_time[lead_time >= parse_accum(parameter)]
+  }
+  if (is_temp(parameter)) {
+    param_name <- parameter$basename
   }
 
   if (length(lead_time) < 1) {
@@ -190,10 +197,11 @@ read_point_forecast <- function(
       .x,
       suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
       suppressMessages(str_datetime_to_unixtime(end_date)),
-      lead_time = lead_time + readr::parse_number(.y),
-      stations  = stations,
-      members   = members,
-      param     = parameter
+      lead_time  = lead_time + readr::parse_number(.y),
+      stations   = stations,
+      members    = members,
+      param      = parameter,
+      get_latlon = get_lat_and_lon
     )
   )
 
@@ -249,10 +257,11 @@ read_point_forecast <- function(
           .x,
           suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
           suppressMessages(str_datetime_to_unixtime(end_date)),
-          lead_time = ..3,
-          stations  = stations,
-          members   = members,
-          param     = parameter
+          lead_time  = ..3,
+          stations   = stations,
+          members    = members,
+          param      = parameter,
+          get_latlon = get_lat_and_lon
         )
       ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 

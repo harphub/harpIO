@@ -26,6 +26,7 @@ parse_v_parameter_synop <- function(v_parameter_synop) {
     "PS"  = {harp_param <- "Pmsl";            param_units <- "hPa"},
     "VI"  = {harp_param <- "vis";             param_units <- "m"},
     "LC"  = {harp_param <- "CClow";           param_units <- "oktas"}, # low cloud cover
+    "N75" = {harp_param <- "N75";             param_units <- "oktas"}, # some sort of cloud cover
     "CH"  = {harp_param <- "Cbase";           param_units <- "m"}, # cloud base
     "TX"  = {harp_param <- "Tmax";            param_units <- "K"},
     "TN"  = {harp_param <- "Tmin";            param_units <- "K"},

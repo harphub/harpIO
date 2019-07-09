@@ -13,17 +13,37 @@
 #' parse_harp_param("AccPcp1h")
 #' parse_harp_param("z500")
 #' parse_harp_param("s100m")
-parse_harp_parameter <- function(param) {
+parse_harp_parameter <- function(
+  param,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+) {
+
+  vertical_coordinate <- match.arg(vertical_coordinate)
   ## TODO: radiation, surface properties...
   if (inherits(param, "harp_parameter")) return(param)
   # all comparisons are done in lower case
-  if (tolower(param) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") ) {
-    stop("Level must be supplied for ", param)
+  if (tolower(param) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh", "s", "d", "td") ) {
+    if (is.na(vertical_coordinate)) {
+      stop(
+        "Level not supplied for ", param, ". Either give a numeric level,\n",
+        "or set \"vertical_coordinate\".",
+        call. = FALSE
+      )
+    } else {
+      lev_type <- switch(
+        vertical_coordinate,
+        "pressure" = "p",
+        "model"    = "s",
+        "height"   = "m"
+      )
+      basename <- paste0(param, "-999", lev_type)
+    }
+  } else {
+    basename <- param
   }
 
   fullname <- param
 
-  basename <- fullname
   plen <- nchar(basename)
 
   ## 1. accumulated field? must be AccXXnnh (last character is h, m, s)
@@ -46,12 +66,12 @@ parse_harp_parameter <- function(param) {
   }
 
   ## 2. 'basic' field or atmospheric with level information added?
-  if (grepl("^[[:alpha:]]+[[:digit:]]+[mpsh]?$", basename)){
+  if (grepl("^[[:alpha:]]+-?[[:digit:]]+[mpsh]?$", basename)){
     ## trailing digits are interpreted as pressure levels
     ## possibly there's an extra "m": then they are height levels
     ## or an "s", "h": hyprid level (model level)
     ## or "p": pressure level (usually not written)
-    lev1 <- regexpr("[[:digit:]]", basename)
+    lev1 <- regexpr("-?[[:digit:]]", basename)
     lev <- substr(basename, lev1, plen)
     basename <- substr(basename, 1, lev1 - 1)
 
@@ -99,22 +119,22 @@ parse_harp_parameter <- function(param) {
 }
 
 
-is.synop <- function(prm) {
+is_synop <- function(prm, vertical_coordinate = NA_character_) {
   # return TRUE if a parameter is a typical "synop"
   # ideally, we want this to be a "pure" logical: TRUE or FALSE, never "NA"
-  if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm)
-  par.synop <- c("pmsl", "pcp",
+  if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
+  par.synop <- c("pmsl", "pcp", "ps",
                  "u10m", "v10m", "s10m", "d10m", "g10m",
                  "t2m", "q2m", "rh2m", "td2m",
                  "tcc", "hcc", "mcc", "lcc", "cbase",
                  "cctot", "cchigh", "ccmed", "cclow", "cbase",
-                 "v75", "vis",
+                 "n75", "vis",
                  "tmax", "tmin", "gmax")
   sfc  <- switch(prm$level_type,
                 "sea"  =,
                 "cloud" =,
                 "surface" = TRUE,
-                "height" = level %in% c(0, 2, 10, NA),
+                "height" = prm$level %in% c(0, 2, 10, NA),
                 "hybrid" =,
                 "pressure" = FALSE,
                 FALSE
@@ -124,23 +144,24 @@ is.synop <- function(prm) {
   result <- sfc || ( tolower(prm$fullname) %in% par.synop)
   result
 }
-is.temp <- function(prm) {
+
+is_temp <- function(prm, vertical_coordinate = NA_character_) {
   # return TRUE if a parameter is a typical "temp" (atmospheric)
   # infact you should look at level_type *and* level (not 0, 2 or 10)
   # ideally, we want this to be a "pure" logical: TRUE or FALSE, never "NA"
 #  return(!is.synop(prm))
   par.atmo <- c("t", "z", "u", "v", "s", "d", "g", "q", "rh", "td")
-  if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm)
+  if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
   atmo <- switch(prm$level_type,
                 "sea"  =,
                 "cloud" =,
                 "surface" = FALSE,
-                "height" = !(level %in% c(0, 2, 10, NA)),
+                "height" = !(prm$level %in% c(0, 2, 10, NA)),
                 "hybrid" =,
                 "pressure" = TRUE,
                 FALSE
                 )
-  result <- atmo && (par$basename %in% par.atmo)
+  result <- atmo && (tolower(prm$basename) %in% par.atmo)
   result
 }
 

@@ -28,23 +28,25 @@ write_fctable_to_sqlite <- function(
   }
 
   data <- data %>%
-    tidyr::spread(.data$member, .data$forecast)
+    tidyr::spread(.data$member, .data$forecast) %>%
+    dplyr::select_if(~ !all(is.na(.)))
 
   column_names  <- colnames(data)
-  num_int_cols  <- which(!stringr::str_detect(column_names, "mbr")) %>% length()
-  num_fcst_cols <- which(stringr::str_detect(column_names, "mbr")) %>% length()
-  column_types  <- c(rep("INTEGER", num_int_cols), rep("REAL", num_fcst_cols))
+
+  primary_key <- intersect(primary_key, column_names)
 
   message("Writing to: ", filename, "\n")
 
   sqlite_db <- dbopen(filename)
 
+
   dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
   if (newfile) {
-    
+
     dbquery(sqlite_db, paste("PRAGMA journal_mode =", toupper(journal_mode)))
 
+    column_types <- DBI::dbDataType(sqlite_db, data)
     dbquery(
       sqlite_db,
       paste0("CREATE TABLE ", tablename, "(",

@@ -5,11 +5,22 @@ read_fctable <- function(
   db_files,
   start_date,
   end_date,
-  lead_time = NULL,
-  stations  = NULL,
-  members   = NULL,
-  param     = NULL
+  lead_time           = NULL,
+  stations            = NULL,
+  members             = NULL,
+  param               = NULL, # Passed as a parsed harp parameter
+  get_latlon          = FALSE
 ) {
+
+  level_col <- NULL
+  if (!is.na(param$level_type) && is_temp(param)) {
+    level_col <- switch(
+      param$level_type,
+      "pressure" = "p",
+      "model"    = "ml",
+      "height"   = "z"
+    )
+  }
 
   fcst_out   <- list()
   list_count <- 0
@@ -29,11 +40,26 @@ read_fctable <- function(
     if (is.element("units", fcst_cols)) {
       meta_cols <- c(meta_cols, "units")
     }
+    if (is.element("lat", fcst_cols)) {
+      meta_cols <- c(meta_cols, "lat")
+    }
+    if (is.element("lon", fcst_cols)) {
+      meta_cols <- c(meta_cols, "lon")
+    }
+    if (is.element("model_elevation", fcst_cols)) {
+      meta_cols <- c(meta_cols, "model_elevation")
+    }
+
+    if (!is.null(level_col)) {
+      if (is.element(level_col, fcst_cols)) {
+        meta_cols <- c(meta_cols, level_col)
+      }
+    }
     data_cols <- setdiff(fcst_cols, meta_cols)
 
     list_count <- list_count + 1
 
-    fcst       <- dplyr::tbl(fcst_db, "FC") %>%
+    fcst <- dplyr::tbl(fcst_db, "FC") %>%
       dplyr::filter(between(fcdate, start_date, end_date))
 
     if (!is.null(lead_time)) {
@@ -42,6 +68,11 @@ read_fctable <- function(
 
     if (!is.null(stations)) {
       fcst <- dplyr::filter(fcst, SID %in% stations)
+    }
+
+    if (!is.null(level_col) && param$level != -999) {
+      vertical_level <- param$level
+      fcst           <- dplyr::filter(fcst, .data[[level_col]] == vertical_level)
     }
 
     if (!is.null(members)) {
@@ -59,9 +90,15 @@ read_fctable <- function(
       }
 
       col_names <- rlang::syms(c(meta_cols, col_members))
-      fcst <- dplyr::select(fcst, !!! col_names)
+      fcst      <- dplyr::select(fcst, !!! col_names)
 
     }
+
+    if (!get_latlon) {
+      wanted_cols <- colnames(fcst)[!colnames(fcst) %in% c("lat", "lon")]
+      fcst        <- dplyr::select_at(fcst, wanted_cols)
+    }
+
 
     fcst_out[[list_count]] <- dplyr::collect(fcst, n = Inf)
 
@@ -76,9 +113,21 @@ read_fctable <- function(
 
   }
 
-  dplyr::bind_rows(fcst_out) %>%
+  fcst_out <- dplyr::bind_rows(fcst_out) %>%
     dplyr::mutate(
       fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
     )
+
+  # Make the forecast data the last columns
+  fcst_cols <- union(
+    grep("[[:graph:]]+_mbr[[:digit:]]+$", colnames(fcst_out)),
+    grep("[[:graph:]]+_det$", colnames(fcst_out))
+  )
+  other_cols <- intersect(
+    grep("[[:graph:]]+_mbr[[:digit:]]+$", colnames(fcst_out), invert = TRUE),
+    grep("[[:graph:]]+_det$", colnames(fcst_out), invert = TRUE)
+  )
+
+  fcst_out[, c(other_cols, fcst_cols)]
 
 }

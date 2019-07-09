@@ -76,22 +76,23 @@ read_eps_interpolate <- function(
   end_date,
   eps_model,
   parameter,
-  lead_time      = seq(0, 48, 3),
-  members_in     = seq(0,9),
-  members_out    = members_in,
-  lags           = NULL,
-  by             = "6h",
-  file_path      = "",
-  file_format    = "vfld",
-  file_template  = "vfld",
-  stations       = NULL,
-  correct_t2m    = TRUE,
-  keep_model_t2m = FALSE,
-  lapse_rate     = 0.0065,
-  clim_file      = NULL,
-  clim_format    = NULL,
-  interp_method  = "closest",
-  use_mask       = FALSE,
+  lead_time            = seq(0, 48, 3),
+  members_in           = seq(0,9),
+  members_out          = members_in,
+  lags                 = NULL,
+  by                   = "6h",
+  file_path            = "",
+  file_format          = "vfld",
+  file_template        = "vfld",
+  stations             = NULL,
+  correct_t2m          = TRUE,
+  keep_model_t2m       = FALSE,
+  lapse_rate           = 0.0065,
+  vertical_coordinate  = c(NA_character_, "pressure", "model", "height"),
+  clim_file            = NULL,
+  clim_format          = NULL,
+  interp_method        = "closest",
+  use_mask             = FALSE,
   sqlite_path          = NULL,
   sqlite_template      = "fctable_eps",
   sqlite_synchronous   = c("off", "normal", "full", "extra"),
@@ -100,6 +101,7 @@ read_eps_interpolate <- function(
   ...
 ){
 
+  vertical_coordinate <- match.arg(vertical_coordinate)
   sqlite_synchronous  <- match.arg(sqlite_synchronous)
   sqlite_journal_mode <- match.arg(sqlite_journal_mode)
 
@@ -394,7 +396,7 @@ read_eps_interpolate <- function(
             members   = .data$member,
             lags      = .data$lag
           ),
-          function(eps_model, sub_model, members, lags) get_filenames( # change to lambda function?
+          function(eps_model, sub_model, members, lags) get_filenames(
             file_path      = file_path,
             start_date     = fcst_date,
             end_date       = fcst_date,
@@ -433,11 +435,12 @@ read_eps_interpolate <- function(
           .data$file_name,
           .data$metadata,
           function(x, y) read_function(
-            file_name   = x,
-            parameter   = parameter,
-            members     = y$member,
-            lead_time   = y$lead_time,
-            init        = init,
+            file_name           = x,
+            parameter           = parameter,
+            members             = y$member,
+            lead_time           = y$lead_time,
+            vertical_coordinate = vertical_coordinate,
+            init                = init,
             ...
           )
         )
@@ -454,6 +457,8 @@ read_eps_interpolate <- function(
       dplyr::mutate(forecast = purrr::map(.data$forecast, "fcst_data")) %>%
       dplyr::filter(purrr::map_lgl(.data$forecast, ~ !is.null(.x)))
 
+    if (nrow(forecast_data) < 1) next
+
     forecast_data <- purrr::map2_df(
       forecast_data$metadata,
       forecast_data$forecast,
@@ -462,47 +467,48 @@ read_eps_interpolate <- function(
     ) %>%
       dplyr::mutate(
         members_out = paste0("mbr", formatC(.data$members_out, width = 3, flag = "0"))
-      )
-
-    # Put data into tidy long format and correct T2m if required
-
-    sqlite_params <- forecast_data[1,] %>%
-      dplyr::select(
-        -dplyr::contains("model"),
-        -dplyr::contains("lead"),
-        -dplyr::contains("date"),
-        -dplyr::contains("lat"),
-        -dplyr::contains("lon"),
-        -dplyr::contains("member"),
-        -dplyr::contains("SID"),
-        -dplyr::contains("lag")
       ) %>%
-      colnames()
-    gather_cols <- rlang::syms(sqlite_params)
+      tidyr::drop_na(.data$forecast)
+
+    sqlite_params <- unique(forecast_data$parameter)
+
+    # Height correction for 2m temperature
 
     if (any(tolower(sqlite_params) == "t2m") && correct_t2m) {
-      t2m_param       <- sqlite_params[which(tolower(sqlite_params) == "t2m")]
-      t2m_uncorrected <- paste0(t2m_param, "_uncorrected")
-      t2m_col         <- rlang::sym(t2m_param)
-      t2m_uc_col      <- rlang::sym(t2m_uncorrected)
 
-      forecast_data <- forecast_data %>%
+      t2m_df <- forecast_data %>%
+        dplyr::filter(tolower(.data$parameter) == "t2m") %>%
         dplyr::inner_join(init$stations, by = "SID", suffix = c("", ".station")) %>%
-        dplyr::mutate(!! t2m_uncorrected := !! t2m_col) %>%
         dplyr::mutate(
-          !! t2m_param := !! t2m_uc_col + lapse_rate * (.data$model_elevation - .data$elev)
+          forecast = .data$forecast + lapse_rate * (.data$model_elevation - .data$elev)
         ) %>%
-        dplyr::select(-dplyr::contains(".station"))
+        dplyr::select(
+          -dplyr::contains(".station"),
+          -.data$elev,
+          -.data$name
+        )
 
       if (keep_model_t2m) {
-        gather_cols <- rlang::syms(c(sqlite_params, t2m_uncorrected))
+        forecast_data <- forecast_data %>%
+          dplyr::mutate(
+            parameter = dplyr::case_when(
+              tolower(parameter) == "t2m" ~ paste0(.data$parameter, "_uncorrected"),
+              TRUE                        ~ .data$parameter
+            )
+          )
+        t2m_param   <- paste0(param_units$parameter[tolower(param_units$parameter) == "t2m"], "_uncorrected")
+        t2m_units   <- param_units$units[tolower(param_units$parameter) == "t2m"]
+        param_units <- rbind(param_units, c(t2m_param, t2m_units))
       } else {
-        forecast_data <- dplyr::select(forecast_data, - !! t2m_uc_col)
+        forecast_data <- forecast_data %>%
+          dplyr::filter(tolower(.data$parameter) != "t2m")
       }
+
+      forecast_data <- dplyr::bind_rows(forecast_data, t2m_df)
+
     }
 
     forecast_data <- forecast_data %>%
-      tidyr::gather(key = "parameter", value = "forecast", !!!gather_cols) %>%
       tidyr::drop_na(.data$forecast) %>%
       dplyr::left_join(param_units, by = "parameter")
 
@@ -530,13 +536,29 @@ read_eps_interpolate <- function(
         ) %>%
         tidyr::unnest()
 
+      sqlite_primary_key <- c("fcdate", "leadtime", "SID")
+
+      fixed_trasmute_cols <- c("SID", "lat", "lon")
+      if (is.element("model_elevation", colnames(forecast_data))) {
+        fixed_trasmute_cols <- c(fixed_trasmute_cols, "model_elevation")
+      }
+
+      vertical_coordinate_colnames <- c("p", "ml", "z")
+      vertical_coordinate_col      <- which(vertical_coordinate_colnames %in% colnames(forecast_data))
+      if (length(vertical_coordinate_col) > 0) {
+        fixed_trasmute_cols <- c(fixed_trasmute_cols, vertical_coordinate_colnames[vertical_coordinate_col])
+        sqlite_primary_key  <- c(sqlite_primary_key, vertical_coordinate_colnames[vertical_coordinate_col])
+      }
+
+      fixed_trasmute_cols <- rlang::syms(fixed_trasmute_cols)
+
       sqlite_data <- sqlite_data %>%
         dplyr::transmute(
-          .data$SID,
-          .data$fcdate,
-          leadtime = .data$lead_time,
-          .data$validdate,
-          member   = paste(.data$sub_model, .data$members_out, sep = "_"),
+          !!! fixed_trasmute_cols,
+          fcdate    = as.integer(.data$fcdate),
+          leadtime  = .data$lead_time,
+          validdate = as.integer(.data$validdate),
+          member    = paste(.data$sub_model, .data$members_out, sep = "_"),
           .data$forecast,
           .data$parameter,
           .data$units,
@@ -549,6 +571,7 @@ read_eps_interpolate <- function(
         sqlite_data$data,
         sqlite_data$file_name,
         write_fctable_to_sqlite,
+        primary_key  = sqlite_primary_key,
         synchronous  = sqlite_synchronous,
         journal_mode = sqlite_journal_mode
       )

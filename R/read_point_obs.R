@@ -27,13 +27,16 @@ read_point_obs <- function(
   start_date,
   end_date,
   parameter,
-  obs_path           = ".",
-  obsfile_template   = "obstable",
-  gross_error_check  = TRUE,
-  min_allowed        = NULL,
-  max_allowed        = NULL,
-  stations           = NULL
+  obs_path            = ".",
+  obsfile_template    = "obstable",
+  gross_error_check   = TRUE,
+  min_allowed         = NULL,
+  max_allowed         = NULL,
+  stations            = NULL,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
 ) {
+
+  vertical_coordinate <- match.arg(vertical_coordinate)
 
   obs_files <- get_filenames(
     obs_path,
@@ -56,17 +59,36 @@ read_point_obs <- function(
   date_start <- suppressMessages(str_datetime_to_unixtime(start_date))
   date_end   <- suppressMessages(str_datetime_to_unixtime(end_date))
 
-  harp_param <- parse_harp_parameter(parameter)
-  if (!is.null(harp_param$level_type) && harp_param$level_type == "pressure") {
-    sqlite_table <- "TEMP"
-    obs_param    <- rlang::sym(harp_param$basename)
+  harp_param <- parse_harp_parameter(parameter, vertical_coordinate)
+  if (!is.null(harp_param$level_type) && is_temp(harp_param)) {
+    sqlite_table   <- "TEMP"
+    obs_param      <- rlang::sym(harp_param$basename)
+    vertical_level <- harp_param$level
+    level_col      <- switch(
+      harp_param$level_type,
+      "pressure" = "p",
+      "model"    = "ml",
+      "height"   = "z"
+    )
   } else {
-    sqlite_table <- "SYNOP"
-    obs_param    <- rlang::sym(parameter)
+    sqlite_table   <- "SYNOP"
+    obs_param      <- rlang::sym(parameter)
+    vertical_level <- NULL
+    level_col      <- NULL
   }
 
   message("Getting ", parameter, " observations for ", start_date, "-", end_date)
-  obs <- read_obstable(available_files, !!obs_param, sqlite_table, date_start, date_end, stations, harp_param$level)
+  obs <- read_obstable(
+    available_files,
+    !!obs_param,
+    sqlite_table,
+    date_start,
+    date_end,
+    stations,
+    level_col,
+    vertical_level
+  )
+
   if (parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h")) {
     message("Deriving 6h precipitation from 12h precipitation")
     obs <- derive_6h_precip(obs, available_files, date_start, date_end, stations)
@@ -82,13 +104,11 @@ read_point_obs <- function(
       tidyr::drop_na()
   }
 
-
-  obs_column <- rlang::sym(parameter)
   if (gross_error_check) {
     if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter)
     if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter)
-    obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_column, min_allowed, max_allowed))
-    obs         <- dplyr::filter(obs, dplyr::between(!! obs_column, min_allowed, max_allowed))
+    obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_param, min_allowed, max_allowed))
+    obs         <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
   } else {
     obs_removed = "No gross error check done."
   }
@@ -102,7 +122,16 @@ read_point_obs <- function(
 ### Functions
 
 # Read data from a set of obstable files
-read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_end, .stations, .level = NULL) {
+read_obstable <- function(
+  files,
+  .obs_param,
+  .sqlite_table,
+  .date_start,
+  .date_end,
+  .stations,
+  .level_col = NULL,
+  .level     = NULL
+) {
 
   obs_param_quo  <- rlang::enquo(.obs_param)
   obs_param_name <- rlang::quo_name(obs_param_quo)
@@ -120,26 +149,28 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
         dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, !!obs_param_quo) %>%
         dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
-        if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
-          .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
-            dplyr::filter(.data$parameter == obs_param_name) %>%
-            dplyr::pull(.data$units)
-        } else {
-          .obs_units <- NULL
-        }
+      if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
+        .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
+          dplyr::filter(.data$parameter == obs_param_name) %>%
+          dplyr::pull(.data$units)
+      } else {
+        .obs_units <- NULL
+      }
     } else {
       .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
         dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, .data$p, !!obs_param_quo) %>%
-        dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end) %>%
-        dplyr::filter(.data$p == .level)
-        if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
-          .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
-            dplyr::filter(.data$parameter == obs_param_name) %>%
-            dplyr::pull(.data$units) %>%
-            unique()
-        } else {
-          .obs_units <- NULL
-        }
+        dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
+      if (.level != -999) {
+        .obs[[list_counter]] <- dplyr::filter(.obs[[list_count]], .data[[.level_col]] == .level)
+      }
+      if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
+        .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
+          dplyr::filter(.data$parameter == obs_param_name) %>%
+          dplyr::pull(.data$units) %>%
+          unique()
+      } else {
+        .obs_units <- NULL
+      }
     }
 
     if (!is.null(.stations)) {
@@ -162,14 +193,7 @@ read_obstable <- function(files, .obs_param, .sqlite_table, .date_start, .date_e
     DBI::dbDisconnect(obs_db)
   }
 
-  .obs <- dplyr::bind_rows(.obs)
-
-  if (.sqlite_table == "TEMP" && !is.null(.level)) {
-    param_name <- rlang::sym(paste0(rlang::quo_name(obs_param_quo), .level))
-    .obs       <- dplyr::rename(.obs, !! param_name := !! obs_param_quo)
-  }
-
-  .obs
+  dplyr::bind_rows(.obs)
 
 }
 
@@ -220,35 +244,35 @@ derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station
 
 derive_12h_precip <- function(pcp_data) {
   pcp_data %>%
-  dplyr::full_join(
-    dplyr::transmute(
-      pcp_data,
-      validdate = .data$validdate + 3600 * 6,
-      .data$SID,
-      AccPcp6h_lag = .data$AccPcp6h
+    dplyr::full_join(
+      dplyr::transmute(
+        pcp_data,
+        validdate = .data$validdate + 3600 * 6,
+        .data$SID,
+        AccPcp6h_lag = .data$AccPcp6h
+      )
+    ) %>% dplyr::mutate(
+      AccPcp12h = dplyr::case_when(
+        is.na(.data$AccPcp12h) ~ .data$AccPcp6h + .data$AccPcp6h_lag,
+        TRUE                   ~ .data$AccPcp12h
+      )
     )
-  ) %>% dplyr::mutate(
-    AccPcp12h = dplyr::case_when(
-      is.na(.data$AccPcp12h) ~ .data$AccPcp6h + .data$AccPcp6h_lag,
-      TRUE                   ~ .data$AccPcp12h
-    )
-  )
 }
 
 derive_3h_precip <- function(pcp_data) {
   pcp_data %>%
-  dplyr::full_join(
-    dplyr::transmute(
-      pcp_data,
-      validdate = .data$validdate + 3600 * 3,
-      .data$SID,
-      AccPcp3h_lag = .data$AccPcp3h
+    dplyr::full_join(
+      dplyr::transmute(
+        pcp_data,
+        validdate = .data$validdate + 3600 * 3,
+        .data$SID,
+        AccPcp3h_lag = .data$AccPcp3h
+      )
+    ) %>% dplyr::mutate(
+      AccPcp3h = dplyr::case_when(
+        is.na(.data$AccPcp3h) ~ .data$AccPcp6h - .data$AccPcp3h_lag,
+        TRUE                  ~ .data$AccPcp3h
+      )
     )
-  ) %>% dplyr::mutate(
-    AccPcp3h = dplyr::case_when(
-      is.na(.data$AccPcp3h) ~ .data$AccPcp6h - .data$AccPcp3h_lag,
-      TRUE                  ~ .data$AccPcp3h
-    )
-  )
 }
 

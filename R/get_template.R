@@ -22,7 +22,7 @@ get_template <- function(.template) {
     dplyr::pull(.data$template)
 
   if (length(template) < 1) {
-    template <- file.path("{file_path}", template)
+    template <- file.path("{file_path}", .template)
   }
 
   template
@@ -53,8 +53,8 @@ show_file_templates <- function(template_row = NULL) {
       stop("\"template_row\" must be between 1 and ", num_templates, call. = FALSE)
     }
     cat(
-      "\ntemplate_name\n", templates$template_name[template_row], "\n",
-      "\ntemplate\n", templates$template[template_row], "\n"
+      "\ntemplate_name:\n", templates$template_name[template_row], "\n",
+      "\ntemplate:\n", templates$template[template_row], "\n"
     )
   }
 

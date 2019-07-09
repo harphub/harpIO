@@ -38,12 +38,16 @@
 
 read_vfld_interpolate <- function(
   file_name,
-  parameter   = NULL,
-  lead_time   = NA_real_,
-  members     = NA_character_,
-  init        = list(),
+  parameter           = NULL,
+  lead_time           = NA_real_,
+  members             = NA_character_,
+  read_profile        = FALSE,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
+  init                = list(),
   ...
 ) {
+
+  vertical_coordinate <- match.arg(vertical_coordinate)
 
   empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
 
@@ -70,17 +74,19 @@ read_vfld_interpolate <- function(
         stop ("Parameter is a list but not all elements have a level component.")
       }
     } else {
-      parameter <- purrr::map(parameter, parse_harp_parameter)
-    }
-    param_level_type <- purrr::map(parameter, "level_type")
-    param_level      <- purrr::map(parameter, "level")
-
-    is_synop <- function(.level_type, .level) {
-      is.null(.level_type) | (.level_type == "height" && .level %in% c(2, 10))
+      parameter <- purrr::map(parameter, parse_harp_parameter, vertical_coordinate)
     }
 
-    synop_parameters <- parameter[which(purrr::map2_lgl(param_level_type, param_level, is_synop))]
-    temp_parameters  <- parameter[which(purrr::map2_lgl(param_level_type, param_level, ~ !is_synop(.x, .y)))]
+    synop_parameters <- parameter[which(purrr::map_lgl(parameter, is_synop))]
+    temp_parameters  <- parameter[which(purrr::map_lgl(parameter, is_temp))]
+
+    if (any(purrr::map_lgl(temp_parameters, ~.x$level != -999))) {
+      stop(
+        "Do not give vertical levels for reading from vfld files.\n",
+        "Set veritcal_coordinate = \"pressure\" to read upper air parameters.",
+        call. = FALSE
+      )
+    }
 
   } else { # Get all parameters from the file
 
@@ -89,15 +95,13 @@ read_vfld_interpolate <- function(
       colnames() %>%
       purrr::map(parse_harp_parameter)
 
-    if (ncol(vfld_data$temp) < 5) {
+    if (ncol(vfld_data$temp) < 5 | is.na(vertical_coordinate)) {
       temp_parameters <- NULL
     } else {
       temp_parameters <- vfld_data$temp %>%
         dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation, -.data$p) %>%
         colnames() %>%
-        purrr::map(~ paste0(.x, unique(vfld_data$temp$p))) %>%
-        unlist() %>%
-        purrr::map(parse_harp_parameter)
+        purrr::map(parse_harp_parameter, vertical_coordinate)
     }
 
   }
@@ -110,6 +114,7 @@ read_vfld_interpolate <- function(
     param_cols_out  <- rlang::syms(synop_parameter)
     vfld_data$synop      <- vfld_data$synop %>%
       dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
+      tidyr::gather(key = parameter, value = forecast, !!!param_cols_out) %>%
       dplyr::mutate(
         member    = members,
         lead_time = lead_time
@@ -138,11 +143,7 @@ read_vfld_interpolate <- function(
       param_cols_out      <- rlang::syms(temp_parameter_full)
       vfld_data$temp <- vfld_data$temp %>%
         dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
-        tidyr::gather(key = param, value = forecast, !!!param_cols_in) %>%
-        dplyr::mutate(param = paste0(.data$param, .data$p)) %>%
-        dplyr::select(-.data$p) %>%
-        tidyr::spread(.data$param, .data$forecast) %>%
-        dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
+        tidyr::gather(key = parameter, value = forecast, !!!param_cols_in) %>%
         dplyr::mutate(
           member    = members,
           lead_time = lead_time
@@ -161,32 +162,27 @@ read_vfld_interpolate <- function(
     dplyr::select(-.data$accum_hours) %>%
     dplyr::filter(.data$parameter != "p")
 
-  vfld_data <- dplyr::full_join(
-    vfld_data$synop,
-    vfld_data$temp,
-    by     = c("SID", "lead_time", "member"),
-    suffix = c("", ".temp")
-  )
+  vfld_data <- dplyr::bind_rows(vfld_data$synop, vfld_data$temp) %>%
+    dplyr::filter_all(dplyr::any_vars(!is.na(.)))
 
   param_units <- tibble::tibble(
-    parameter = colnames(vfld_data)
+    parameter = unique(na.omit(vfld_data$parameter))
   )
 
-  special_cases <- c("T2m", "RH2m", "Td2m", "S10m", "G10m", "D10m", "N75", "Q2m")
-  unwanted_rows <- c("SID", "lead_time", "member", "lat", "lon", "lat.temp", "lon.temp")
+  unwanted_rows <- c("SID", "lead_time", "member", "lat", "lon")
   param_units <- param_units %>%
     dplyr::filter(!.data$parameter %in% unwanted_rows) %>%
     dplyr::mutate(
-      param_basename = purrr::map_chr(purrr::map(.data$parameter, parse_harp_parameter), "basename"),
+      param_basename = purrr::map_chr(purrr::map(.data$parameter, parse_harp_parameter, vertical_coordinate), "basename"),
+      synop_param    = purrr::map_lgl(param_units$parameter, is_synop, vertical_coordinate),
       param_basename = dplyr::case_when(
-        grepl(".temp", .data$param_basename) ~ gsub(".temp", "", .data$param_basename),
-        .data$parameter %in% special_cases   ~ .data$parameter,
+        synop_param  ~ .data$parameter,
         grepl("Acc[[:alpha:]]+[[:digit:]]+[[:alpha:]]", .data$parameter, perl = TRUE) ~ .data$parameter,
         TRUE ~ param_basename
       )
     ) %>%
-    dplyr::full_join(dplyr::rename(params, param_basename = .data$parameter), by = "param_basename") %>%
-    dplyr::select(-.data$param_basename)
+    dplyr::inner_join(dplyr::rename(params, param_basename = .data$parameter), by = "param_basename") %>%
+    dplyr::select(-.data$param_basename, -.data$synop_param)
 
   list(fcst_data = tibble::as_tibble(vfld_data), units = tibble::as_tibble(param_units))
 
