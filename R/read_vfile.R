@@ -48,111 +48,127 @@ read_vfile <- function(
 
   # synop data
 
-  if (v_version == 4) {
+  if (num_synop < 1) {
 
-    num_param    <- scan(file_connection, nmax = 1, quiet = TRUE)
-    params_synop <- read.table(
+    synop_data <- empty_data
+
+  } else {
+
+    if (v_version == 4) {
+
+      num_param    <- scan(file_connection, nmax = 1, quiet = TRUE)
+      params_synop <- read.table(
+        file_connection,
+        col.names        = c("parameter", "accum_hours"),
+        nrows            = num_param,
+        stringsAsFactors = FALSE
+      )
+
+    } else {
+
+      num_param       <- 16
+      num_temp_levels <- scan(file_connection, nmax = 1, quiet = TRUE)
+      params_synop    <- data.frame(
+        parameter        = v_default_names("synop"),
+        accum_hours      = rep(0, num_param),
+        stringsAsFactors = FALSE
+      )
+
+    }
+
+    if (v_type == "vobs") {
+      params_synop$parameter[params_synop$parameter == "PE"]   <- "PE12"
+      params_synop$accum_hours[params_synop$parameter == "PE"] <- 12
+    }
+
+    params_synop <- dplyr::mutate(
+      params_synop,
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
+      units       = purrr::map_chr(.data$parameter, "param_units"),
+      parameter   = purrr::map_chr(.data$parameter, "harp_param")
+    )
+
+    if (v_type == "vfld") {
+      synop_columns <- c("SID", "lat", "lon", params_synop$parameter)
+    } else {
+      synop_columns <- c("SID", "lat", "lon", "elev", params_synop$parameter)
+    }
+
+    synop_data <- read.table(
       file_connection,
-      col.names        = c("parameter", "accum_hours"),
-      nrows            = num_param,
-      stringsAsFactors = FALSE
-    )
-
-  } else {
-
-    num_param       <- 16
-    num_temp_levels <- scan(file_connection, nmax = 1, quiet = TRUE)
-    params_synop    <- data.frame(
-      parameter        = v_default_names("synop"),
-      accum_hours      = rep(0, num_param),
-      stringsAsFactors = FALSE
+      col.names = synop_columns,
+      nrows     = num_synop
     )
 
   }
-
-  if (v_type == "vobs") {
-    params_synop$parameter[params_synop$parameter == "PE"]   <- "PE12"
-    params_synop$accum_hours[params_synop$parameter == "PE"] <- 12
-  }
-
-  params_synop <- dplyr::mutate(
-    params_synop,
-    parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
-    units       = purrr::map_chr(.data$parameter, "param_units"),
-    parameter   = purrr::map_chr(.data$parameter, "harp_param")
-  )
-
-  if (v_type == "vfld") {
-    synop_columns <- c("SID", "lat", "lon", params_synop$parameter)
-  } else {
-    synop_columns <- c("SID", "lat", "lon", "elev", params_synop$parameter)
-  }
-
-  synop_data <- read.table(
-    file_connection,
-    col.names = synop_columns,
-    nrows     = num_synop
-  )
 
   # temp data
 
-  if (v_version == 4) {
-    temp_metadata   <- scan(file_connection, nmax = 2, quiet = TRUE)
-    num_temp_levels <- temp_metadata[1]
-    num_param       <- temp_metadata[2]
-    params_temp     <- read.table(
-      file_connection,
-      col.names        = c("parameter", "accum_hours"),
-      nrows            = num_param,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    num_param   <- 8
-    params_temp <- data.frame(
-      parameter        = v_default_names("temp"),
-      accum_hours      = rep(0, 8),
-      stringsAsFactors = FALSE
-    )
-  }
-
-  params_temp <- dplyr::mutate(
-    params_temp,
-    parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
-    units       = purrr::map_chr(.data$parameter, "param_units"),
-    parameter   = purrr::map_chr(.data$parameter, "harp_param")
-  )
-
-  temp_data    <- list()
-
-  if (num_temp < 1 | num_temp_levels < 1) {
+  if (num_temp < 1) {
 
     temp_data <- empty_data
 
   } else {
 
-    for (temp_station in 1:num_temp) {
-
-      station_metadata <- scan(file_connection, nmax = 4, quiet = TRUE)
-      temp_data[[temp_station]] <- data.frame(
-        SID             = rep(as.integer(station_metadata[1]), num_temp_levels),
-        lat             = rep(station_metadata[2], num_temp_levels),
-        lon             = rep(station_metadata[3], num_temp_levels),
-        model_elevation = rep(station_metadata[4], num_temp_levels)
-      ) %>%
-        dplyr::bind_cols(
-          read.table(
-            file_connection,
-            nrows = num_temp_levels,
-            col.names = params_temp$parameter
-          )
-        )
-
+    if (v_version == 4) {
+      temp_metadata   <- scan(file_connection, nmax = 2, quiet = TRUE)
+      num_temp_levels <- temp_metadata[1]
+      num_param       <- temp_metadata[2]
+      params_temp     <- read.table(
+        file_connection,
+        col.names        = c("parameter", "accum_hours"),
+        nrows            = num_param,
+        stringsAsFactors = FALSE
+      )
+    } else {
+      num_param   <- 8
+      params_temp <- data.frame(
+        parameter        = v_default_names("temp"),
+        accum_hours      = rep(0, 8),
+        stringsAsFactors = FALSE
+      )
     }
 
-    temp_data <- dplyr::bind_rows(temp_data)
+    params_temp <- dplyr::mutate(
+      params_temp,
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
+      units       = purrr::map_chr(.data$parameter, "param_units"),
+      parameter   = purrr::map_chr(.data$parameter, "harp_param")
+    )
 
-    if (v_type == "vobs") {
-      names(temp_data)[names(temp_data) == "model_elevation"] <- "elev"
+    temp_data    <- list()
+
+    if (num_temp_levels < 1) {
+
+      temp_data <- empty_data
+
+    } else {
+
+      for (temp_station in 1:num_temp) {
+
+        station_metadata <- scan(file_connection, nmax = 4, quiet = TRUE)
+        temp_data[[temp_station]] <- data.frame(
+          SID             = rep(as.integer(station_metadata[1]), num_temp_levels),
+          lat             = rep(station_metadata[2], num_temp_levels),
+          lon             = rep(station_metadata[3], num_temp_levels),
+          model_elevation = rep(station_metadata[4], num_temp_levels)
+        ) %>%
+          dplyr::bind_cols(
+            read.table(
+              file_connection,
+              nrows = num_temp_levels,
+              col.names = params_temp$parameter
+            )
+          )
+
+      }
+
+      temp_data <- dplyr::bind_rows(temp_data)
+
+      if (v_type == "vobs") {
+        names(temp_data)[names(temp_data) == "model_elevation"] <- "elev"
+      }
+
     }
 
   }
@@ -164,6 +180,13 @@ read_vfile <- function(
   }
   if (ncol(temp_data) > 4) {
     temp_data[,5:ncol(temp_data)][temp_data[,5:ncol(temp_data)] == missing_value] <- NA
+  }
+
+  if (nrow(synop_data) == 1 && all(is.na(synop_data[1,]))) {
+    params_synop <- data.frame(parameter = character(), units = character(), stringsAsFactors = FALSE)
+  }
+  if (nrow(temp_data) == 1 && all(is.na(temp_data[1,]))) {
+    params_temp  <- data.frame(parameter = character(), units = character(), stringsAsFactors = FALSE)
   }
 
   list(synop = synop_data, temp = temp_data, synop_params = params_synop, temp_params = params_temp)
