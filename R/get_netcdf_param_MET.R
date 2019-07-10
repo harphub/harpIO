@@ -11,20 +11,20 @@
 #' get_netcdf_param_MET("S10m")
 #' get_netcdf_param_MET("Pcp")
 
-get_netcdf_param_MET <- Vectorize(function (param) {
+get_netcdf_param_MET <- Vectorize(function (param, vc = NA) {
 
   param_table <- tibble::tribble(
     ~harp_param, ~nc_param,
-    "t"        , "air_temperature_pl",
+    "t"        , "air_temperature",
     "t0m"      , "air_temperature_0m",
     "t2m"      , "air_temperature_2m",
     "tmin"     , "air_temperature_min",
     "tmax"     , "air_temperature_max",
-    "q"        , "specific_humidity_pl",
+    "q"        , "specific_humidity",
     "q2m"      , "specific_humidity_2m",
-    "rh"       , "relative_hunidity_pl",
+    "rh"       , "relative_hunidity",
     "rh2m"     , "relative_humidity_2m",
-    "caf"      , "cloud_area_fraction_pl",
+    "caf"      , "cloud_area_fraction",
     "cctot"    , "cloud_area_fraction",
     "cchigh"   , "high_type_cloud_area_fraction",
     "ccmed"    , "medium_type_cloud_area_fraction",
@@ -32,9 +32,9 @@ get_netcdf_param_MET <- Vectorize(function (param) {
     "cbase"    , "cloud_base_altitude",
     "pmsl"     , "air_pressure_at_sea_level",
     "ps"       , "surface air pressure",
-    "u"        , "x_wind_pl",
-    "v"        , "y_wind_pl",
-    "w"        , "upward_air_velocity_pl",
+    "u"        , "x_wind",
+    "v"        , "y_wind",
+    "w"        , "upward_air_velocity",
     "ugust10m" , "x_wind_gust_10m",
     "vgust10m" , "y_wind_gust_10m",
     "g10m"     , "wind_speed_of_gust",
@@ -42,9 +42,9 @@ get_netcdf_param_MET <- Vectorize(function (param) {
     "v10m"     , "y_wind_10m",
     "s10m"     , "wind_speed",
     "d10m"     , "wind_direction",
-    "tke"      , "turbulent_kinetic_energy_pl",
+    "tke"      , "turbulent_kinetic_energy",
     "vis"      , "visibility_in_air",
-    "z"        , "geopotential_pl",
+    "z"        , "geopotential",
     "z0m"      , "surface_geopotential",
     "altitude" , "surface_geopotential",
     "terrain"  , "surface_geopotential",
@@ -67,7 +67,17 @@ get_netcdf_param_MET <- Vectorize(function (param) {
     dplyr::pull(.data$nc_param)
 
   if (length(netcdf_param) < 1) {
-    netcdf_param <- NA_character_
+    netcdf_param <- param
+  } else {
+    if (!is.na(vc) && is_temp(param, vc)) {
+      suffix <- switch(
+        vc,
+        "pressure" = "_pl",
+        "model"    = "_ml",
+        ""
+      )
+      netcdf_param <- paste0(netcdf_param, suffix)
+    }
   }
 
   netcdf_param

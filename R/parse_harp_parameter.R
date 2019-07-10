@@ -22,13 +22,21 @@ parse_harp_parameter <- function(
   ## TODO: radiation, surface properties...
   if (inherits(param, "harp_parameter")) return(param)
   # all comparisons are done in lower case
-  if (tolower(param) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh", "s", "d", "td") ) {
+  if (tolower(param) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh", "s", "d", "td")  |
+      grepl("_ml$", param) | grepl("_pl$", param)) {
     if (is.na(vertical_coordinate)) {
-      stop(
-        "Level not supplied for ", param, ". Either give a numeric level,\n",
-        "or set \"vertical_coordinate\".",
-        call. = FALSE
-      )
+      if (grepl("_ml$", param)) {
+        lev_type = "s"
+      } else if (grepl("_pl$", param)) {
+        lev_type = "p"
+      } else {
+        stop(
+          "Level not supplied for ", param, ". Either give a numeric level,\n",
+          "or set \"vertical_coordinate\".",
+          call. = FALSE
+        )
+
+      }
     } else {
       lev_type <- switch(
         vertical_coordinate,
@@ -36,8 +44,8 @@ parse_harp_parameter <- function(
         "model"    = "s",
         "height"   = "m"
       )
-      basename <- paste0(param, "-999", lev_type)
     }
+    basename <- paste0(param, "-999", lev_type)
   } else {
     basename <- param
   }
@@ -66,7 +74,7 @@ parse_harp_parameter <- function(
   }
 
   ## 2. 'basic' field or atmospheric with level information added?
-  if (grepl("^[[:alpha:]]+-?[[:digit:]]+[mpsh]?$", basename)){
+  if (grepl("^[[:graph:]]+-?[[:digit:]]+[mpsh]?$", basename)){
     ## trailing digits are interpreted as pressure levels
     ## possibly there's an extra "m": then they are height levels
     ## or an "s", "h": hyprid level (model level)
@@ -131,11 +139,11 @@ is_synop <- function(prm, vertical_coordinate = NA_character_) {
                  "n75", "vis",
                  "tmax", "tmin", "gmax")
   sfc  <- switch(prm$level_type,
-                "sea"  =,
-                "cloud" =,
-                "surface" = TRUE,
-                "height" = prm$level %in% c(0, 2, 10, NA),
-                "hybrid" =,
+                "sea"      =,
+                "cloud"    =,
+                "surface"  = TRUE,
+                "height"   = prm$level %in% c(0, 2, 10, NA),
+                "model"    =,
                 "pressure" = FALSE,
                 FALSE
                 )
@@ -153,15 +161,15 @@ is_temp <- function(prm, vertical_coordinate = NA_character_) {
   par.atmo <- c("t", "z", "u", "v", "s", "d", "g", "q", "rh", "td")
   if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
   atmo <- switch(prm$level_type,
-                "sea"  =,
-                "cloud" =,
-                "surface" = FALSE,
-                "height" = !(prm$level %in% c(0, 2, 10, NA)),
-                "hybrid" =,
+                "sea"      =,
+                "cloud"    =,
+                "surface"  = FALSE,
+                "height"   = !(prm$level %in% c(0, 2, 10, NA)),
+                "model"    =,
                 "pressure" = TRUE,
                 FALSE
                 )
-  result <- atmo && (tolower(prm$basename) %in% par.atmo)
+  result <- atmo && ((tolower(prm$basename) %in% par.atmo) | grepl("_ml$", prm$basename) | grepl("_pl$", prm$basename))
   result
 }
 

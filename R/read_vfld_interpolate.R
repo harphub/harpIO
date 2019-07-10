@@ -41,7 +41,6 @@ read_vfld_interpolate <- function(
   parameter           = NULL,
   lead_time           = NA_real_,
   members             = NA_character_,
-  read_profile        = FALSE,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   init                = list(),
   ...
