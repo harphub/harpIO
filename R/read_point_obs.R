@@ -90,6 +90,7 @@ read_point_obs <- function(
   )
 
   if (parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h")) {
+    metadata_cols <- rlang::syms(colnames(obs)[colnames(obs) != parameter])
     message("Deriving 6h precipitation from 12h precipitation")
     obs <- derive_6h_precip(obs, available_files, date_start, date_end, stations)
     if (parameter == "AccPcp12h") {
@@ -100,7 +101,7 @@ read_point_obs <- function(
       obs <- derive_3h_precip(obs)
     }
     obs <- obs %>%
-      dplyr::select(.data$validdate, .data$SID, !! obs_param) %>%
+      dplyr::select(!!! metadata_cols, !! obs_param) %>%
       tidyr::drop_na()
   }
 
