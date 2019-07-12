@@ -204,6 +204,8 @@ derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station
   pcp_AccPcp6h  <- NULL
   pcp_AccPcp12h <- NULL
 
+  first_date    <- first_date - 3600 * 12
+
   pcp_in_data   <- grep("AccPcp*[[:digit:]]", names(pcp_data), perl = TRUE, value = TRUE)
   switch(
     pcp_in_data,
@@ -227,6 +229,10 @@ derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station
         pcp_AccPcp6h,
         validdate = .data$validdate + 3600 * 6,
         .data$SID,
+        .data$lon,
+        .data$lat,
+        .data$elev,
+        .data$units,
         AccPcp6h_lag = .data$AccPcp6h
       )
     ) %>%
@@ -250,6 +256,10 @@ derive_12h_precip <- function(pcp_data) {
         pcp_data,
         validdate = .data$validdate + 3600 * 6,
         .data$SID,
+        .data$lon,
+        .data$lat,
+        .data$elev,
+        .data$units,
         AccPcp6h_lag = .data$AccPcp6h
       )
     ) %>% dplyr::mutate(
