@@ -106,8 +106,13 @@ read_point_obs <- function(
   }
 
   if (gross_error_check) {
-    if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter)
-    if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter)
+    if (is.element("units", colnames(obs))) {
+      param_units <- unique(obs$units)
+    } else {
+      param_units <- ""
+    }
+    if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter, param_units)
+    if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter, param_units)
     obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_param, min_allowed, max_allowed))
     obs         <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
   } else {
