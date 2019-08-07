@@ -15,7 +15,9 @@
 get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
   ### FA names are very inconsistent ("_" vs "." separators...)
   ### so we have to do some hard-coding
-  hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m", "g10m", "pmsl", "td2m", "topo", "lsm")
+  hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m",
+                        "g10m", "pmsl", "td2m", "topo", "lsm",
+                        "cape", "cien")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
   # generic templates (there are exceptions!)
@@ -32,6 +34,8 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
                      "td2m" = c("CLSHUMI.RELATIVE", "CLSTEMPERATURE  "),
                      "topo" = "SURFGEOPOTENTIEL",
                      "lsm"  = "SURFIND.TERREMER",
+                     "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
+                     "cien"  = "SURFCIEN.POS.F00",
                      stop("unknown parameter ", param$fullname))
   } else if (param$level_type %in% c("hybrid", "pressure", "height") ) {
     if (param$level_type != "pressure") plev <- param$level

@@ -117,7 +117,7 @@ read_fatar_interpolate <- function(file_name, parameter,
   }
   fcpoints <- meteogrid::point.interp(all_data, weights=init$weights)
   # this (currently) creates an array width dimensions (station[,ldt][,prm])
-  fctable <- tibble(lead_time = rep(lead_time, each=dim(init$stations)[1]))
+  fctable <- tibble::tibble(lead_time = rep(lead_time, each=dim(init$stations)[1]))
   if (length(parameter)>1) {
   # TODO: clean this up: if only 1 leadtime, you have 1 less dimension...
     if (length(lead_time)==1) {
