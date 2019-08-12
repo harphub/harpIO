@@ -25,7 +25,7 @@ read_vfile <- function(
   v_metadata   <- scan(file_connection, nlines = 1, quiet = TRUE)
 
   if (length(v_metadata) < 2 | length(v_metadata) > 3) {
-    warning("Unable to read: ", v_file_name, "\n", call. = FALSE, immediate. = TRUE)
+    warning("Unable to read: ", v_file_name, call. = FALSE, immediate. = TRUE)
     close(file_connection)
     return(list(synop_data = empty_data, temp_data = empty_data))
   }
@@ -41,7 +41,7 @@ read_vfile <- function(
   }
 
   if (v_version < 2 | v_version > 4) {
-    warning("Unable to read: ", v_file_name, "\nv version = ", v_version, "\n", call. = FALSE, immediate. = TRUE)
+    warning("Unable to read: ", v_file_name, "\nv version = ", v_version, call. = FALSE, immediate. = TRUE)
     close(file_connection)
     return(list(synop_data = empty_data, temp_data = empty_data))
   }

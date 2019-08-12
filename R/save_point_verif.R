@@ -43,7 +43,7 @@ save_point_verif <- function(
     dir.create(dirname(file_name), recursive = TRUE, mode = "0750")
   }
 
-  message("Saving point verification scores to: \n", file_name)
+  message("Saving point verification scores to: ", file_name)
 
   saveRDS(verif_data, file = file_name)
 

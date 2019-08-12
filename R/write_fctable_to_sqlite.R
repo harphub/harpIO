@@ -35,7 +35,7 @@ write_fctable_to_sqlite <- function(
 
   primary_key <- intersect(primary_key, column_names)
 
-  message("Writing to: ", filename, "\n")
+  message("Writing to: ", filename)
 
   sqlite_db <- dbopen(filename)
 

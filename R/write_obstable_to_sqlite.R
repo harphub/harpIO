@@ -18,7 +18,7 @@ write_obstable_to_sqlite <- function(
   if (!file.exists(file_name)) {
     newfile <- TRUE
     if (!dir.exists(dirname(file_name))) dir.create(dirname(file_name), recursive = TRUE, mode = "0750")
-    message("\n***\nNew SQLITE obs file created: ", file_name, "\n***\n")
+    message("\n***\nNew SQLITE obs file created: ", file_name, "\n***")
   }
 
   col_names    <- colnames(obs_data)
@@ -35,7 +35,7 @@ write_obstable_to_sqlite <- function(
     params_types <- gsub("NUMERIC", "REAL", params_types)
   }
 
-  message("Writing to: ", table_name, " in ", file_name, "\n")
+  message("Writing to: ", table_name, " in ", file_name)
 
   sqlite_db <- dbopen(file_name)
   dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))

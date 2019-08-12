@@ -34,7 +34,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
   }
 
   if (length(missing_lead_times) > 0 && check_leads) {
-    warning("Not enough lead times to compute accumulation - will try to get more data\n", immediate. = TRUE, call. = FALSE)
+    warning("Not enough lead times to compute accumulation - will try to get more data", immediate. = TRUE, call. = FALSE)
     return(missing_lead_times)
   }
 
@@ -46,7 +46,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
 
   if (length(lead_times_res) > 1) {
 
-    warning("Lead times are not equally spaced. Accumulating could take some time\n", immediate. = TRUE, call. = FALSE)
+    warning("Lead times are not equally spaced. Accumulating could take some time", immediate. = TRUE, call. = FALSE)
 
     .fcst <- .fcst %>%
       dplyr::mutate(lead_acc = .data$leadtime + accumulation_time)
@@ -102,7 +102,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
     }
 
     if (nrow(bad_data) > 0) {
-      warning("Some lead times do not have equal amounts of data - doing a slower robust join.\n", immediate. = TRUE, call. = FALSE)
+      warning("Some lead times do not have equal amounts of data - doing a slower robust join.", immediate. = TRUE, call. = FALSE)
       bad_data_lagged <- tidyr::unnest(bad_data, .data$lagged_data) %>%
         dplyr::rename(forecast1 = .data$forecast)
       bad_data <- tidyr::unnest(bad_data, .data$data) %>%
