@@ -186,8 +186,12 @@ read_point_forecast <- function(
   }
 
   if (any(purrr::map_int(available_files, length) < 1)) {
-    model_with_no_files <- names(missing_files)[purrr::map_int(available_files, length) < 1]
-    stop("No forecast files found for ", paste(model_with_no_files, collapse = ", "), call. = FALSE)
+    model_with_no_files <- paste(
+      lag_table$fcst_model[purrr::map_int(available_files, length) < 1],
+      lag_table$lag[purrr::map_int(available_files, length) < 1],
+      sep = " - lag: "
+    )
+    stop("No forecast files found for: \n", paste(model_with_no_files, collapse = "\n"), call. = FALSE)
   }
 
   fcst <- purrr::map2(
@@ -328,9 +332,7 @@ merge_names <- function(x) {
   names_x <- unique(names(x))
   y       <- list()
   for (element_x in names_x) {
-    x              <- unlist(x)
-    x_name         <- gsub("[[:digit:]]", "", names(x), perl = TRUE)
-    y[[element_x]] <- unname(x[x_name == element_x])
+    y[[element_x]] <- unlist(x[which(names(x) == element_x)], use.names = FALSE)
   }
   y
 }
