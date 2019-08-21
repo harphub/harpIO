@@ -165,7 +165,7 @@ read_vfld_interpolate <- function(
     dplyr::filter_all(dplyr::any_vars(!is.na(.)))
 
   param_units <- tibble::tibble(
-    parameter = unique(na.omit(vfld_data$parameter))
+    parameter = unique(stats::na.omit(vfld_data$parameter))
   )
 
   unwanted_rows <- c("SID", "lead_time", "member", "lat", "lon")

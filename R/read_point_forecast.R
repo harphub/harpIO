@@ -293,7 +293,7 @@ read_point_forecast <- function(
       names(df),
       .member_regexp
     ) %>%
-      na.omit() %>%
+      stats::na.omit() %>%
       unique()
 
     if (length(sub_models) == 1) {

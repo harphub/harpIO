@@ -38,7 +38,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
     return(missing_lead_times)
   }
 
-  lead_times_res <- unique(na.omit(lead_times - dplyr::lag(lead_times)))
+  lead_times_res <- unique(stats::na.omit(lead_times - dplyr::lag(lead_times)))
 
   if (length(lead_times_res) == 0) {
     return(first_accum_fcst)

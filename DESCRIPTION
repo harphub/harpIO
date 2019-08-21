@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9083
+Version: 0.0.0.9084
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -29,7 +29,8 @@ Imports:
     tidyr,
     tools,
     utils,
-    dbplyr
+    dbplyr,
+    stats
 Suggests:
     ncdf4,
     miIO,
