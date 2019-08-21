@@ -4,7 +4,7 @@
 \alias{get_netcdf_param_MET}
 \title{Get MET Norway NetCDF parameter name from a HARP parameter name}
 \usage{
-get_netcdf_param_MET(param)
+get_netcdf_param_MET(param, vc = NA)
 }
 \arguments{
 \item{param}{HARP parameter name.}

@@ -57,7 +57,7 @@ read_vfile <- function(
     if (v_version == 4) {
 
       num_param    <- scan(file_connection, nmax = 1, quiet = TRUE)
-      params_synop <- read.table(
+      params_synop <- utils::read.table(
         file_connection,
         col.names        = c("parameter", "accum_hours"),
         nrows            = num_param,

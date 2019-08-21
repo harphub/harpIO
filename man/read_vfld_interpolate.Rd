@@ -5,7 +5,9 @@
 \title{Read data from a vfld file}
 \usage{
 read_vfld_interpolate(file_name, parameter = NULL,
-  lead_time = NA_real_, members = NA_character_, init = list(), ...)
+  lead_time = NA_real_, members = NA_character_,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
+  init = list(), ...)
 }
 \arguments{
 \item{file_name}{Name of the vfld file}

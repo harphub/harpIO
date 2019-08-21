@@ -60,7 +60,7 @@ read_fctable <- function(
     list_count <- list_count + 1
 
     fcst <- dplyr::tbl(fcst_db, "FC") %>%
-      dplyr::filter(between(fcdate, start_date, end_date))
+      dplyr::filter(dplyr::between(fcdate, start_date, end_date))
 
     if (!is.null(lead_time)) {
       fcst <- dplyr::filter(fcst, leadtime %in% lead_time)

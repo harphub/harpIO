@@ -18,7 +18,7 @@
 #' @value A data base connection
 #' @export
 dbopen <- function(dbfile, lock) {
-  if (packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only
+  if (utils::packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only
 function correctly with package DBI version 0.5 or higher.")
   if (missing(lock)) {
     if (exists(".SQLiteLocking")) lock <- .SQLiteLocking
@@ -79,9 +79,9 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show
     }
   }
 
-  if (packageVersion('DBI') < '0.3.0') {
+  if (utils::packageVersion('DBI') < '0.3.0') {
     dbBegin <- get("dbBeginTransaction", envir = asNamespace("DBI"))
-  } else if (packageVersion("RSQLite") < "1.0.0") {
+  } else if (utils::packageVersion("RSQLite") < "1.0.0") {
     stop("RSQLite version is inconsistent with DBI. Consider upgrading.")
   }
   DBI::dbBegin(conn)  ### this is OK: doesn't require a lock
@@ -120,7 +120,7 @@ dbwrite <- function(conn, table, mydata, rounding=NULL, maxtry=20, sleep=5, show
     DBI::dbClearResult(tryOK1)
     tryOK2 <- tryCatch(DBI::dbCommit(conn),
       error=function(e) {print(e);return(e)})  ### commit needs an EXCLUSIVE lock
-    
+
     if (inherits(tryOK2,"error")) {
       print(paste("FAILURE commit",count,"/",maxtry))
       print(tryOK2$message)
@@ -189,7 +189,7 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
   fetchOK <- FALSE
   count <- 1
   while (!fetchOK & count<=maxtry){
-    if (packageVersion('DBI')<'0.3.0') dbFetch <- get("fetch", envir = asNamespace("DBI"))
+    if (utils::packageVersion('DBI')<'0.3.0') dbFetch <- get("fetch", envir = asNamespace("DBI"))
     data <- tryCatch(DBI::dbFetch(result,n=-1),
       error=function(e) {print(e);return(e)})
     if (inherits(data,"error")) {
