@@ -6,7 +6,7 @@
 \usage{
 write_fctable_to_sqlite(data, filename, tablename = "FC",
   primary_key = c("fcdate", "leadtime", "SID"), synchronous = "off",
-  journal_mode = "delete")
+  journal_mode = "delete", remove_model_elev = FALSE)
 }
 \arguments{
 \item{data}{The fcst data to write.}

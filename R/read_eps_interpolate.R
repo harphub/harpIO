@@ -44,26 +44,24 @@
 #'   (e.g. grib, netcdf, FA), if no data frame of stations is passed a default
 #'   list of stations is used. This list can be accessed via
 #'   \code{data(stations)}.
-
-#' @param clim_file A file containing constant data for the domain:
-#'   topology, land/sea mask.
-#' @param clim_format The file format of the clim_file may be different
-#'   than that of the forecast files.
-#' @param correct_T2m Whether to correct the 2m temperature forecast from the
-#'   model elevation to the observation elevation.
-#' @param interp_method The method used for interpolating from forecast grid
-#'   to station points. Default is "closest" (mearest neighbour).
-#'   Alternatives include "bilin".
-#' @param use_mask If TRUE, a land/sea mask is used when interpolating. It must be
-#'   available in the forecast files or in a clim_file.
+#' @param clim_file A file containing constant data for the domain: topology,
+#'   land/sea mask.
+#' @param clim_format The file format of the clim_file may be different than
+#'   that of the forecast files.
+#' @param interp_method The method used for interpolating from forecast grid to
+#'   station points. Default is "closest" (mearest neighbour). Alternatives
+#'   include "bilin".
+#' @param use_mask If TRUE, a land/sea mask is used when interpolating. It must
+#'   be available in the forecast files or in a clim_file.
 #' @param sqlite_path If specified, SQLite files are generated and written to
 #'   this directory.
+#' @param remove_model_elev Set to TRUE to not include model elevation in the
+#'   sqlite output files. For multi model ensembles, members having different
+#'   model elevations from each other will make it impossible to include all
+#'   members in the same row and thus break unique constraints for the row
+#'   indexing.
 #' @param ... Arguments dependent on \code{file_format}. (More info to be
 #'   added).
-#' @param keep_model_t2m
-#' @param lapse_rate
-#' @param sqlite_template
-#' @param return_data
 #'
 #' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
@@ -88,7 +86,7 @@ read_eps_interpolate <- function(
   correct_t2m          = TRUE,
   keep_model_t2m       = FALSE,
   lapse_rate           = 0.0065,
-  vertical_coordinate  = c(NA_character_, "pressure", "model", "height"),
+  vertical_coordinate  = c("pressure", "model", "height", NA),
   clim_file            = NULL,
   clim_format          = NULL,
   interp_method        = "closest",
@@ -97,10 +95,12 @@ read_eps_interpolate <- function(
   sqlite_template      = "fctable_eps",
   sqlite_synchronous   = c("off", "normal", "full", "extra"),
   sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  remove_model_elev    = FALSE,
   return_data          = FALSE,
   ...
 ){
 
+  if (any(is.na(vertical_coordinate))) vertical_coordinate <- as.character(vertical_coordinate)
   vertical_coordinate <- match.arg(vertical_coordinate)
   sqlite_synchronous  <- match.arg(sqlite_synchronous)
   sqlite_journal_mode <- match.arg(sqlite_journal_mode)
@@ -571,9 +571,10 @@ read_eps_interpolate <- function(
         sqlite_data$data,
         sqlite_data$file_name,
         write_fctable_to_sqlite,
-        primary_key  = sqlite_primary_key,
-        synchronous  = sqlite_synchronous,
-        journal_mode = sqlite_journal_mode
+        primary_key       = sqlite_primary_key,
+        synchronous       = sqlite_synchronous,
+        journal_mode      = sqlite_journal_mode,
+        remove_model_elev = remove_model_elev
       )
 
     }

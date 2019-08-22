@@ -15,16 +15,22 @@
 write_fctable_to_sqlite <- function(
   data,
   filename,
-  tablename = "FC",
-  primary_key  = c("fcdate", "leadtime", "SID"),
-  synchronous  = "off",
-  journal_mode = "delete"
+  tablename         = "FC",
+  primary_key       = c("fcdate", "leadtime", "SID"),
+  synchronous       = "off",
+  journal_mode      = "delete",
+  remove_model_elev = FALSE
 ) {
 
   newfile <- FALSE
   if (!file.exists(filename)) {
     newfile <- TRUE
     if (!dir.exists(dirname(filename))) dir.create(dirname(filename), recursive = TRUE, mode = "0750")
+  }
+
+  if (remove_model_elev) {
+    data <- data %>%
+      dplyr::select(-.data$model_elevation)
   }
 
   data <- data %>%

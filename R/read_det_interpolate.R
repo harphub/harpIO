@@ -70,7 +70,7 @@ read_det_interpolate <- function(
   correct_t2m          = TRUE,
   keep_model_t2m       = FALSE,
   lapse_rate           = 0.0065,
-  vertical_coordinate  = c(NA_character_, "pressure", "model", "height"),
+  vertical_coordinate  = c("pressure", "model", "height", NA),
   clim_file            = NULL,
   clim_format          = NULL,
   interpolation_method = "closest",
@@ -83,6 +83,7 @@ read_det_interpolate <- function(
   ...
 ) {
 
+  if (any(is.na(vertical_coordinate))) vertical_coordinate <- as.character(vertical_coordinate)
   vertical_coordinate <- match.arg(vertical_coordinate)
   sqlite_synchronous  <- match.arg(sqlite_synchronous)
   sqlite_journal_mode <- match.arg(sqlite_journal_mode)
