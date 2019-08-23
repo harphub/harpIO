@@ -167,7 +167,7 @@ read_obstable <- function(
         dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, .data$p, !!obs_param_quo) %>%
         dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
       if (.level != -999) {
-        .obs[[list_counter]] <- dplyr::filter(.obs[[list_count]], .data[[.level_col]] == .level)
+        .obs[[list_counter]] <- dplyr::filter(.obs[[list_counter]], .data[[.level_col]] == .level)
       }
       if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
         .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
