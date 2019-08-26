@@ -50,7 +50,13 @@ read_vfile <- function(
 
   if (num_synop < 1) {
 
-    synop_data <- empty_data
+    synop_data   <- empty_data
+    params_synop <- data.frame(
+      parameter        = character(),
+      accum_hours      = integer(),
+      units            = character(),
+      stringsAsFactors = FALSE
+    )
 
   } else {
 
@@ -106,7 +112,13 @@ read_vfile <- function(
 
   if (num_temp < 1) {
 
-    temp_data <- empty_data
+    temp_data   <- empty_data
+    params_temp <- data.frame(
+      parameter        = character(),
+      accum_hours      = integer(),
+      units            = character(),
+      stringsAsFactors = FALSE
+    )
 
   } else {
 
