@@ -126,17 +126,17 @@ get_grib_param_info <- function(param) {
       level_type   <-  levtype
       level_number <-  level
     },
-    "s10m"     = {
+    "s"     = {
       short_name   <-  "ws"
       param_number <-  32
-      level_type   <-  105
-      level_number <-  10
+      level_type   <-  levtype
+      level_number <-  level
     },
-    "d10m"     = {
+    "d"     = {
       short_name   <-  "wdir"
       param_number <-  31
-      level_type   <-  105
-      level_number <-  10
+      level_type   <-  levtype
+      level_number <-  level
     },
     "u"        = {
       short_name   <-  "u"

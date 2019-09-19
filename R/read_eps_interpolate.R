@@ -345,9 +345,9 @@ read_eps_interpolate <- function(
       correct_t2m = correct_t2m,
       method      = interp_method,
       use_mask    = use_mask,
-      stations    = stations,
-      is_ensemble = TRUE
+      stations    = stations
     )
+    init$is_ensemble = TRUE
   } else {
     # just leave it uninitialised for now
     init <- list(stations = stations, is_ensemble = TRUE)

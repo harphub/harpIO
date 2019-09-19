@@ -11,9 +11,9 @@
 #' @return A list with various initialisations. It is also assigned to the global environment.
 #' @export
 
-initialise_interpolation <- function(clim_file=NULL, file_format="fa", 
+initialise_interpolation <- function(clim_file=NULL, file_format="fa",
                                      domain = NULL,
-                                     stations=NULL, 
+                                     stations=NULL,
                                      method="closest", use_mask=FALSE,
                                      correct_t2m=FALSE,
                                      drop_NA=TRUE, ...) {
@@ -23,7 +23,7 @@ initialise_interpolation <- function(clim_file=NULL, file_format="fa",
   # NO: also model_elevantion should be initialised for vfld & netcdf
   #     so all formats are equivalent...
   # Also, we don't want e.g. netcdf to do the model_elevation for every file
-  # but for now, we will leave it like this, because netcdf uses different 
+  # but for now, we will leave it like this, because netcdf uses different
   # interpolation code. TODO: !!!
   if (file_format %in% c("ncdf", "vfld")) return(list(stations=stations))
 #  message("initialising interpolation")
@@ -53,7 +53,11 @@ initialise_interpolation <- function(clim_file=NULL, file_format="fa",
   } else if (!is.null(domain)) {
 #    print(str(domain))
     message("Domain provided")
-    init$domain <- meteogrid::as.geodomain(domain)
+    if (inherits(domain, "geodomain")) {
+      init[["domain"]] <- domain
+    } else {
+      init[["domain"]] <- meteogrid::as.geodomain(domain)
+    }
   } else {
 #    if (!"domain" %in% names(init)) stop("You must provide a clim file or a domain definition.")
     # you have no domain information, so you can't initialise anything else (yet)

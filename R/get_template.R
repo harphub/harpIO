@@ -131,39 +131,39 @@ file_templates <- function() {
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "mbr{MBR3}",
-      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib"
+      "fc{YYYY}{MM}{DD}{HH}+{LDT3}grib"
     ),
 
     "harmoneps_grib_fp" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "mbr{MBR3}",
-      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_fp"
+      "fc{YYYY}{MM}{DD}{HH}+{LDT3}grib_fp"
     ),
 
     "harmoneps_grib_sfx" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
       "mbr{MBR3}",
-      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_sfx"
+      "fc{YYYY}{MM}{DD}{HH}+{LDT3}grib_sfx"
     ),
 
     "harmonie_grib" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
-      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib"
+      "fc{YYYY}{MM}{DD}{HH}+{LDT3}grib"
     ),
 
     "harmonie_grib_fp" ,file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
-      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_fp"
+      "fc{YYYY}{MM}{DD}{HH}+{LDT3}grib_fp"
     ),
 
     "harmonie_grib_sfx" , file.path(
       "{file_path}",
       "{YYYY}", "{MM}", "{DD}", "{HH}",
-      "fc{YYYY}{MM}{DD}_{HH}+{LDT3}_grib_sfx"
+      "fc{YYYY}{MM}{DD}{HH}+{LDT3}grib_sfx"
     ),
 
     "meps_cntrl_extracted" ,  file.path(

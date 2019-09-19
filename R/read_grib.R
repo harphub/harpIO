@@ -45,8 +45,25 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
     stop("Parameter \"", parameter, "\" not found in grib file.", call. = FALSE)
   }
 
+  dots <- list(...)
+  if (is.null(dots$multi)) {
+    multi <- FALSE
+  } else {
+    multi <- dots$multi
+  }
+
   # TODO: for "atmospheric" variables, read 3d data
-  Rgrib2::Gdec(filename, grib_position, get.meta = meta, ...)
+  out <- Rgrib2::Gdec(
+    filename,
+    grib_position,
+    level     = param_info$level_number,
+    levelType = param_info$level_type,
+    get.meta  = meta,
+    multi     = multi
+  )
+
+  out
+
 }
 
 #' Read a field from a grib file & interpolate
@@ -62,10 +79,10 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
 #'
 #' @return A tibble
 read_grib_interpolate <- function(file_name, parameter,
-                                  lead_time, members=NULL,
+                                  lead_time, members=NA_character_,
                                   init=list(), method="closest", use_lsm=FALSE, ...) {
 
-  stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
+  #stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
 
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
     stop(
@@ -79,16 +96,22 @@ read_grib_interpolate <- function(file_name, parameter,
     message("Reading: ", file_name)
   } else {
     warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
+    empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
     return(empty_data)
   }
 
   # TODO: grib-2 /can/ also have multiple members...
   #       multiple parameters
-  all_data <- read_grib(file_name, parameter, lead_time, ...)
+  all_data <- read_grib(file_name, parameter, ...)
 # fix the interpolation weights (they may already exist)
   if (is.null(init$weights) || attr(init$weights, "method") != method) {
-    init <- initialise_weights(model, domain=all_data, stations=init$stations,
-                             method=method, use_mask=use_lsm, drop_NA=TRUE)
+    init <- initialise_interpolation(
+      domain      = attr(all_data, "domain"),
+      stations    = init$stations,
+      method      = method,
+      use_mask    = use_lsm,
+      drop_NA     = TRUE
+    )
     ## assign init to the calling function, so it can be re-used?
     assign("init", init, env = parent.frame())
   }
@@ -98,12 +121,13 @@ read_grib_interpolate <- function(file_name, parameter,
   if (length(parameter)>1) {
     for (prm in seq_along(parameter)) result[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
   } else {
-    result[[parameter]] <- as.vector(fcpoints[,])
+    result[[parameter]] <- fcpoints
   }
+  result <- tidyr::gather(result, key = parameter, value = forecast, parameter)
   for (nn in names(init$stations)) result[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
-  if (!is.null(members)) result$members <- members
-  list(fcst_data = result,
+  if (!is.null(members)) result$member <- members
+  list(fcst_data = dplyr::select(result, -.data$elev, -.data$name),
        units = tibble::tibble(parameter = parameter,
                               units = attr(all_data, "info")$unit))
 
