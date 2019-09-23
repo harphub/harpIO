@@ -79,9 +79,14 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
 
     lag_step <- accumulation_time / lead_times_res
 
+    if (tidyr_new_interface()) {
+      .fcst <- tidyr::nest(.fcst, data = -tidyr::one_of("leadtime"))
+    } else {
     .fcst <- .fcst %>%
       dplyr::group_by(.data$leadtime) %>%
-      tidyr::nest() %>%
+      tidyr::nest()
+    }
+    .fcst <- .fcst %>%
       dplyr::mutate(
         lagged_data = dplyr::lag(.data$data, lag_step, order_by = .data$leadtime),
         type = purrr::map_lgl(.data$lagged_data, tibble::is_tibble)
@@ -95,21 +100,44 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
     .fcst    <- dplyr::filter(.fcst, .data$equal_rows)
 
     if (nrow(.fcst) > 0) {
+      if (tidyr_new_interface()) {
+        .fcst <- tidyr::unnest(
+          .fcst,
+          tidyr::one_of(c("data", "lagged_data")),
+          names_repair = ~make.names(., unique = TRUE)
+        )
+        .fcst <- dplyr::rename_at(.fcst, grep(".1$", names(.fcst)), ~gsub(".1$", "1", .))
+      } else {
+        .fcst <- tidyr::unnest(.fcst)
+      }
       .fcst <- .fcst %>%
-        tidyr::unnest() %>%
         dplyr::mutate(forecast = .data$forecast - .data$forecast1) %>%
         dplyr::select(-dplyr::ends_with("1"), -.data$type, -.data$equal_rows)
     }
 
     if (nrow(bad_data) > 0) {
       warning("Some lead times do not have equal amounts of data - doing a slower robust join.\n", immediate. = TRUE, call. = FALSE)
-      bad_data_lagged <- tidyr::unnest(bad_data, .data$lagged_data) %>%
-        dplyr::rename(forecast1 = .data$forecast)
-      bad_data <- tidyr::unnest(bad_data, .data$data) %>%
+      if (tidyr_new_interface()) {
+        bad_data_lagged <- tidyr::unnest(bad_data, tidyr::one_of("lagged_data")) %>%
+          dplyr::select(-.data[["data"]])
+        bad_data        <- tidyr::unnest(bad_data, tidyr::one_of("data")) %>%
+          dplyr::select(-.data[["lagged_data"]])
+      } else {
+        bad_data_lagged <- tidyr::unnest(bad_data, .data$lagged_data)
+        bad_data        <- tidyr::unnest(bad_data, .data$data)
+      }
+      bad_data_lagged <- dplyr::rename(bad_data_lagged, forecast1 = .data$forecast)
+
+      join_cols <- intersect(
+        c("leadtime", "SID", "fcdate", "fcst_cycle", "member", "units"),
+        names(bad_data)
+      )
+      bad_data <- bad_data %>%
         dplyr::inner_join(
           bad_data_lagged,
-          by = c("leadtime", "SID", "fcdate", "fcst_cycle", "member")
+          by = join_cols
         )
+
       bad_data <- bad_data %>%
         dplyr::mutate(forecast = .data$forecast - .data$forecast1) %>%
         dplyr::rename(validdate = .data$validdate.x) %>%

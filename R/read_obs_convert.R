@@ -89,7 +89,7 @@ read_obs_convert <- function(
         MM          = substr(.data$fcdate, 5, 6),
         DD          = substr(.data$fcdate, 7, 8),
         HH          = substr(.data$fcdate, 9, 10),
-        obs         = purrr::map(file_name, read_func, ...),
+        obs         = purrr::map(.data$file_name, read_func, ...),
         sqlite_path = ifelse(is.null(sqlite_path), NA, sqlite_path)
       ) %>%
       dplyr::mutate(
@@ -104,11 +104,18 @@ read_obs_convert <- function(
       dplyr::transmute(
         .data$file_name,
         validdate = suppressMessages(str_datetime_to_unixtime(.data$fcdate)),
-        synop     = purrr::map(obs, "synop")
-      ) %>%
-      tidyr::unnest() %>%
-      dplyr::group_by(.data$file_name) %>%
-      tidyr::nest(.key = "synop")
+        synop     = purrr::map(.data$obs, "synop")
+      )
+    if (tidyr_new_interface()) {
+      synop_data <- synop_data %>%
+        tidyr::unnest(tidyr::one_of("synop")) %>%
+        tidyr::nest(synop = -tidyr::one_of("file_name"))
+    } else {
+      synop_data <- synop_data %>%
+        tidyr::unnest() %>%
+        dplyr::group_by(.data$file_name) %>%
+        tidyr::nest(.key = "synop")
+    }
 
     synop_params <- purrr::map_df(obs_data$obs, "synop_params") %>%
       dplyr::distinct()
@@ -117,11 +124,18 @@ read_obs_convert <- function(
       dplyr::transmute(
         .data$file_name,
         validdate = suppressMessages(str_datetime_to_unixtime(.data$fcdate)),
-        temp      = purrr::map(obs, "temp")
-      ) %>%
-      tidyr::unnest() %>%
-      dplyr::group_by(.data$file_name) %>%
-      tidyr::nest(.key = "temp")
+        temp      = purrr::map(.data$obs, "temp")
+      )
+    if (tidyr_new_interface()) {
+      temp_data <- temp_data %>%
+        tidyr::unnest(tidyr::one_of("temp")) %>%
+        tidyr::nest(temp = -tidyr::one_of("file_name"))
+    } else {
+      temp_data <- temp_data %>%
+        tidyr::unnest() %>%
+        dplyr::group_by(.data$file_name) %>%
+        tidyr::nest(.key = "temp")
+    }
 
     temp_params <- purrr::map_df(obs_data$obs, "temp_params") %>%
       dplyr::distinct()

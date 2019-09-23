@@ -191,7 +191,7 @@ read_eps_interpolate <- function(
               paste0("members_out = ", eps, ": ", sub_eps, ": ", length(members_out[[eps]][[sub_eps]]), " members"),
               sep = "\n "
             ),
-          call. = FALSE
+            call. = FALSE
           )
         }
         if (lags_passed && length(lags[[eps]][[sub_eps]]) != length(members_in[[eps]][[sub_eps]])) {
@@ -202,7 +202,7 @@ read_eps_interpolate <- function(
               paste0("lags       = ", eps, ": ", sub_eps, ": ", length(lags[[eps]][[sub_eps]]), " members"),
               sep = "\n "
             ),
-          call. = FALSE
+            call. = FALSE
           )
         }
 
@@ -366,8 +366,13 @@ read_eps_interpolate <- function(
       member      = purrr::modify_depth(members_in, 2, `[`),
       members_out = purrr::modify_depth(members_out, 2, `[`),
       lag         = purrr::modify_depth(lags, 2, `[`)
-    ) %>%
-    tidyr::unnest()
+    )
+
+  if (tidyr_new_interface()) {
+    members_in <- tidyr::unnest(members_in, -tidyr::one_of("eps_model"))
+  } else {
+    members_in <- tidyr::unnest(members_in)
+  }
 
   # Loop over dates to prevent excessive data volumes in memory
 
@@ -411,9 +416,21 @@ read_eps_interpolate <- function(
             filenames_only = FALSE
           )
         )
-      ) %>%
-      tidyr::unnest() %>%
-      dplyr::left_join(tidyr::unnest(members_in), by = c("eps_model", "sub_model", "member"))
+      )
+
+    if (tidyr_new_interface()) {
+      data_files <- tidyr::unnest(data_files, tidyr::one_of("file_names"))
+      members_in <- tidyr::unnest(members_in, -tidyr::one_of("eps_model"))
+    } else {
+      data_files <- tidyr::unnest(data_files)
+      members_in <- tidyr::unnest(members_in)
+    }
+
+    data_files <- dplyr::left_join(
+      data_files,
+      members_in,
+      by = c("eps_model", "sub_model", "member")
+    )
 
     # Get the data
 
@@ -425,9 +442,15 @@ read_eps_interpolate <- function(
         fcdate = str_datetime_to_unixtime(.data$fcdate),
         member = paste0("mbr", formatC(.data$member, width = 3, flag = "0"))
       ) %>%
-      dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
-      dplyr::group_by(file_name) %>%
-      tidyr::nest(.key = "metadata")
+      dplyr::mutate(validdate = .data$fcdate + .data$lead_time * 3600)
+
+    if (tidyr_new_interface()) {
+      forecast_data <- tidyr::nest(forecast_data, metadata = -tidyr::one_of("file_name"))
+    } else {
+      forecast_data <- forecast_data %>%
+        dplyr::group_by(.data$file_name) %>%
+        tidyr::nest(.key = "metadata")
+    }
 
     forecast_data <- forecast_data %>%
       dplyr::mutate(
@@ -519,22 +542,32 @@ read_eps_interpolate <- function(
     if (!is.null(sqlite_path)) {
 
       message("Preparing data to write.")
-      sqlite_data <- forecast_data %>%
-        dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$eps_model) %>%
-        tidyr::nest() %>%
+      group_cols <- c("fcdate", "parameter", "lead_time", "eps_model")
+      if (tidyr_new_interface()) {
+        sqlite_data <- tidyr::nest(forecast_data, data = -tidyr::one_of(group_cols))
+      } else {
+        sqlite_data <- forecast_data %>%
+          dplyr::group_by(!!!rlang::syms(group_cols)) %>%
+          tidyr::nest()
+      }
+      sqlite_data <- sqlite_data %>%
         dplyr::mutate(
           file_path = sqlite_path,
-          YYYY      = unixtime_to_str_datetime(fcdate, lubridate::year),
-          MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
-          HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
+          YYYY      = unixtime_to_str_datetime(.data$fcdate, lubridate::year),
+          MM        = formatC(unixtime_to_str_datetime(.data$fcdate, lubridate::month), width = 2, flag = "0"),
+          HH        = formatC(unixtime_to_str_datetime(.data$fcdate, lubridate::hour), width = 2, flag = "0"),
           LDT3      = formatC(lead_time, width = 3, flag = "0")
         )
 
       sqlite_data <- sqlite_data %>%
         dplyr::mutate(
           file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
-        ) %>%
-        tidyr::unnest()
+        )
+      if (tidyr_new_interface()) {
+        sqlite_data <- tidyr::unnest(sqlite_data, tidyr::one_of("data"))
+      } else {
+        sqlite_data <- tidyr::unnest(sqlite_data)
+      }
 
       sqlite_primary_key <- c("fcdate", "leadtime", "SID")
 
@@ -564,8 +597,12 @@ read_eps_interpolate <- function(
           .data$units,
           .data$file_name
         ) %>%
-        dplyr::group_by(.data$file_name) %>%
-        tidyr::nest()
+        dplyr::group_by(.data$file_name)
+      if (tidyr_new_interface()) {
+        sqlite_data <- tidyr::nest(sqlite_data, data = -tidyr::one_of("file_name"))
+      } else {
+        sqlite_data <- tidyr::nest(sqlite_data)
+      }
 
       purrr::walk2(
         sqlite_data$data,

@@ -171,8 +171,14 @@ get_filenames <- function(
     dplyr::mutate(
       lag    = readr::parse_number(.data$lag),
       fcdate = list(file_dates)
-    ) %>%
-    tidyr::unnest()
+    )
+
+  if (tidyr_new_interface()) {
+    file_dates <- tidyr::unnest(file_dates, tidyr::one_of("fcdate"))
+  } else {
+    file_dates <- tidyr::unnest(file_dates)
+  }
+
   file_dates <- file_dates %>%
     dplyr::mutate(
       fcdate = .data$fcdate - .data$lag_seconds,
@@ -211,7 +217,7 @@ get_filenames <- function(
   }
 
   if (stringr::str_detect(template, "\\{eps_model\\}")) {
-    if (is.null(eps_model)) stop (paste0("eps_model is in template, but not passed to the function\n", template))
+    if (is.null(eps_model)) stop(paste0("eps_model is in template, but not passed to the function\n", template))
     files <- eps_model %>%
       purrr::map( ~ cbind(files, eps_model = .x, stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows() %>%
@@ -222,7 +228,7 @@ get_filenames <- function(
   }
 
   if (stringr::str_detect(template, "\\{sub_model\\}")) {
-    if (is.null(sub_model)) stop (paste0("sub_model is in template, but not passed to the function\n", template))
+    if (is.null(sub_model)) stop(paste0("sub_model is in template, but not passed to the function\n", template))
     files <- sub_model %>%
       purrr::map( ~ cbind(files, sub_model = .x, stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows() %>%
@@ -234,14 +240,21 @@ get_filenames <- function(
 
   if (stringr::str_detect(template, "\\{LDT")) {
     files <- files %>%
-      dplyr::mutate(LDT = list(lead_time)) %>%
-      tidyr::unnest() %>%
+      dplyr::mutate(LDT = list(lead_time))
+
+    if (tidyr_new_interface()) {
+      files <- tidyr::unnest(files, tidyr::one_of("LDT"))
+    } else {
+      files <- tidyr::unnest(files)
+    }
+
+    files <- files %>%
       dplyr::mutate(
         LDT = .data$LDT + .data$lag,
         LDT2 = formatC(as.numeric(.data$LDT), width = 2, flag = "0"),
         LDT3 = formatC(as.numeric(.data$LDT), width = 3, flag = "0"),
         LDT4 = formatC(as.numeric(.data$LDT), width = 4, flag = "0"),
-        LDT  = as.character(LDT)
+        LDT  = as.character(.data$LDT)
       ) %>%
       dplyr::filter(as.numeric(.data$LDT) >= 0)
   } else {
@@ -258,8 +271,15 @@ get_filenames <- function(
           .data$lag,
           ~ members[readr::parse_number(lags) == .x]
         )
-      ) %>%
-      tidyr::unnest() %>%
+      )
+
+    if (tidyr_new_interface()) {
+      files <- tidyr::unnest(files, tidyr::one_of("MBR"))
+    } else {
+      files <- tidyr::unnest(files)
+    }
+
+    files <- files %>%
       dplyr::mutate(
         MBR2 = formatC(as.numeric(.data$MBR), width = 2, flag = "0"),
         MBR3 = formatC(as.numeric(.data$MBR), width = 3, flag = "0"),
@@ -273,7 +293,7 @@ get_filenames <- function(
   }
 
   if (stringr::str_detect(template, "\\{parameter\\}")) {
-    if (is.null(parameter)) stop (paste0("parameter is in template, but not passed to the function\n", template))
+    if (is.null(parameter)) stop(paste0("parameter is in template, but not passed to the function\n", template))
     files <- files %>%
       dplyr::mutate(parameter = parameter)
   }
@@ -284,26 +304,40 @@ get_filenames <- function(
     )
 
   if (is.na(eps_model)) {
-    model_cols <- rlang::quos(det_model, fcdate)
+    if (is.na(sub_model)) {
+      model_cols <- rlang::syms(c("det_model", "fcdate"))
+    } else {
+      files <- dplyr::mutate(files, eps_model = .data$sub_model)
+      model_cols <- rlang::syms(c("eps_model", "sub_model", "fcdate", "MBR"))
+    }
   } else {
-    model_cols <- rlang::quos(eps_model, sub_model, fcdate, MBR)
+    model_cols <- rlang::syms(c("eps_model", "sub_model", "fcdate", "MBR"))
   }
   files <- files %>% dplyr::transmute(
     !!! model_cols,
     lead_time = .data$LDT,
-    file_name
+    .data$file_name
   )
 
   if (is.na(eps_model)) {
-    files <- files %>%
-      tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
-      dplyr::mutate_at(dplyr::vars(.data$lead_time), as.numeric)
+    if (tidyr_new_interface()) {
+      files <- tidyr::unnest(files, tidyr::one_of("lead_time"))
+    } else {
+      files <- tidyr::unnest(files, .data$lead_time, .drop = FALSE)
+    }
+    files <- dplyr::mutate_at(files, dplyr::vars(.data$lead_time), as.numeric)
   } else {
-    files <- files %>%
-      dplyr::rename(member = .data$MBR) %>%
-      tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
-      tidyr::unnest(.data$member, .drop = FALSE) %>%
-      dplyr::mutate_at(dplyr::vars(.data$lead_time,.data$member), as.numeric)
+    files <- dplyr::rename(files, member = .data$MBR)
+    if (tidyr_new_interface()) {
+      files <- files %>%
+        tidyr::unnest(tidyr::one_of("lead_time")) %>%
+        tidyr::unnest(tidyr::one_of("member"))
+    } else {
+      files <- files %>%
+        tidyr::unnest(.data$lead_time, .drop = FALSE) %>%
+        tidyr::unnest(.data$member, .drop = FALSE)
+    }
+    files <- dplyr::mutate_at(files, dplyr::vars(.data$lead_time,.data$member), as.numeric)
   }
 
   if (filenames_only) {

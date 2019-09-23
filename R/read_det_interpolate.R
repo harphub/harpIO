@@ -163,9 +163,14 @@ read_det_interpolate <- function(
       dplyr::mutate(
         fcdate = str_datetime_to_unixtime(.data$fcdate)
       ) %>%
-      dplyr::mutate(validdate = fcdate + lead_time * 3600) %>%
-      dplyr::group_by(file_name) %>%
-      tidyr::nest(.key = "metadata") %>%
+      dplyr::mutate(validdate = .data$fcdate + .data$lead_time * 3600) %>%
+      dplyr::group_by(.data$file_name)
+    if (tidyr_new_interface()) {
+      forecast_data <- tidyr::nest(forecast_data, metadata = -tidyr::one_of("file_name"))
+    } else {
+      forecast_data <- tidyr::nest(forecast_data, .key = "metadata")
+    }
+    forecast_data <- forecast_data %>%
       dplyr::mutate(
         forecast = purrr::map2(
           .data$file_name,
@@ -249,22 +254,32 @@ read_det_interpolate <- function(
     if (!is.null(sqlite_path)) {
 
       message("Preparing data to write.")
-      sqlite_data <- forecast_data %>%
-        dplyr::group_by(.data$fcdate, .data$parameter, .data$lead_time, .data$det_model) %>%
-        tidyr::nest() %>%
+      group_cols <- c("fcdate", "parameter", "lead_time", "det_model")
+      if (tidyr_new_interface()) {
+        sqlite_data <- tidyr::nest(forecast_data, data = -tidyr::one_of(group_cols))
+      } else {
+        sqlite_data <- forecast_data %>%
+          dplyr::group_by(!!!rlang::syms(group_cols)) %>%
+          tidyr::nest()
+      }
+      sqlite_data <- sqlite_data %>%
         dplyr::mutate(
           file_path = sqlite_path,
-          YYYY      = unixtime_to_str_datetime(fcdate, lubridate::year),
-          MM        = formatC(unixtime_to_str_datetime(fcdate, lubridate::month), width = 2, flag = "0"),
-          HH        = formatC(unixtime_to_str_datetime(fcdate, lubridate::hour), width = 2, flag = "0"),
+          YYYY      = unixtime_to_str_datetime(.data$fcdate, lubridate::year),
+          MM        = formatC(unixtime_to_str_datetime(.data$fcdate, lubridate::month), width = 2, flag = "0"),
+          HH        = formatC(unixtime_to_str_datetime(.data$fcdate, lubridate::hour), width = 2, flag = "0"),
           LDT3      = formatC(lead_time, width = 3, flag = "0")
         )
 
       sqlite_data <- sqlite_data %>%
         dplyr::mutate(
           file_name = as.vector(glue::glue_data(sqlite_data, get_template(sqlite_template)))
-        ) %>%
-        tidyr::unnest()
+        )
+      if (tidyr_new_interface()) {
+        sqlite_data <- tidyr::unnest(sqlite_data, tidyr::one_of("data"))
+      } else {
+        sqlite_data <- tidyr::unnest(sqlite_data)
+      }
 
       sqlite_primary_key <- c("fcdate", "leadtime", "SID")
 
@@ -294,8 +309,12 @@ read_det_interpolate <- function(
           .data$units,
           .data$file_name
         ) %>%
-        dplyr::group_by(.data$file_name) %>%
-        tidyr::nest()
+        dplyr::group_by(.data$file_name)
+      if (tidyr_new_interface()) {
+        sqlite_data <- tidyr::nest(sqlite_data, data = -tidyr::one_of("file_name"))
+      } else {
+        sqlite_data <- tidyr::nest(sqlite_data)
+      }
 
       purrr::walk2(
         sqlite_data$data,
