@@ -91,6 +91,7 @@ read_fctable <- function(
 
       col_names <- rlang::syms(c(meta_cols, col_members))
       fcst      <- dplyr::select(fcst, !!! col_names)
+      data_cols <- col_members
 
     }
 
