@@ -490,14 +490,13 @@ read_eps_interpolate <- function(
     ) %>%
       dplyr::mutate(
         members_out = paste0("mbr", formatC(.data$members_out, width = 3, flag = "0"))
-      ) %>%
-      tidyr::drop_na(.data$forecast)
+      )
 
-    sqlite_params <- unique(forecast_data$parameter)
+    sqlite_params <- unique(forecast_data$parameter) %>% .[!is.na(.)]
 
     # Height correction for 2m temperature
 
-    if (any(tolower(sqlite_params) == "t2m") && correct_t2m) {
+    if (any(tolower(stats::na.omit(sqlite_params)) == "t2m") && correct_t2m) {
 
       t2m_df <- forecast_data %>%
         dplyr::filter(tolower(.data$parameter) == "t2m") %>%
@@ -524,16 +523,28 @@ read_eps_interpolate <- function(
         param_units <- rbind(param_units, c(t2m_param, t2m_units))
       } else {
         forecast_data <- forecast_data %>%
-          dplyr::filter(tolower(.data$parameter) != "t2m")
+          dplyr::filter(tolower(.data$parameter) != "t2m" | is.na(.data$parameter))
       }
 
       forecast_data <- dplyr::bind_rows(forecast_data, t2m_df)
+      rm(t2m_df)
 
     }
 
     forecast_data <- forecast_data %>%
-      tidyr::drop_na(.data$forecast) %>%
-      dplyr::left_join(param_units, by = "parameter")
+      #tidyr::drop_na(.data$forecast) %>%
+      dplyr::mutate(
+        parameter = dplyr::case_when(
+          is.na(.data$parameter) ~ list(sqlite_params),
+          TRUE                   ~ as.list(.data$parameter)
+        )
+      )
+    if (tidyr_new_interface()) {
+      forecast_data <- tidyr::unnest(forecast_data, tidyr::one_of("parameter"))
+    } else {
+      forecast_data <- tidyr::unnest(forecast_data)
+    }
+    forecast_data <- dplyr::left_join(forecast_data, param_units, by = "parameter")
 
     # If sqlite_path is passed write data to sqlite files
 

@@ -54,7 +54,7 @@ read_vfld_interpolate <- function(
     message("Reading: ", file_name)
   } else {
     warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
-    return(empty_data)
+    return(list(fcst_data = empty_data, units = tibble::tibble(parameter = NA_character_, units = NA_character_)))
   }
 
   if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))

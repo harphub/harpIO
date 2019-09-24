@@ -28,14 +28,13 @@ write_fctable_to_sqlite <- function(
     if (!dir.exists(dirname(filename))) dir.create(dirname(filename), recursive = TRUE, mode = "0750")
   }
 
-  if (remove_model_elev) {
+  if (remove_model_elev && is.element("model_elevation", colnames(data))) {
     data <- data %>%
       dplyr::select(-.data$model_elevation)
   }
 
   data <- data %>%
-    tidyr::spread(.data$member, .data$forecast) %>%
-    dplyr::select_if(~ !all(is.na(.)))
+    tidyr::spread(.data$member, .data$forecast)
 
   column_names  <- colnames(data)
 
@@ -62,6 +61,8 @@ write_fctable_to_sqlite <- function(
     )
   }
 
+  data <- dplyr::select_if(data, ~ !all(is.na(.))) %>%
+    dplyr::filter(SID != -999, lat != -999, lon != -999)
   db_clean_and_write(sqlite_db, tablename, data, primary_key, index_constraint = "unique")
   dbclose(sqlite_db)
 
