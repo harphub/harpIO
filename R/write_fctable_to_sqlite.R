@@ -63,6 +63,7 @@ write_fctable_to_sqlite <- function(
 
   data <- dplyr::select_if(data, ~ !all(is.na(.))) %>%
     dplyr::filter(SID != -999, lat != -999, lon != -999)
+  primary_key <- intersect(primary_key, colnames(data))
   db_clean_and_write(sqlite_db, tablename, data, primary_key, index_constraint = "unique")
   dbclose(sqlite_db)
 
