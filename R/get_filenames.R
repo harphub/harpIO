@@ -144,7 +144,7 @@ get_filenames <- function(
     } else if (lubridate::is.POSIXct(file_date)) {
       file_dates <- as.numeric(file_date)
     } else {
-      file_dates <- str_datetime_to_unixtime(file_date)
+      file_dates <- suppressMessages(str_datetime_to_unixtime(file_date))
     }
 
   } else {
@@ -152,8 +152,8 @@ get_filenames <- function(
     if (is.null(end_date)) {
       stop ("end_date must be passed as well as start_date", call. = FALSE)
     }
-    file_dates <- seq_dates(start_date, end_date, by = by) %>%
-      str_datetime_to_unixtime()
+    file_dates <- seq_dates(start_date, end_date, by = by)
+    file_dates <- suppressMessages(str_datetime_to_unixtime(file_dates))
   }
 
   if (!lags_passed) {

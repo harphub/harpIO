@@ -4,8 +4,9 @@
 \alias{read_grib_interpolate}
 \title{Read a field from a grib file & interpolate}
 \usage{
-read_grib_interpolate(file_name, parameter, lead_time, members = NULL,
-  init = list(), method = "closest", use_lsm = FALSE, ...)
+read_grib_interpolate(file_name, parameter, lead_time,
+  members = NA_character_, init = list(), method = "closest",
+  use_lsm = FALSE, ...)
 }
 \arguments{
 \item{parameter}{The parameter to read. Standard HARP names are used.}

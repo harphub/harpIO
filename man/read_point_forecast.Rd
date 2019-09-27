@@ -51,10 +51,15 @@ FALSE.}
 \item{stations}{The stations to retrieve forecasts for. This should be a
 vector of station ID numbers. Set to NULL to retrieve all stations.}
 
-\item{members}{The members to retrieve if reading an EPS forecast. Normally a
-vector of a member numbers. For multi model ensembles this can be a named
-list with sub model name followed by the desired members, e.g. \cr
-\code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}}
+\item{members}{The members to retrieve if reading an EPS forecast. To select
+the same members for all forecast models, this should be a numeric vector.
+For specific members from specific models a named list with each element
+having the name of the forecast model and containing a a numeric vector.
+e.g. \cr \code{members = list(eps_model1 = seq(0, 3), eps_model2 = c(2,
+3))}. \cr For multi model ensembles, each element of this named list should
+contain another named list with sub model name followed by the desired
+members, e.g. \cr \code{members = list(eps_model1 = list(sub_model1 =
+seq(0, 3), sub_model2 = c(2, 3)))}}
 
 \item{accumulate}{TRUE or FALSE. Whether to automatically accumulate
 parameters based on the accumulation time. Set to FALSE if the data to be

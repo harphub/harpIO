@@ -35,10 +35,15 @@
 #'   FALSE.
 #' @param stations The stations to retrieve forecasts for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
-#' @param members The members to retrieve if reading an EPS forecast. Normally a
-#'   vector of a member numbers. For multi model ensembles this can be a named
-#'   list with sub model name followed by the desired members, e.g. \cr
-#'   \code{members = list(sub_model1 = seq(0, 3), sub_model2 = c(2, 3))}
+#' @param members The members to retrieve if reading an EPS forecast. To select
+#'   the same members for all forecast models, this should be a numeric vector.
+#'   For specific members from specific models a named list with each element
+#'   having the name of the forecast model and containing a a numeric vector.
+#'   e.g. \cr \code{members = list(eps_model1 = seq(0, 3), eps_model2 = c(2,
+#'   3))}. \cr For multi model ensembles, each element of this named list should
+#'   contain another named list with sub model name followed by the desired
+#'   members, e.g. \cr \code{members = list(eps_model1 = list(sub_model1 =
+#'   seq(0, 3), sub_model2 = c(2, 3)))}
 #' @param accumulate TRUE or FALSE. Whether to automatically accumulate
 #'   parameters based on the accumulation time. Set to FALSE if the data to be
 #'   read in have already been accumulated.
@@ -194,20 +199,76 @@ read_point_forecast <- function(
     stop("No forecast files found for: \n", paste(model_with_no_files, collapse = "\n"), call. = FALSE)
   }
 
-  fcst <- purrr::map2(
-    available_files,
-    lag_table$lag,
+  if (!is.null(members)) {
+    if (!is.list(members)) {
+      if (length(fcst_model) > 1) {
+        warning("Only one set of members specified. Using same set for all forecast models.", immediate. = TRUE, call. = FALSE)
+      }
+      members <- rep(list(members), length(fcst_model))
+      names(members) <- fcst_model
+    } else {
+      if (is.null(names(members))) {
+        if (length(members) == 1) {
+          if (length(fcst_model) > 1) {
+            warning("Only one set of members specified. Using same set for all forecast models.", immediate. = TRUE, call. = FALSE)
+          }
+          members <- rep(members, length(fcst_model))
+          names(members) <- fcst_model
+        } else {
+          stop("'members' must either be a named list or a single numeric vector.", call. = FALSE)
+        }
+      } else {
+        all_members <- setdiff(fcst_model, names(members))
+        if (length(all_members) > 0) {
+          members[all_members] <- NULL
+        }
+        bad_members <- setdiff(names(members), fcst_model)
+        if (length(bad_members) > 0) {
+          stop(paste(bad_members, collapse = ", "), " specified in 'members' but not in 'fcst_model'", call. = FALSE)
+        }
+      }
+    }
+    members <- tibble::tibble(fcst_model = names(members)) %>% dplyr::mutate(members = members)
+  } else {
+    members <- tibble::tibble(fcst_model = fcst_model, members = list(NULL))
+  }
+
+  lag_table <- dplyr::left_join(lag_table, members)
+
+  fcst <- purrr::pmap(
+    list(
+      available_files,
+      lag_table$lag,
+      lag_table$members
+    ),
     ~ read_fctable(
       .x,
       suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
       suppressMessages(str_datetime_to_unixtime(end_date)),
       lead_time  = lead_time + readr::parse_number(.y),
       stations   = stations,
-      members    = members,
+      members    = ..3,
       param      = parameter,
       get_latlon = get_lat_and_lon
     )
   )
+
+
+  no_members <- sapply(fcst, function(x) !any(grepl(fcst_suffix, names(x))))
+  no_members_warning <- function(mname, lag_time, mbr, no_mbrs) {
+    if(no_mbrs) {
+      warning("Members ", paste(mbr, collapse = ","), " not found for ", mname, ", lag: ", lag_time, immediate. = TRUE, call. = FALSE)
+    }
+  }
+  if (any(no_members)) {
+    purrr::pwalk(
+      list(lag_table$fcst_model, lag_table$lag, lag_table$members, no_members),
+      no_members_warning
+    )
+    message("Dropping entries with no members")
+    lag_table <- lag_table[which(!no_members),]
+    fcst      <- fcst[which(!no_members)]
+  }
 
   fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 
@@ -255,7 +316,8 @@ read_point_forecast <- function(
         list(
           purrr::map(file_names, ~ .x[file.exists(.x)]),
           lag_table$lag[unread_leads],
-          lead_time_accum[unread_leads]
+          lead_time_accum[unread_leads],
+          lag_table$members[unread_leads]
         ),
         ~ read_fctable(
           .x,
@@ -263,7 +325,7 @@ read_point_forecast <- function(
           suppressMessages(str_datetime_to_unixtime(end_date)),
           lead_time  = ..3,
           stations   = stations,
-          members    = members,
+          members    = ..4,
           param      = parameter,
           get_latlon = get_lat_and_lon
         )
