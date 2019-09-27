@@ -153,7 +153,7 @@ read_point_forecast <- function(
       by            = by,
       lags          = .y,
       parameter     = param_name,
-      eps_model     = .x,
+      eps_model     = gsub("_unshifted", "", .x),
       lead_time     = lead_time,
       file_template = file_template
     )
