@@ -121,14 +121,16 @@ read_fctable <- function(
 
   # Make the forecast data the last columns
   fcst_cols <- union(
-    grep("[[:graph:]]+_mbr[[:digit:]]+$", colnames(fcst_out)),
-    grep("[[:graph:]]+_det$", colnames(fcst_out))
+    grep("[[:graph:]]+_mbr[[:digit:]]+$", colnames(fcst_out), value = TRUE),
+    grep("[[:graph:]]+_det$", colnames(fcst_out), value = TRUE)
   )
-  other_cols <- intersect(
-    grep("[[:graph:]]+_mbr[[:digit:]]+$", colnames(fcst_out), invert = TRUE),
-    grep("[[:graph:]]+_det$", colnames(fcst_out), invert = TRUE)
+  other_cols <- sort(
+    intersect(
+      grep("[[:graph:]]+_mbr[[:digit:]]+$", colnames(fcst_out), invert = TRUE, value = TRUE),
+      grep("[[:graph:]]+_det$", colnames(fcst_out), invert = TRUE, value = TRUE)
+    )
   )
 
-  fcst_out[, c(other_cols, fcst_cols)]
+  fcst_out[c(other_cols, fcst_cols)]
 
 }
