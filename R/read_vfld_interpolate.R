@@ -1,38 +1,38 @@
-#' Read data from a vfld file
-#'
-#' \code{read_vfld_interpolate} returns the content of a named vfld file as a
-#' data frame. Although the data in vfld files are already interpolated to
-#' points, the function is called \code{read_vfld_interpolate} for consistency
-#' with other harpIO functions that interpolate to points from gridded fields.
-#'
-#' @param file_name Name of the vfld file
-#' @param parameter If a parameter is named only this parameter will be
-#'   extracted, otherwise all parameters from the vfld will be returned.
-#' @param lead_time Value to fill the lead_time column with in the output
-#'   tibble.
-#' @param members Value to fill the member column with in the output tibble.
-#' @param init All initialisation data. For vfld, a list containing only a
-#'        data frame of stations to filter to. Must contain a column
-#'        named SID. Currently not used.
-#' @param ... Absorb arguments for other read_*_interpolate functions.
-#'
-#' @return A data frame with columns SID, lat, lon, model_elevation, and a
-#'   column for each parameter.
-#' @export
-#'
-#' @examples
-#' my_dir <- "/lustre/storeB/users/andrewts/HarpResults/vfld"
-#' vfld_file <- get_filenames(
-#'   my_dir,
-#'   start_date = 2017052600,
-#'   end_date = 2017052600,
-#'   eps_model = "MEPS_summer2017_sfcPertRef",
-#'   sub_model = "MEPS_summer2017_sfcPertRef",
-#'   lead_time = 20,
-#'   member = 0,
-#'   file_template = "vfld")$file_name
-#' vfld_data <- read_vfld_interpolate(vfld_file)
-#'
+# Read data from a vfld file
+#
+# \code{read_vfld_interpolate} returns the content of a named vfld file as a
+# data frame. Although the data in vfld files are already interpolated to
+# points, the function is called \code{read_vfld_interpolate} for consistency
+# with other harpIO functions that interpolate to points from gridded fields.
+#
+# @param file_name Name of the vfld file
+# @param parameter If a parameter is named only this parameter will be
+#   extracted, otherwise all parameters from the vfld will be returned.
+# @param lead_time Value to fill the lead_time column with in the output
+#   tibble.
+# @param members Value to fill the member column with in the output tibble.
+# @param init All initialisation data. For vfld, a list containing only a
+#        data frame of stations to filter to. Must contain a column
+#        named SID. Currently not used.
+# @param ... Absorb arguments for other read_*_interpolate functions.
+#
+# @return A data frame with columns SID, lat, lon, model_elevation, and a
+#   column for each parameter.
+# NOT exported - used internally.
+#
+# @examples
+# my_dir <- "/lustre/storeB/users/andrewts/HarpResults/vfld"
+# vfld_file <- get_filenames(
+#   my_dir,
+#   start_date = 2017052600,
+#   end_date = 2017052600,
+#   eps_model = "MEPS_summer2017_sfcPertRef",
+#   sub_model = "MEPS_summer2017_sfcPertRef",
+#   lead_time = 20,
+#   member = 0,
+#   file_template = "vfld")$file_name
+# vfld_data <- read_vfld_interpolate(vfld_file)
+#
 
 ### EXAMPLES NEED UPDATING!!!!
 

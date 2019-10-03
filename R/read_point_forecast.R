@@ -7,9 +7,14 @@
 #' forecast dates and lead times to be retrieved from the files can also be
 #' passed as arguments.
 #'
-#' @param start_date Start date to read from. Should be numeric or character.
-#'   YYYYMMDD(HH)(mm)
-#' @param end_date End date to read to. Should be numeric or character.
+#' In the case of lagged forecasts, no lagged members are created at this stage,
+#' but the \code{lags} argument is used to ensure that all of the necessary data
+#' for creating lagged members are read in.
+#'
+#' @param start_date Date of the first forecast to be read in. Should be in
+#'   YYYYMMDDhh format. Can be numeric or charcter.
+#' @param end_date Date of the last forecast to be read in. Should be in
+#'   YYYYMMDDhh format. Can be numeric or charcter.
 #' @param fcst_model The forecast model to read - this is typically used to
 #'   construct the file name. Can be a character vector of model names.
 #' @param fcst_type The type of forecast to read. Set to "det" for deterministic
@@ -18,21 +23,25 @@
 #'   construct the filename, and in accumumlating precipitation.
 #' @param lead_time The lead times to be retrieved. Can be used to construct the
 #'   file names and to set which lead times are retrieved.
-#' @param lags The lags that are used when the forecast is run. If, for example,
-#'   the FCTABLE files are constructed from lagged model runs the lags must be
-#'   given here to ensure that the correct file names are generated. If,
+#' @param lags The lags that were used when the forecast was run. If, for
+#'   example, the FCTABLE files are constructed from lagged model runs the lags
+#'   must be given here to ensure that the correct file names are generated. If,
 #'   however, you simply want to add lagged members to a forecast, you should do
 #'   that using \link[harpPoint]{lag_members}.
 #' @param by Used in constructing the file names. A string of a number followed
-#'   by a letter, where the letter can be "d" for days, "h" for hours, "m" for
-#'   minutes and "s" for seconds. Should be set to the fastest varying time
-#'   dimension in the desired file names.
+#'   by a letter (the default is "6h"), where the letter can be "d" for days,
+#'   "h" for hours, "m" for minutes and "s" for seconds. Should be set to the
+#'   fastest varying time dimension in the desired file names.
 #' @param file_path The path to the data.
+#' @param file_template The template for the file names of the files to be read
+#'   from. This would normally be one of the "fctable_*" templates that can be
+#'   seen in \code\link{show_file_templates}.
 #' @param drop_any_na Set to TRUE (the default) to remove all cases where there
 #'   is at least one missing value. This ensures that when you come to analyse a
 #'   forecast, only those forecasts with a full set of ensmeble members / data
 #'   are read in. For reading lagged ensembles, this is automatically set to
-#'   FALSE.
+#'   FALSE. The cases with at least one missing member are then dropped when the
+#'   lagged members are created using \code{\link[harpPoint]{lag_forecast}}.
 #' @param stations The stations to retrieve forecasts for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #' @param members The members to retrieve if reading an EPS forecast. To select
@@ -47,6 +56,12 @@
 #' @param accumulate TRUE or FALSE. Whether to automatically accumulate
 #'   parameters based on the accumulation time. Set to FALSE if the data to be
 #'   read in have already been accumulated.
+#' @param vertical_coordinate If upper air for multiple levels are to be read,
+#'   the vertical coordinate of the data is given here. The default is
+#'   "pressure", but can also be "model" for model levels, or "height" for
+#'   height above ground /sea level.
+#' @param get_lat_and_lon Logical indicating whether to also extract the
+#'   latitude and longitude of the point forecasts from the sqlite files.
 #' @return A list with an element for each forecast model, or in the case of a
 #'   multi model ensemble, another list with an element for each sub model. The
 #'   list elements each contain a data frame with columns for station ID (SID),
@@ -67,7 +82,7 @@ read_point_forecast <- function(
   parameter,
   lead_time           = seq(0, 48, 3),
   lags                = "0s",
-  by                  = "1d",
+  by                  = "6h",
   file_path           = ".",
   file_template       = NULL,
   drop_any_na         = TRUE,

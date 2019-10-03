@@ -1,4 +1,4 @@
-#' Read/decode hdf5 files, mainly ODIM style
+# Read/decode hdf5 files, mainly ODIM style
 ### assume the ODIM (Opera Data Information Model) data format
 ### ref: D. B. Michelson et al.
 ###        'EUMETNET OPERA weather radar information model
@@ -11,12 +11,12 @@
 ### ODIM data also might be in .../quality1/data, but for now we don't consider that.
 
 ### TO DO: optional: return more meta data like product type etc. ?
-#' @param filename The hdf5 file name.
-#' @param data The location of the data
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param ... Ignored
-#' @return A geofield object (if meta is TRUE) or a plain matrix.
-#' @export
+# @param filename The hdf5 file name.
+# @param data The location of the data
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param ... Ignored
+# @return A geofield object (if meta is TRUE) or a plain matrix.
+# NOT exported. Used internally.
 read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE, ...) {
   if (!requireNamespace("h5", quietly=TRUE)) {
     stop("The h5 package is not installed!", "Please install from CRAN.")

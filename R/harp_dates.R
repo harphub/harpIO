@@ -50,90 +50,90 @@ YMDhm <- function(x) {
   )
 }
 
-#' Convert YYYYMMDD string to unix time
-#'
-#' @param x A YYYYMMDD string
-#'
-#' @return unix time in seconds since 01/01/1970 00:00:00
-#' @export
-#'
-#' @examples
-#' YMD2unix(20170101)
+# Convert YYYYMMDD string to unix time
+#
+# @param x A YYYYMMDD string
+#
+# @return unix time in seconds since 01/01/1970 00:00:00
+# Not exported - use str_datetime_to_unixtime instead
+#
+# @examples
+# YMD2unix(20170101)
 YMD2unix <- function(x) {
   lubridate::ymd(x) %>%
     lubridate::as_datetime() %>%
     as.numeric()
 }
 
-#' Convert YYYYMMDDHH string to unix time
-#'
-#' @param x A YYYYMMDDHH string
-#'
-#' @return unix time in seconds since 01/01/1970 00:00:00
-#' @export
-#'
-#' @examples
-#' YMDh2unix(2017010112)
+# Convert YYYYMMDDHH string to unix time
+#
+# @param x A YYYYMMDDHH string
+#
+# @return unix time in seconds since 01/01/1970 00:00:00
+# Not exported - use str_datetime_to_unixtime instead
+#
+# @examples
+# YMDh2unix(2017010112)
 YMDh2unix <- function(x) {
   lubridate::ymd_h(x) %>%
     lubridate::as_datetime() %>%
     as.numeric()
 }
 
-#' Convert YYYYMMDDHHmm string to unix time
-#'
-#' @param x A YYYYMMDDHHmm string
-#'
-#' @return unix time in seconds since 01/01/1970 00:00:00
-#' @export
-#'
-#' @examples
-#' YMDhm2unix(201701011230)
+# Convert YYYYMMDDHHmm string to unix time
+#
+# @param x A YYYYMMDDHHmm string
+#
+# @return unix time in seconds since 01/01/1970 00:00:00
+# Not exported - use str_datetime_to_unixtime instead
+#
+# @examples
+# YMDhm2unix(201701011230)
 YMDhm2unix <- function(x) {
   lubridate::ymd_hm(x) %>%
     lubridate::as_datetime() %>%
     as.numeric()
 }
 
-#' Convert unix time to YYYYMMDD string
-#'
-#' @param x unix time in seconds since 01/01/1970 00:00:00
-#'
-#' @return A YYYYMMDD string
-#' @export
-#'
-#' @examples
-#' unix2YMD(as.numeric(Sys.time()))
+# Convert unix time to YYYYMMDD string
+#
+# @param x unix time in seconds since 01/01/1970 00:00:00
+#
+# @return A YYYYMMDD string
+# Not exported - use unixtime_to_str_datetime instead
+#
+# @examples
+# unix2YMD(as.numeric(Sys.time()))
 unix2YMD <- function(x) {
   lubridate::seconds(x) %>%
     lubridate::as_datetime() %>%
     YMD()
 }
 
-#' Convert unix time to YYYYMMDDHH string
-#'
-#' @param x unix time in seconds since 01/01/1970 00:00:00
-#'
-#' @return A YYYYMMDDHH string
-#' @export
-#'
-#' @examples
-#' unix2YMDh(as.numeric(Sys.time()))
+# Convert unix time to YYYYMMDDHH string
+#
+# @param x unix time in seconds since 01/01/1970 00:00:00
+#
+# @return A YYYYMMDDHH string
+# Not exported - use unixtime_to_str_datetime instead
+#
+# @examples
+# unix2YMDh(as.numeric(Sys.time()))
 unix2YMDh <- function(x) {
   lubridate::seconds(x) %>%
     lubridate::as_datetime() %>%
     YMDh()
 }
 
-#' Convert unix time to YYYYMMDDHHmm string
-#'
-#' @param x unix time in seconds since 01/01/1970 00:00:00
-#'
-#' @return A YYYYMMDDHHmm string
-#' @export
-#'
-#' @examples
-#' unix2YMDhm(as.numeric(Sys.time()))
+# Convert unix time to YYYYMMDDHHmm string
+#
+# @param x unix time in seconds since 01/01/1970 00:00:00
+#
+# @return A YYYYMMDDHHmm string
+# Not exported - use unixtime_to_str_datetime instead
+#
+# @examples
+# unix2YMDhm(as.numeric(Sys.time()))
 unix2YMDhm <- function(x) {
   lubridate::seconds(x) %>%
     lubridate::as_datetime() %>%

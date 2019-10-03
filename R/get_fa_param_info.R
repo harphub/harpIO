@@ -4,12 +4,13 @@
 #' ALARO/AROME/HARMONIE model output in FA format
 #'
 #' @param param Parameter name
-#' @param fa_type could be 'alaro' or 'arome'. These models store e.g. precipitation under a
-#'        different name.
-#' @param fa_vector A logical value. TRUE means that e.g. wind speed will be calculated from wind vector
-#'         components, not searched as a separate field.
-#' @return A 16 character string, or in rare cases a vector of several strings denoting the
-#'   components (e.g. total precipitation may be the sum of up to 4 fields).
+#' @param fa_type could be 'alaro' or 'arome'. These models store e.g.
+#'   precipitation under a different name.
+#' @param fa_vector A logical value. TRUE means that e.g. wind speed will be
+#'   calculated from wind vector components, not searched as a separate field.
+#' @return A 16 character string, or in rare cases a vector of several strings
+#'   denoting the components (e.g. total precipitation may be the sum of up to 4
+#'   fields).
 #' @export
 get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
   ### FA names are very inconsistent ("_" vs "." separators...)

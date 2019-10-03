@@ -1,9 +1,9 @@
 #' Read gridded data in various formats.
 #'
 #' @param filename A character string with the (full) file name.
-#' @param format The file format. Possible values include grib, netcdf, FA, 
+#' @param format The file format. Possible values include grib, netcdf, FA,
 #'   hdf5... Whatever the value is, it is suposed to correspond to a function
-#'   "read_XXX" that can deal wit hthe format.
+#'   "read_XXX" that can deal with the format.
 #' @param ... All arguments passed to the specified reader function.
 #' @return A geofield or (possibly) a plain  matrix.
 #' @export
@@ -14,9 +14,9 @@ read_grid <- function(filename, file_format=NULL, ...) {
   reader(filename = filename, ...)
 }
 
-#' Try to guess the binary format of a gridded data file.
-#' @param filename The filename
-#' @return A character string with the format, or NA.
+# Try to guess the binary format of a gridded data file.
+# @param filename The filename
+# @return A character string with the format, or NA.
 guess_format <- function(filename) {
   ## TODO: tar? csv, txt...?
   ext <- tools::file_ext(filename)

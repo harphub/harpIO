@@ -1,54 +1,54 @@
-#' Read ensemble members from a forecast file
-#'
-#' \code{read_members} reads all ensemble members from a forecast file for a
-#' single lead time. It is possible to read from grib or netcdf files via the
-#' helper functions. It is assumed that grib files only contain one member and
-#' ntcdf files contain all members.
-#'
-#' @param model_files Files to read. For NetCDF only 1 file is expected, but for
-#'   grib a vector of files can be passed. The character string 'mbr' must be
-#'   somewhere in the paths for the member numbes to be identified. It is
-#'   assumed that grib files only contain one member. For grib2 (yet to be
-#'   implemented) this might not be the case.
-#' @param parameter The parameter to read.
-#' @param members A vector of numbers identifying the members to read. This is
-#'   ignored for grib files as it is assumed that the members were already
-#'   decided when the filenames were obtained.
-#' @param file_type The forecast file format. The function can attempt to
-#'   ascertain the format from the file name, but if it can't \code{file_type}
-#'   must be passed as an argument.
-#' @param lead_time The lead time to read.
-#' @param ... Arguments to be passed to \code{read_netcf} or \code{read_grib}
-#'
-#' @return A list containing: \cr \code{model_data}: The 3d field (the 3rd
-#'   dimension is ensemble member). \cr \code{x}: The x coordinates in
-#'   the projection of the forecast file. \cr \code{y}: The y coordinates
-#'   in the projection of the forecast file. \cr \code{proj4_string}: The
-#'   proj4 projection string for the forecast file. \cr \code{parameter}:
-#'   The parameter that the 3d field represents. \cr \code{filename}: The
-#'   full path to the forecast files.
-#' @export
-#'
-#' @examples
-#' fname <- get_filenames(file_date = 2017080100, template = "meps_met")
-#' model_field <- read_members(fname, "precipitation_amount_acc", lead_time = 24)
-#' model_field <- read_members(fname, "Pcp", members = c(2, 4, 6), lead_time = 24)
-#'
-#' my_static_path <- "/lustre/storeB/users/andrewts/surfacePerturbations/grib"
-#' my_expt <- "MEPS_summer2017_sfcPertRef"
-#' my_template <- file.path(
-#'   "${YYYY}${MM}${DD}${HH}",
-#'   "${experiment}",
-#'   "mbr${MBR3}/fc${YYYY}${MM}${DD}${HH}+${LDT3}.grib"
-#' )
-#' fname <- get_filenames(
-#'   file_path = my_static_path,
-#'   file_date = 2017052700,
-#'   experiment = my_expt,
-#'   template = my_template,
-#'   lead_time = 3, member = seq(0, 10)
-#' )
-#' model_field <- read_members(fname, "fog")
+# Read ensemble members from a forecast file
+#
+# \code{read_members} reads all ensemble members from a forecast file for a
+# single lead time. It is possible to read from grib or netcdf files via the
+# helper functions. It is assumed that grib files only contain one member and
+# ntcdf files contain all members.
+#
+# @param model_files Files to read. For NetCDF only 1 file is expected, but for
+#   grib a vector of files can be passed. The character string 'mbr' must be
+#   somewhere in the paths for the member numbes to be identified. It is
+#   assumed that grib files only contain one member. For grib2 (yet to be
+#   implemented) this might not be the case.
+# @param parameter The parameter to read.
+# @param members A vector of numbers identifying the members to read. This is
+#   ignored for grib files as it is assumed that the members were already
+#   decided when the filenames were obtained.
+# @param file_type The forecast file format. The function can attempt to
+#   ascertain the format from the file name, but if it can't \code{file_type}
+#   must be passed as an argument.
+# @param lead_time The lead time to read.
+# @param ... Arguments to be passed to \code{read_netcf} or \code{read_grib}
+#
+# @return A list containing: \cr \code{model_data}: The 3d field (the 3rd
+#   dimension is ensemble member). \cr \code{x}: The x coordinates in
+#   the projection of the forecast file. \cr \code{y}: The y coordinates
+#   in the projection of the forecast file. \cr \code{proj4_string}: The
+#   proj4 projection string for the forecast file. \cr \code{parameter}:
+#   The parameter that the 3d field represents. \cr \code{filename}: The
+#   full path to the forecast files.
+# NOT currently in an exportable state. Use mepsr for now.
+#
+# @examples
+# fname <- get_filenames(file_date = 2017080100, template = "meps_met")
+# model_field <- read_members(fname, "precipitation_amount_acc", lead_time = 24)
+# model_field <- read_members(fname, "Pcp", members = c(2, 4, 6), lead_time = 24)
+#
+# my_static_path <- "/lustre/storeB/users/andrewts/surfacePerturbations/grib"
+# my_expt <- "MEPS_summer2017_sfcPertRef"
+# my_template <- file.path(
+#   "${YYYY}${MM}${DD}${HH}",
+#   "${experiment}",
+#   "mbr${MBR3}/fc${YYYY}${MM}${DD}${HH}+${LDT3}.grib"
+# )
+# fname <- get_filenames(
+#   file_path = my_static_path,
+#   file_date = 2017052700,
+#   experiment = my_expt,
+#   template = my_template,
+#   lead_time = 3, member = seq(0, 10)
+# )
+# model_field <- read_members(fname, "fog")
 
 
 ### NEEDS UPDATING!!!! - change name to read_eps. Accommodate multi dimensions better.

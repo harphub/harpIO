@@ -1,17 +1,18 @@
-#' Read a field from a grib file
-#'
-#' @param filename The grib file name.
-#' @param parameter The parameter to read. Standard HARP names are used.
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param ... Arguments for \code{Rgrib2::Gdec}
-#'
-#' @return A geofield object with 2d array and projection information
-#'
-#' @examples
-#' file_name <- "/lustre/storeB/users/andrewts/mepsr_data/grib/fc2017052600+001grib_fp"
-#' model_geofield <- read_grib(file_name, "t2m")
-#' model_geofield <- read_grib(file_name, "t500")
-#' model_geofield <- read_grib(file_name, "topo")
+# Read a field from a grib file
+#
+# @param filename The grib file name.
+# @param parameter The parameter to read. Standard HARP names are used.
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param ... Arguments for \code{Rgrib2::Gdec}
+#
+# @return A geofield object with 2d array and projection information
+#
+# NOT exported - used internally.
+# @examples
+# file_name <- "/lustre/storeB/users/andrewts/mepsr_data/grib/fc2017052600+001grib_fp"
+# model_geofield <- read_grib(file_name, "t2m")
+# model_geofield <- read_grib(file_name, "t500")
+# model_geofield <- read_grib(file_name, "topo")
 
 ### EXAMPLES NEED UPDATING
 
@@ -66,18 +67,19 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
 
 }
 
-#' Read a field from a grib file & interpolate
-#'
-#' @param filename The grib file name.
-#' @param parameter The parameter to read. Standard HARP names are used.
-#' @param lead_time lead time
-#' @param members ens members
-#' @param init Initialisation for interpolation. A list that contains
-#'    station locations and (possibly) pre-calculated interpolation weights etc.
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param ... Arguments for \code{Rgrib2::Gdec}
-#'
-#' @return A tibble
+# Read a field from a grib file & interpolate
+#
+# @param filename The grib file name.
+# @param parameter The parameter to read. Standard HARP names are used.
+# @param lead_time lead time
+# @param members ens members
+# @param init Initialisation for interpolation. A list that contains
+#    station locations and (possibly) pre-calculated interpolation weights etc.
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param ... Arguments for \code{Rgrib2::Gdec}
+#
+# @return A tibble
+# NOT exported. Used internally.
 read_grib_interpolate <- function(file_name, parameter,
                                   lead_time, members=NA_character_,
                                   init=list(), method="closest", use_lsm=FALSE, ...) {

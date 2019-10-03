@@ -1,25 +1,25 @@
-#' Read a 2d field from NetCDF file.
-#'
-#' \code{read_netcdf} returns a 2d field from a NetCDF file for a given
-#' member and lead time. This function has only been tested on MEPS data.
-#' The levels argument will currently only get data on pressure levels.
-#'
-#'
-#' @param filename NetCDF file name to read from.
-#' @param parameter Parameter to read - may be a parameter in the netcdf file
-#'   or a standard HARP parameter name.
-#' @param member The member to read from the file.
-#' @param lead_time The lead time to read from the file.
-#' @param level The pressure level for the data
-#'
-#' @return A 2-d array.
-#' @export
-#'
-#' @examples
-#' file_name <- get_filenames(file_date = 2017080100, template = "meps_met")
-#' model_field <- read_netcdf(file_name, "air_temperature_2m", 0, 0)
-#' model_field <- read_netcdf(file_name, "T2m", 0, 0)
-#'
+# Read a 2d field from NetCDF file.
+#
+# \code{read_netcdf} returns a 2d field from a NetCDF file for a given
+# member and lead time. This function has only been tested on MEPS data.
+# The levels argument will currently only get data on pressure levels.
+#
+#
+# @param filename NetCDF file name to read from.
+# @param parameter Parameter to read - may be a parameter in the netcdf file
+#   or a standard HARP parameter name.
+# @param member The member to read from the file.
+# @param lead_time The lead time to read from the file.
+# @param level The pressure level for the data
+#
+# @return A 2-d array.
+# NOT exported. Use mepsr.
+#
+# @examples
+# file_name <- get_filenames(file_date = 2017080100, template = "meps_met")
+# model_field <- read_netcdf(file_name, "air_temperature_2m", 0, 0)
+# model_field <- read_netcdf(file_name, "T2m", 0, 0)
+#
 read_netcdf <- function(filename, parameter, member, lead_time, level = NULL) {
 
   if (!requireNamespace("ncdf4", quietly = TRUE)) {

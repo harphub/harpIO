@@ -8,19 +8,26 @@ parse_harp_parameter(param, vertical_coordinate = c(NA_character_,
   "pressure", "model", "height"))
 }
 \arguments{
-\item{param}{Parameter name}
+\item{param}{Parameter name - available names can be found from
+\link{show_harp_parameters}.}
+
+\item{vertical_coordinate}{If the parameter is for the upper air, the
+vertical coordinate system must be given. Can be "pressure" for pressure
+levels, "model" for model levels or "height" for altitude levels.}
 }
 \value{
-A list (of class harp_parameter)
-  with \code{fullname}, \code{basename}, \code{level_type},
-  \code{level}, \code{accum}
+A list (of class harp_parameter) with \code{fullname},
+  \code{basename}, \code{level_type}, \code{level}, \code{accum}
 }
 \description{
 Parses a harp-style parameter name and returns accumulation time, level (if
 any) and the base name of the parameter
 }
 \examples{
-parse_harp_param("AccPcp1h")
-parse_harp_param("z500")
-parse_harp_param("s100m")
+parse_harp_parameter("AccPcp1h")
+parse_harp_parameter("z500")
+parse_harp_parameter("s100m")
+parse_harp_parameter("T", vertical_coordinate = "pressure")
+parse_harp_parameter("S", vertical_coordinate = "model")
+parse_harp_parameter("RH", vertical_coordinate = "height")
 }

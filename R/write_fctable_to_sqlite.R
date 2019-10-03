@@ -1,17 +1,17 @@
-#' Write a \code{harp_fcst} object to an sqlite file.
-#'
-#' This function should rarely be used as a standalone function. It is called by
-#' \code{read_det_interpolate} and \code{read_eps_interpolate}.
-#'
-#' @param data The fcst data to write.
-#' @param filename The name of the sqlite file to write the data to.
-#' @param tablename The table in the sqlite file to write the data to.
-#' @param primary_key The primary key to be used.
-#'
-#' @return This function only has a side effect (writing to sqlite file).
-#' @export
-#'
-#' @examples
+# Write a \code{harp_fcst} object to an sqlite file.
+#
+# This function should rarely be used as a standalone function. It is called by
+# \code{read_det_interpolate} and \code{read_eps_interpolate}.
+#
+# @param data The fcst data to write.
+# @param filename The name of the sqlite file to write the data to.
+# @param tablename The table in the sqlite file to write the data to.
+# @param primary_key The primary key to be used.
+#
+# @return This function only has a side effect (writing to sqlite file).
+# NOT exported - used internally.
+#
+# @examples
 write_fctable_to_sqlite <- function(
   data,
   filename,

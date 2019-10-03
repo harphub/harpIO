@@ -1,15 +1,15 @@
-#' Initialise domain, interpolation, land/sea mask etc. for a model
-#'
-#' @param climfile The path of a "clim" file containing topography & land/sea mask
-#' @param ftype File type of the clim file (fa, grib ...).
-#' @param domain A \code{geodomain}, only needed if it can not be retrieved from clim file.
-#' @param stations The locations for which to initialise interpolation
-#' @param method Interpolation method ("bilin", "nn"...)
-#' @param use_mask Should L/S mask be applied when initialising the interpolation?
-#' @param drop_NA Should weights/stations that are NA be removed?
-#' @param ... Arguments for interpolation method. Currently not used.
-#' @return A list with various initialisations. It is also assigned to the global environment.
-#' @export
+# Initialise domain, interpolation, land/sea mask etc. for a model
+#
+# @param climfile The path of a "clim" file containing topography & land/sea mask
+# @param ftype File type of the clim file (fa, grib ...).
+# @param domain A \code{geodomain}, only needed if it can not be retrieved from clim file.
+# @param stations The locations for which to initialise interpolation
+# @param method Interpolation method ("bilin", "nn"...)
+# @param use_mask Should L/S mask be applied when initialising the interpolation?
+# @param drop_NA Should weights/stations that are NA be removed?
+# @param ... Arguments for interpolation method. Currently not used.
+# @return A list with various initialisations. It is also assigned to the global environment.
+# Not exported - used internally
 
 initialise_interpolation <- function(clim_file=NULL, file_format="fa",
                                      domain = NULL,

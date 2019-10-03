@@ -1,8 +1,14 @@
-#' Parse a synop parameter from a vobs or vfld convention to harp convention
+#' Parameters for vobs and vfld files
 #'
-#' @param v_parameter_synop vobs or vfld parameter
-#'
-#' @return harp paramater name
+#' Convert parameter names from vobs or vfld files into harp formate parameters.
+#' Use parse_v_parameter_synop for SYNOP parameters and parse_v_parameter_temp
+#' for TEMP parameters.
+#' @param v_parameter vobs or vfld parameter
+#' @return A list with the harp paramater name and the units of the parameter.
+#' @name v_parameters
+NULL
+
+#' @rdname v_parameters
 #' @export
 #'
 #' @examples
@@ -11,9 +17,9 @@
 #' parse_v_parameter_synop("FI")
 #' parse_v_parameter_synop("PE")
 #'
-parse_v_parameter_synop <- function(v_parameter_synop) {
+parse_v_parameter_synop <- function(v_parameter) {
 
-  switch(v_parameter_synop,
+  switch(v_parameter,
     "FI"  = {harp_param <- "model_elevation"; param_units <- "m"},
     "NN"  = {harp_param <- "CCtot";           param_units <- "oktas"}, # total cloud cover
     "DD"  = {harp_param <- "D10m";            param_units <- "degrees"},
@@ -39,7 +45,7 @@ parse_v_parameter_synop <- function(v_parameter_synop) {
     "PE6" = {harp_param <- "AccPcp6h";        param_units <- "kg/m^2"},
     "PE12"= {harp_param <- "AccPcp12h";       param_units <- "kg/m^2"},
     "PE24"= {harp_param <- "AccPcp24h";       param_units <- "kg/m^2"},
-    {harp_param <- v_parameter_synop; param_units <- "unknown"}
+    {harp_param <- v_parameter; param_units <- "unknown"}
   )
   list(harp_param = harp_param, param_units = param_units)
 }

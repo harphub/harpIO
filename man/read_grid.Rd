@@ -11,9 +11,9 @@ read_grid(filename, file_format = NULL, ...)
 
 \item{...}{All arguments passed to the specified reader function.}
 
-\item{format}{The file format. Possible values include grib, netcdf, FA, 
+\item{format}{The file format. Possible values include grib, netcdf, FA,
 hdf5... Whatever the value is, it is suposed to correspond to a function
-"read_XXX" that can deal wit hthe format.}
+"read_XXX" that can deal with the format.}
 }
 \value{
 A geofield or (possibly) a plain  matrix.

@@ -8,7 +8,7 @@ get_filenames(file_path = "", file_date = Sys.Date(),
   start_date = NULL, end_date = NULL, by = "6h", lags = NULL,
   parameter = NULL, det_model = NULL, eps_model = NULL,
   sub_model = NULL, lead_time = seq(0, 48, 3),
-  members = NA_character_, file_template = "FCTABLE",
+  members = NA_character_, file_template = "fctable_eps",
   filenames_only = TRUE)
 }
 \arguments{
@@ -54,17 +54,16 @@ is in the template. Given as a vector of numbers.}
 \item{members}{The members to be included in the file names of \{MBRx\} is in
 the template}
 
-\item{file_template}{The file type to generate the template for. Can be
-"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
-"harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
-"fctable". If anything else is passed, it is returned unmodified. In this
-case substitutions can be used. Available substitutions are {YYYY} for
-year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
-leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
-hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
-for ensemble member where x is the length of the string including leading
-zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
-will always be file_path/template.}
+\item{file_template}{The file type to generate the template for. Can be any
+of the build in templates from \link{show_file_templates}. If anything else
+is passed, it is returned unmodified. In this case substitutions can be
+used. Available substitutions are {YYYY} for year, \{MM\} for 2 digit month
+with leading zero, \{M\} for month with no leading zero, and similarly
+\{DD\} or \{D\} for day, \{HH\} or \{H\} for hour, \{mm\} or \{m\} for
+minute. Also \{LDTx\} for lead time and \{MBRx\} for ensemble member where
+x is the length of the string including leading zeros - can be omitted or
+2, 3 or 4. Note that the full path to the file will always be
+file_path/template.}
 
 \item{filenames_only}{Logical. Set to TRUE to return a vector of unique file
 names. Set to FALSE to return a detailed data frame.}

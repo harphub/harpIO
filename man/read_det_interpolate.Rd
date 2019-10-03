@@ -10,82 +10,164 @@ read_det_interpolate(start_date, end_date, det_model, parameter,
   correct_t2m = TRUE, keep_model_t2m = FALSE, lapse_rate = 0.0065,
   vertical_coordinate = c("pressure", "model", "height", NA),
   clim_file = NULL, clim_format = NULL,
-  interpolation_method = "closest", use_mask = FALSE,
+  interpolation_method = "nearest", use_mask = FALSE,
   sqlite_path = NULL, sqlite_template = "fctable_det",
   sqlite_synchronous = c("off", "normal", "full", "extra"),
   sqlite_journal_mode = c("delete", "truncate", "persist", "memory",
   "wal", "off"), return_data = FALSE, ...)
 }
 \arguments{
-\item{start_date}{Date of the first forecast to read.}
+\item{start_date}{Date of the first forecast to be read in. Should be in
+YYYYMMDDhh format. Can be numeric or charcter.}
 
-\item{end_date}{Date of the last forecast to read.}
+\item{end_date}{Date of the last forecast to be read in. Should be in
+YYYYMMDDhh format. Can be numeric or charcter.}
 
-\item{det_model}{The name of the deterministic model. Maybe expressed as a
+\item{det_model}{The name of the deterministic model. May be expressed as a
 vector if more than one model is wanted.}
 
 \item{parameter}{The parameters to read as a character vector. For reading
-from vfld files, set to NULL to read all parameters.}
+from vfld files, set to NULL to read all parameters, or set
+\code{veritcal_coordinate = NA} to only read surface parameters. See
+\code{\link{show_harp_parameters}} to get the possible parameters.}
 
 \item{lead_time}{The lead times to read as a numeric vector.}
 
 \item{by}{The time between forecasts. Should be a string of a number followed
-by a letter, where the letter gives the units - may be d for days, h for
-hours or m for minutes.}
+by a letter (the defualt is "6h"), where the letter gives the units - may
+be d for days, h for hours or m for minutes.}
 
-\item{file_path}{The top level path for the forecast files to read.}
+\item{file_path}{The path for the forecast files to read. file_path will, in
+most cases, form part of the file template.}
 
-\item{file_format}{The format of the files to read. Can be "vfld", "grib" or
-"netcdf_met"}
+\item{file_format}{The format of the files to read. Can be "vfld", "grib",
+"netcdf", "fa", or "fatar".}
 
-\item{file_template}{The file type to generate the template for. Can be
-"harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
-"harmonie_grib", "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or
-"fctable". If anything else is passed, it is returned unmodified. In this
-case substitutions can be used. Available substitutions are {YYYY} for
-year, \{MM\} for 2 digit month with leading zero, \{M\} for month with no
-leading zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for
-hour, \{mm\} or \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\}
-for ensemble member where x is the length of the string including leading
-zeros - can be omitted or 2, 3 or 4. Note that the full path to the file
-will always be file_path/template.}
+\item{file_template}{The file template for the files to be read. For
+available built in templates see \code{\link{show_file_templates}}. If
+anything else is passed, it is returned unmodified, or with substitutions
+made for dynamic values. Available substitutions are {YYYY} for year,
+\{MM\} for 2 digit month with leading zero, \{M\} for month with no leading
+zero, and similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for hour,
+\{mm\} or \{m\} for minute. Also \{LDTx\} for lead time where x is the
+length of the string including leading zeros - can be omitted or 2, 3 or 4.
+Note that the full path to the file will always be file_path/template.}
 
 \item{stations}{A data frame of stations with columns SID, lat, lon, elev. If
 this is supplied the forecasts are interpolated to these stations. In the
-case of vfld files, all stations found in the vfld are used. In the case of
-gridded files (e.g. grib, netcdf, FA), if no data frame of stations is
-passed a default list of stations is used. This list can be accessed via
-\code{station_list}.}
+case of vfld files, this is ignored and all stations found in the vfld are
+used. In the case of gridded files (e.g. grib, netcdf, FA), if no data
+frame of stations is passed a default list of stations is used. This list
+can be accessed via \code{station_list}.}
 
-\item{clim_file}{A file containing constant data for the domain: topology,
-land/sea mask.}
+\item{correct_t2m}{A logical value to tell the function whether to height
+correct the 2m temperature forecast, if it is included in the
+\code{parameter} argument, from the model elevation to the observation
+elevation. The default is TRUE.}
 
-\item{clim_format}{The file format of the clim_file may be different than
-that of the forecast files.}
+\item{keep_model_t2m}{A logical value to tell the function whether to keep
+the original 2m temperature from the model as well as the height corrected
+values. If set to TRUE the this parameter gets the name "T2m_uncorrcted".
+The default is FALSE.}
 
-\item{interpolation_method}{The method used for interpolating from forecast
-grid to station points. Default is "closest" (mearest neighbour).
-Alternatives include "bilin".}
+\item{lapse_rate}{The lapse rate, in Kelvins per meter, to use when height
+correcting the 2m temperature. The defaul is 0.0065 K/m.}
 
-\item{use_mask}{If TRUE, a land/sea mask is used when interpolating. It must
-be available in the forecast files or in a clim_file.}
+\item{vertical_coordinate}{If upper air for multiple levels are to be read,
+the vertical coordinate of the data is given here. The default is
+"pressure", but can also be "model" for model levels, or "height" for
+height above ground /sea level.}
 
-\item{sqlite_path}{If specified, SQLite files are generated and written to
-this directory.}
+\item{clim_file}{The name of a file containing information about the model
+domain. Must include orography (surface geopotential), but can also include
+land-sea mask.}
 
-\item{return_data}{}
+\item{clim_format}{The file format of \code{clim_file}. Can be "grib", "fa",
+"fatar", or "netcdf".}
 
-\item{...}{Arguments dependent on \code{file_format} (More info to be added).}
+\item{interpolation_method}{The interpolation method to use. Available
+methods are "bilinear", "bicubic", or "nearest". The default is "nearest",
+which takes the nearest grid points to the stations.}
 
-\item{correct_T2m}{Whether to correct the 2m temperature forecast from the
-model elevation to the observation elevation.}
+\item{use_mask}{A logical value to tell the function whether to include a
+land-sea mask in the interpolation. The land-sea mask must exist in either
+the \code{clim_file} or in the forecast files.}
+
+\item{sqlite_path}{If not NULL, sqlite files are generated and written to the
+directory specified here.}
+
+\item{sqlite_template}{The template for the filenames of the fctable files.
+See \code{\link{show_file_templates}} for available built in templates -
+for forecast sqlite files, these are templates beginning "fctable_". The
+default is "fctable_det".}
+
+\item{sqlite_synchronous}{The synchronus setting for sqlite files. The
+defualt is "off", but could also be "normal", "full", or "extra". See
+\url{https://www.sqlite.org/pragma.html#pragma_synchronous} for more
+information.}
+
+\item{sqlite_journal_mode}{The journal mode for the sqlite files. The default
+is "delete", but can also be "truncate", "persist", "memory", "wal", or
+"off". See \url{https://www.sqlite.org/pragma.html#pragma_journal_mode} for
+more information.}
+
+\item{return_data}{A logical indicating whether to return the read data to
+the calling environment. The default is FALSE to avoid memory overload.}
+
+\item{...}{Extra options depending on file format.}
 }
 \value{
 A tibble with columns eps_model, sub_model, fcdate, lead_time,
   member, SID, lat, lon, <parameter>.
 }
 \description{
-Read deterministic forecast files and interpolate to stations.
+\code{read_det_interpolate} should be used to read the output from
+deterministic NWP models, interpolate the data to specified stations, and
+optionally output the interpolated data either to sqlite files suitable for
+use in the harp ecosystem, or to the calling environment.
+}
+\details{
+Raw output from NWP models can be slow to read and interpolate. This is due
+to a combination of the number of files and the interpolation process.
+Therefore, to make the interpolated data availble more quickly for future use
+this function should be used to save the interpolated data in sqlite files.
+
+Sqlite is a portable file based database solution with the ability to query
+sqlite files using SQL syntax. This makes accessing data fast, and ensures
+that you only read the data that you need.
+
+To output the data to sqlite files, a path to where you want the files to be
+written must be given in the \code{sqlite_path} argument. To return the data
+to the calling environment you must set \code{return_data = TRUE} - by
+default no data are returned. This is because \code{read_det_interpolate}
+could be processing large volumes of data and returning those data to the
+environment could result in exceeding memory capacity. If you set neither
+\code{sqlite_path}, nor \code{return_data} explicitly, it can appear that
+this function does nothing.
+
+For deterministic forecasts, the default is to create one sqlite file for
+each parameter for each forecast cycle. However, this can be changed making
+use of the \code{sqlite_template} argument to specify how the data are
+separated.
+
+The locations to interpolate to are taken from a data frame supplied in the
+\code{stations} argument, which must have columns "SID", "lat" and "lon". If
+no stations data frame is supplied by the user, the interpolation is done to
+a defult list of WMO stations - this list can be found in the built data
+frame, \code{station_list}. For vfld format files, which are text files with
+data already interpolated to stations, output by HIRLAM implementations of
+the HARMONIE model, all locations in the vfld file are taken - this is
+because stations are identified by ID numbers rather than location and there
+may be a mismatch between those ID numbers in the vfld files and those
+specified by the user.
+
+For grib and fa files it may be useful to supply a \code{clim_file}. This
+file should have the same domain spcification as the flies for the NWP model
+data and contain the model orography (in the form of surface geopotential)
+and optionally a land-sea mask.
+
+For 2m temperature, corrections of the model temperature to be reflictive of
+the observation elevation is done using a simple lapse rate corrrection.
 }
 \examples{
 

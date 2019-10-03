@@ -12,11 +12,11 @@
 
 # Note - these fuctions are not exported. #AD: WHY NOT?
 
-#' @param dbfile Name of an SQLite file. If it does not exist, it is created.
-#' @param lock If TRUE, file locking is used.
-#'   Set to FALSE on network file systems like NFS and lustre.
-#' @value A data base connection
-#' @export
+# @param dbfile Name of an SQLite file. If it does not exist, it is created.
+# @param lock If TRUE, file locking is used.
+#   Set to FALSE on network file systems like NFS and lustre.
+# @value A data base connection
+# @export
 dbopen <- function(dbfile, lock) {
   if (utils::packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only
 function correctly with package DBI version 0.5 or higher.")
@@ -211,13 +211,13 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 }
 
 #############################
-#' Create a new table in an SQLite data base
-#'
-#' @param db A database connection
-#' @param name A name for the table. If it already exists, nothing happens.
-#' @param a data.frame. Only column names and type are used.
-#' @param primary Primary keys
-#' @export
+# Create a new table in an SQLite data base
+#
+# @param db A database connection
+# @param name A name for the table. If it already exists, nothing happens.
+# @param a data.frame. Only column names and type are used.
+# @param primary Primary keys
+# @export
 create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
   if (DBI::dbExistsTable(db, name)) {
 ## TODO: check fields are the same!!!

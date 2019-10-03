@@ -18,6 +18,10 @@
 #'   error check. If set to NULL the default value for the parameter is used.
 #' @param stations The stations to retrieve observations for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
+#' @param vertical_coordinate If upper air for multiple levels are to be read,
+#'   the vertical coordinate of the data is given here. The default is
+#'   "pressure", but can also be "model" for model levels, or "height" for
+#'   height above ground /sea level.
 #'
 #' @return A tibble with columns for validdate, SID and the parameter.
 #' @export

@@ -9,15 +9,16 @@ get_fa_param_info(param, fa_type = "arome", fa_vector = TRUE)
 \arguments{
 \item{param}{Parameter name}
 
-\item{fa_type}{could be 'alaro' or 'arome'. These models store e.g. precipitation under a
-different name.}
+\item{fa_type}{could be 'alaro' or 'arome'. These models store e.g.
+precipitation under a different name.}
 
-\item{fa_vector}{A logical value. TRUE means that e.g. wind speed will be calculated from wind vector
-components, not searched as a separate field.}
+\item{fa_vector}{A logical value. TRUE means that e.g. wind speed will be
+calculated from wind vector components, not searched as a separate field.}
 }
 \value{
-A 16 character string, or in rare cases a vector of several strings denoting the
-  components (e.g. total precipitation may be the sum of up to 4 fields).
+A 16 character string, or in rare cases a vector of several strings
+  denoting the components (e.g. total precipitation may be the sum of up to 4
+  fields).
 }
 \description{
 a harp-style parameter is translated to the field name in
