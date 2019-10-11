@@ -99,6 +99,8 @@ read_obs_convert <- function(
     list_counter    <- 0
   }
 
+  sqlite_template <- get_template(sqlite_template)
+
   for (i in 1:num_iterations) {
 
     if (return_data) list_counter <- list_counter + 1
@@ -125,7 +127,7 @@ read_obs_convert <- function(
         DD          = substr(.data$fcdate, 7, 8),
         HH          = substr(.data$fcdate, 9, 10),
         obs         = purrr::map(.data$file_name, read_func, ...),
-        sqlite_path = ifelse(is.null(sqlite_path), NA, sqlite_path)
+        file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       ) %>%
       dplyr::mutate(
         file_name = purrr::map_chr(
