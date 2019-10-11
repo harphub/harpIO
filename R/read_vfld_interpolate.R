@@ -110,14 +110,18 @@ read_vfld_interpolate <- function(
   if (length(synop_parameters) > 0) {
     synop_parameter <- unique(purrr::map_chr(synop_parameters, "fullname")) %>%
       intersect(colnames(vfld_data$synop))
-    param_cols_out  <- rlang::syms(synop_parameter)
-    vfld_data$synop      <- vfld_data$synop %>%
-      dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
-      tidyr::gather(key = parameter, value = forecast, !!!param_cols_out) %>%
-      dplyr::mutate(
-        member    = members,
-        lead_time = lead_time
-      )
+    if (length(synop_parameter) < 1) {
+      vfld_data$synop <- empty_data
+    } else {
+      param_cols_out  <- rlang::syms(synop_parameter)
+      vfld_data$synop      <- vfld_data$synop %>%
+        dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
+        tidyr::gather(key = parameter, value = forecast, !!!param_cols_out) %>%
+        dplyr::mutate(
+          member    = members,
+          lead_time = lead_time
+        )
+    }
   } else {
     vfld_data$synop <- empty_data
   }

@@ -33,6 +33,15 @@ write_fctable_to_sqlite <- function(
       dplyr::select(-.data$model_elevation)
   }
 
+  missing_data <- dplyr::filter(data, is.na(.data$forecast)) %>%
+    dplyr::distinct()
+  if (nrow(missing_data) > 0) {
+    data <- dplyr::bind_rows(
+      dplyr::filter(data, !is.na(.data$forecast)),
+      missing_data
+    )
+  }
+
   data <- data %>%
     tidyr::spread(.data$member, .data$forecast)
 
