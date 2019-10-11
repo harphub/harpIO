@@ -615,19 +615,23 @@ read_eps_interpolate <- function(
 
     }
 
-    forecast_data <- forecast_data %>%
-      #tidyr::drop_na(.data$forecast) %>%
-      dplyr::mutate(
-        parameter = dplyr::case_when(
-          is.na(.data$parameter) ~ list(sqlite_params),
-          TRUE                   ~ as.list(.data$parameter)
-        )
+    # Ensure that if there are missing data for one or more members, there are still entries
+    # so that the tables in the sqlite files will be created with the correct members
+
+    no_data <- dplyr::filter(forecast_data, is.na(parameter))
+    if (nrow(no_data) > 0) {
+      no_data <- dplyr::mutate(no_data, parameter = list(sqlite_params))
+      if (tidyr_new_interface()) {
+        no_data <- tidyr::unnest(no_data, tidyr::one_of("parameter"))
+      } else {
+        no_data <- tidyr::unnest(no_data)
+      }
+      forecast_data <- dplyr::bind_rows(
+        dplyr::filter(forecast_data, !is.na(parameter)),
+        no_data
       )
-    if (tidyr_new_interface()) {
-      forecast_data <- tidyr::unnest(forecast_data, tidyr::one_of("parameter"))
-    } else {
-      forecast_data <- tidyr::unnest(forecast_data)
     }
+
     forecast_data <- dplyr::left_join(forecast_data, param_units, by = "parameter")
 
     # If sqlite_path is passed write data to sqlite files
