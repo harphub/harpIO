@@ -1,22 +1,22 @@
-# Read a field from an FA file
-#
-# @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
-#        It may also be a \code{FAfile} object.
-# @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
-#        work.
-# @param meta If TRUE, also read all meta data (domain, time properties).
-# @param fa_type The kind of model file: "arome", "alaro", "surfex"...
-# @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
-# @param ... Ignored
-# @return A 2d geofield object (2d array with projection information)
+#' Read a field from an FA file
+#'
+#' @param file_name The FA file name. "file@arch" signifies a file inside a tar archive.
+#'        It may also be a \code{FAfile} object.
+#' @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
+#'        work.
+#' @param meta If TRUE, also read all meta data (domain, time properties).
+#' @param fa_type The kind of model file: "arome", "alaro", "surfex"...
+#' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
+#' @param ... Ignored
+#' @return A 2d geofield object (2d array with projection information)
 #
 # NOT exported. Used internally.
-# @examples
-# model_geofield <- read_fa(file_name, "t2m")
-# model_geofield <- read_fa(file_name, "t500")
-# model_geofield <- read_fa(file_name, "topo")
+#' @examples
+#' model_geofield <- read_fa(file_name, "t2m")
+#' model_geofield <- read_fa(file_name, "t500")
+#' model_geofield <- read_fa(file_name, "topo")
 
-read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
+read_fa <- function(file_name, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
   # ?accumulated fields?
 # harp_env$fa_infile <- infile
@@ -25,14 +25,14 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
   if (!requireNamespace("Rfa", quietly=TRUE)) {
     stop("The Rfa package must be installed to read FA files.")
   }
-  if (inherits(filename, "FAfile")) {
-    fafile <- filename
-  } else if (is.character(filename)) {
-    namsplit <- strsplit(filename, "@")[[1]]
+  if (inherits(file_name, "FAfile")) {
+    fafile <- file_name
+  } else if (is.character(file_name)) {
+    namsplit <- strsplit(file_name, "@")[[1]]
     fafile <- switch(length(namsplit),
-                       Rfa::FAopen(filename=filename),
+                       Rfa::FAopen(filename=file_name),
                        Rfa::FAopen(filename=namsplit[1], archname=namsplit[2]),
-                       stop("Could not open file ", filename))
+                       stop("Could not open file ", file_name))
   } else {
     stop("bad filename")
   }
@@ -83,45 +83,64 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
 }
 
 
-# Read FA files & interpolate
-# @param filename Name of a tar archive containing FA files
-# @param parameter The parameter(s) to be decoded.
-# @param lead_time The lead time(s) to be extracted. May be a vector!
-# @param model Name of the model. Used to find domain and interpolation weights.
-# @param iweights Interpolation weights (and domain information) can also be passed explicitely.
-# @param member Not used. Only there for API reasons.
-# @param lead_time Not used, only added to to the output table. Must be a single number.
-# @param ... Extra arguments for read_fa[tar]
-# @return A tibble with interpolated forecasts for the stations list
+#' Read FA files & interpolate
+#' @param file_name Name of a tar archive containing FA files
+#' @param parameter The parameter(s) to be decoded.
+#' @param lead_time The lead time(s) to be extracted. May be a vector!
+#' @param members Mostly ignored, but could be added as a (constant) column to output.
+#'        If present it must be a single string value (FA files do not contain multiple ensemble members)
+#' @param vertical_coordinate Not used. Only there for API reasons.
+#' @param init Interpolation weights (and domain information).
+#' @param method Interpolation method (only necessary if the weights are not yet initialised)
+#' @param use_mask If TRUE, use land/sea mask in interpolation
+#' @param fa_type For some fields (e.g. precipitation) arome and alaro
+#'    use different names, so we should specify.
+#' @param fa_vector If true, wind speed will be calculated from U and V components.
+
+#' @param ... Ignored and simply passed to read_fatar
+
+#' @param ... Extra arguments for read_fa[tar]
+#' @return A tibble with interpolated forecasts for the stations list
 #
 # NOT exported - used internally.
-read_fa_interpolate <- function(file_name, parameter,
-                                lead_time=0, member=NULL, model=NULL,
-                                stations=NULL, method="closest", use_mask=FALSE,
+read_fa_interpolate <- function(file_name,
+                                parameter,
+                                lead_time = NA_real_,
+                                members = NA_character_,
+                                vertical_coordinate = NA_character_, # not taken into account
+                                init = list(),
+                                method = "closest", use_mask = FALSE,
+                                fa_type = "arome",
+                                fa_vector = TRUE,
                                 ...) {
-# TODO: pass "init" in stead of model name?
-# no "hidden " arguments, but it *requires* separate initialisation
-# get data as geofield
-# TODO: what if you have a different set of stations, but init already exists
-#       currently, no new weights are calculated
-  if (!is.null(model) && exists(paste0("init_", model))) init <- get(paste0("init_", model))
-  else init <- list()
+
+  if (length(members) > 1) stop("FA files can not contain multiple members.")
+  if (length(lead_time) > 1) stop("FA files can not contain multiple lead times.")
 
   all_data <- read_fa(file_name, parameter, ...)
 
-  if (is.null(init$weights) || attr(init$weights, "$method") != method) {
-    init <- initialise_model(model, domain=all_data, stations=stations,
-                             method=method, use_mask=use_mask, drop_NA=TRUE)
+  if (is.null(init$weights) || attr(init$weights, "method") != method) {
+    init <- initialise_interpolation(domain=attr(all_data, "domain"),
+                                     stations=init$stations,
+                                     method=method, use_mask=use_mask, drop_NA=TRUE)
+    ## assign init to the calling function, so it can be re-used
+    assign("init", init, env = parent.frame())
   }
   fcpoints <- meteogrid::point.interp(all_data, weights=init$weights)
   # this (currently) creates an array width dimensions (station,ldt,prm)
   result <- init$stations
   result$lead_time <- rep(lead_time, dim(init$stations)[1])
-  for (prm in seq_along(parameter)) result[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
-  if (!is.null(member)) result$member <- member
-  if (!is.null(model)) result$model <- model
+  # FIXME: read_det_interpolate expects the column to be called "forecast"
+  # and a separate "parameter" column
+  if (length(parameter) > 1) {
+    for (prm in seq_along(parameter)) result[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
+  } else {
+    result[["forecast"]] <- as.vector(fcpoints)
+    result[["parameter"]] <- parameter
+  }
+  if (!is.na(members)) result$members <- members
 
-  list(fc_data = result,
+  list(fcst_data = result,
        units = tibble::tibble(parameter = parameter,
                               units = attr(all_data, "info")$units))
 }

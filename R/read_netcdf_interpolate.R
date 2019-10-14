@@ -1,25 +1,25 @@
-# Read a netcdf file and interpolate to stations.
-#
-# The function reads a single file. To read more than 1 file and / or use for
-# verificationuse the wrappers \link[harpIO]{read_eps_interpolate} and
-# \link[harpIO]{read_det_interpolate}. The function has only been tested on
-# netcdf files archived at MET Norway.
-#
-# @param file_name The netcdf file to read.
-# @param parameter The parameters to read from the netcdf file. Can be harp
-#   parameters are the names used in the netcdf files.
-# @param lead_time The lead times to read (in hours).
-# @param members The ensemble members to read.
-# @param init A list, currently containing only the stations to interpolate to.
-#   By default all of the
-#   stations from \link[harpIO]{station_list} that are inside the domain are
-#   used.
-# @param ... Absorb arguments for other read_*_interpolate functions.
-#
-# @return A data frame with the data read from the netcdf file.
+#' Read a netcdf file and interpolate to stations.
+#'
+#' The function reads a single file. To read more than 1 file and / or use for
+#' verificationuse the wrappers \link[harpIO]{read_eps_interpolate} and
+#' \link[harpIO]{read_det_interpolate}. The function has only been tested on
+#' netcdf files archived at MET Norway.
+#'
+#' @param file_name The netcdf file to read.
+#' @param parameter The parameters to read from the netcdf file. Can be harp
+#'   parameters are the names used in the netcdf files.
+#' @param lead_time The lead times to read (in hours).
+#' @param members The ensemble members to read.
+#' @param init A list, currently containing only the stations to interpolate to.
+#'   By default all of the
+#'   stations from \link[harpIO]{station_list} that are inside the domain are
+#'   used.
+#' @param ... Absorb arguments for other read_*_interpolate functions.
+#'
+#' @return A data frame with the data read from the netcdf file.
 # NOT exported. Used internally.
 #
-# @examples
+#' @examples
 read_netcdf_interpolate <- function(
   file_name,
   parameter           = NULL,
