@@ -1,6 +1,6 @@
 #' Read a field from a grib file
 #'
-#' @param file_name The grib file name.
+#' @param filename The grib file name.
 #' @param parameter The parameter to read. Standard HARP names are used.
 #' @param meta If TRUE, also read all meta data (domain, time properties).
 #' @param ... Arguments for \code{Rgrib2::Gdec}
@@ -16,7 +16,7 @@
 
 ### EXAMPLES NEED UPDATING
 
-read_grib <- function(file_name, parameter, meta = TRUE, ...) {
+read_grib <- function(filename, parameter, meta = TRUE, ...) {
   #TODO: parameter may be a vector...
   param_info    <- get_grib_param_info(parameter)
   if (is.na(param_info$short_name)) {
@@ -30,7 +30,7 @@ read_grib <- function(file_name, parameter, meta = TRUE, ...) {
       call. = FALSE
     )
   }
-  grib_info     <- Rgrib2::Gopen(file_name)
+  grib_info     <- Rgrib2::Gopen(filename)
   #
   grib_position <- grib_info %>%
     dplyr::filter(

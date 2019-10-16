@@ -1,6 +1,6 @@
 #' Read a field from an FA file in a tar archive
 #'
-#' @param file_name A tar archive of FA files.
+#' @param filename A tar archive of FA files.
 #' @param parameter The parameter to read. Standard HARP names are used,
 #'        but full FA field names will also work. If NULL, only domain information is read.
 #' @param lead_time Expressed in hours.
@@ -10,10 +10,10 @@
 #
 # NOT exported - used internally.
 #' @examples
-#' model_geofield <- read_fatar(file_name, "t2m", lead_time=0)
-#' model_geofield <- read_fa(file_name, "t500", lead_time=6)
+#' model_geofield <- read_fatar(filename, "t2m", lead_time=0)
+#' model_geofield <- read_fa(filename, "t500", lead_time=6)
 
-read_fatar <- function(file_name, parameter, lead_time=0, levels=NULL, members=NULL,
+read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NULL,
                        fa_type="arome", fa_vector=TRUE, lt_unit="h", ...) {
   if (!requireNamespace("Rfa", quietly=TRUE)) {
     stop("The Rfa package must be installed to read FA files.")
@@ -24,10 +24,10 @@ read_fatar <- function(file_name, parameter, lead_time=0, levels=NULL, members=N
   ## find the most efficient way to fill an array with variable dimensions
   ## creating all dimensions always will cause overhead to "collapse" them again
   ## TODO: fatar should be able to decumulate precipitation
-  if (is.list(file_name)) {
-    filelist <- file_name
+  if (is.list(filename)) {
+    filelist <- filename
   } else {
-    filelist <- Rfa::ParseTar(file_name)
+    filelist <- Rfa::ParseTar(filename)
   }
   extra_dim <- list(ldt=lead_time, prm=parameter) #, level=levels)
 #  if (is.null(parameter)) return()
@@ -40,7 +40,7 @@ read_fatar <- function(file_name, parameter, lead_time=0, levels=NULL, members=N
     fcfile <- grep(sprintf("+%04i$", lead_time[ldt]), names(filelist), val = TRUE)
     if (length(fcfile) != 1) {
       stop("Lead time ", lead_time[ldt], " not available in archive file\n",
-           file_name, "\n", length(fcfile), " hits")
+           filename, "\n", length(fcfile), " hits")
     }
     fafile <- Rfa::FAopen(filelist[[fcfile]])
     if (ldt==1) {
@@ -59,7 +59,7 @@ read_fatar <- function(file_name, parameter, lead_time=0, levels=NULL, members=N
     #       need info$units
     #       either first assign read_fa output to variable and extract info$units
     #       or do a call to get_fa_
-      try(result[,, ldt, prm] <- read_fa(file_name = fafile, parameter  = parameter[prm],
+      try(result[,, ldt, prm] <- read_fa(fafile, parameter  = parameter[prm],
                                            meta=FALSE, faframe = attr(fafile, "frame"),
                                            fa_type = fa_type, fa_vector = fa_vector, ...))
       ## TODO: in fatar, it is possible to decumulate e.g. precipitation
@@ -110,7 +110,7 @@ read_fatar_interpolate <- function(file_name, parameter,
 # get data as geofield
 # TODO: what if you have a lagged member? then the file *is* called for multiple members?
   if (length(members) > 1) stop("FA-TAR archives do not contain multiple members.")
-  all_data <- read_fatar(file_name=file_name, parameter=parameter, lead_time=lead_time,
+  all_data <- read_fatar(file_name, parameter=parameter, lead_time=lead_time,
                          fa_type = fa_type, fa_vector = fa_vector, ...)
 # fix the interpolation weights (they may already exist)
   if (is.null(init$weights) || attr(init$weights, "method") != method) {

@@ -1,6 +1,6 @@
 #' Read a field from an FA file
 #'
-#' @param file_name The FA file name. "file@arch" signifies a file inside a tar archive.
+#' @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
 #'        It may also be a \code{FAfile} object.
 #' @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
 #'        work.
@@ -16,7 +16,7 @@
 #' model_geofield <- read_fa(file_name, "t500")
 #' model_geofield <- read_fa(file_name, "topo")
 
-read_fa <- function(file_name, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
+read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
   # ?accumulated fields?
 # harp_env$fa_infile <- infile
@@ -25,14 +25,14 @@ read_fa <- function(file_name, parameter, meta=TRUE, fa_type="arome", fa_vector=
   if (!requireNamespace("Rfa", quietly=TRUE)) {
     stop("The Rfa package must be installed to read FA files.")
   }
-  if (inherits(file_name, "FAfile")) {
-    fafile <- file_name
-  } else if (is.character(file_name)) {
-    namsplit <- strsplit(file_name, "@")[[1]]
+  if (inherits(filename, "FAfile")) {
+    fafile <- filename
+  } else if (is.character(filename)) {
+    namsplit <- strsplit(filename, "@")[[1]]
     fafile <- switch(length(namsplit),
-                       Rfa::FAopen(filename=file_name),
+                       Rfa::FAopen(filename=filename),
                        Rfa::FAopen(filename=namsplit[1], archname=namsplit[2]),
-                       stop("Could not open file ", file_name))
+                       stop("Could not open file ", filename))
   } else {
     stop("bad filename")
   }
