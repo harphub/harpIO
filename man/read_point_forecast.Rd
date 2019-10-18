@@ -5,11 +5,11 @@
 \title{Read point forecasts from FCTABLE files}
 \usage{
 read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
-  lead_time = seq(0, 48, 3), lags = "0s", by = "6h",
-  file_path = ".", file_template = NULL, drop_any_na = TRUE,
-  stations = NULL, members = NULL, accumulate = TRUE,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
-  get_lat_and_lon = FALSE)
+  lead_time = seq(0, 48, 3), lags = "0s", merge_lags = TRUE,
+  by = "6h", file_path = ".", file_template = NULL,
+  drop_any_na = TRUE, stations = NULL, members = NULL,
+  accumulate = TRUE, vertical_coordinate = c(NA_character_, "pressure",
+  "model", "height"), get_lat_and_lon = FALSE)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to be read in. Should be in
@@ -34,7 +34,11 @@ file names and to set which lead times are retrieved.}
 example, the FCTABLE files are constructed from lagged model runs the lags
 must be given here to ensure that the correct file names are generated. If,
 however, you simply want to add lagged members to a forecast, you should do
-that using \link[harpPoint]{lag_members}.}
+that using \link[harpPoint]{lag_forecast}.}
+
+\item{merge_lags}{A logical that, if set to TRUE (the default), lagged
+ensemble members will be shifted in time and joined to the parent forecast as
+derived from \code{start_date} and \code{by}.}
 
 \item{by}{Used in constructing the file names. A string of a number followed
 by a letter (the default is "6h"), where the letter can be "d" for days,
