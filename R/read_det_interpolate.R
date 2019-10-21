@@ -123,7 +123,7 @@
 #'   the calling environment. The default is FALSE to avoid memory overload.
 #' @param ... Extra options depending on file format.
 #'
-#' @return A tibble with columns eps_model, sub_model, fcdate, lead_time,
+#' @return A tibble with columns det_model, fcdate, lead_time,
 #'   member, SID, lat, lon, <parameter>.
 #' @export
 #'
@@ -400,10 +400,14 @@ read_det_interpolate <- function(
 
     }
 
-    if (return_data) function_output[[list_counter]] <- dplyr::select(forecast_data, -.data$member)
-
+    if (return_data) {
+      if (is.element("member", names(forecast_data))) {
+        function_output[[list_counter]] <- dplyr::select(forecast_data, -.data$member)
+      } else {
+        function_output[[list_counter]] <- forecast_data
+      }
+    }
   }
-
   if (return_data) dplyr::bind_rows(function_output)
 
 }

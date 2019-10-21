@@ -117,7 +117,7 @@ the calling environment. The default is FALSE to avoid memory overload.}
 \item{...}{Extra options depending on file format.}
 }
 \value{
-A tibble with columns eps_model, sub_model, fcdate, lead_time,
+A tibble with columns det_model, fcdate, lead_time,
   member, SID, lat, lon, <parameter>.
 }
 \description{

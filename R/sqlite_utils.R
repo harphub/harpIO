@@ -215,7 +215,8 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 #
 # @param db A database connection
 # @param name A name for the table. If it already exists, nothing happens.
-# @param a data.frame. Only column names and type are used.
+# @param a data.frame. Only column names and type are used. Alternatively, it
+#    can also be a named vector of date types.
 # @param primary Primary keys
 # @export
 create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
@@ -223,10 +224,18 @@ create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
 ## TODO: check fields are the same!!!
     return(NULL)
   }
-  types <- vapply(seq_len(dim(data)[2]), function(x) switch(class(data[[x]]),
+  # NOTE: we a "POSIXct" type will be stored as "REAL"
+  # for "switch" to work OK, we need a single element, so class()[1] is chosen
+  if (is.data.frame(data)) {
+    types <- vapply(seq_len(dim(data)[2]), function(x) switch(class(data[[x]])[1],
                                              "integer"="INTEGER",
                                              "numeric"="REAL",
-                                             "character"="CHARACTER"), FUN.VAL="a")
+                                             "character"="CHARACTER",
+                                             "REAL"), FUN.VAL="a")
+  } else {
+    types <- data
+  }
+
   if ( is.null(primary) ) {
     sql_create <- sprintf("CREATE TABLE %s ( %s )",
                            name,
