@@ -1,20 +1,20 @@
-#' Read a field from an FA file
-#'
-#' @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
-#'        It may also be a \code{FAfile} object.
-#' @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
-#'        work.
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param fa_type The kind of model file: "arome", "alaro", "surfex"...
-#' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
-#' @param ... Ignored
-#' @return A 2d geofield object (2d array with projection information)
+# Read a field from an FA file
+#
+# @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
+#        It may also be a \code{FAfile} object.
+# @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
+#        work.
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param fa_type The kind of model file: "arome", "alaro", "surfex"...
+# @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
+# @param ... Ignored
+# @return A 2d geofield object (2d array with projection information)
 #
 # NOT exported. Used internally.
-#' @examples
-#' model_geofield <- read_fa(file_name, "t2m")
-#' model_geofield <- read_fa(file_name, "t500")
-#' model_geofield <- read_fa(file_name, "topo")
+# @examples
+# model_geofield <- read_fa(file_name, "t2m")
+# model_geofield <- read_fa(file_name, "t500")
+# model_geofield <- read_fa(file_name, "topo")
 
 read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
