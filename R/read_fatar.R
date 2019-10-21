@@ -1,17 +1,17 @@
-#' Read a field from an FA file in a tar archive
-#'
-#' @param filename A tar archive of FA files.
-#' @param parameter The parameter to read. Standard HARP names are used,
-#'        but full FA field names will also work. If NULL, only domain information is read.
-#' @param lead_time Expressed in hours.
-#' @param ... Arguments for \code{read_fa}
-#' @return A 2d geofield object (2d array with projection information).
-#'         If the parameter is not found, the geofield will have value NA.
+# Read a field from an FA file in a tar archive
+#
+# @param filename A tar archive of FA files.
+# @param parameter The parameter to read. Standard HARP names are used,
+#        but full FA field names will also work. If NULL, only domain information is read.
+# @param lead_time Expressed in hours.
+# @param ... Arguments for \code{read_fa}
+# @return A 2d geofield object (2d array with projection information).
+#         If the parameter is not found, the geofield will have value NA.
 #
 # NOT exported - used internally.
-#' @examples
-#' model_geofield <- read_fatar(filename, "t2m", lead_time=0)
-#' model_geofield <- read_fa(filename, "t500", lead_time=6)
+# @examples
+# model_geofield <- read_fatar(filename, "t2m", lead_time=0)
+# model_geofield <- read_fa(filename, "t500", lead_time=6)
 
 read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NULL,
                        fa_type="arome", fa_vector=TRUE, lt_unit="h", ...) {
@@ -81,22 +81,22 @@ read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NU
   result
 }
 
-#' Read fa-tar files and interpolate to a set of locations
-#' @param file_name Name of a tar archive containing FA files
-#' @param parameter The parameter(s) to be decoded.
-#' @param lead_time The lead time(s) to be extracted. May be a vector!
-#' @param members Mostly ignored, but could be added as a (constant) column to output.
-#'        If present it must be a single string value (FA files do not contain multiple ensemble members)
-#' @param vertical_coordinate Not used. Only there for API reasons.
-#' @param init Interpolation weights (and domain information).
-#' @param method Interpolation method (only necessary if the weights are not yet initialised)
-#' @param use_mask If TRUE, use land/sea mask in interpolation
-#' @param fa_type For some fields (e.g. precipitation) arome and alaro
-#'        use different names, so we should specify.
-#' @param fa_vector If true, wind speed will be calculated from U and V components.
-#' @param ... Ignored and simply passed to read_fatar
-#' @return a list of two tibbles. One with interpolated forecasts for the stations list,
-#'         and one with parameter units.
+# Read fa-tar files and interpolate to a set of locations
+# @param file_name Name of a tar archive containing FA files
+# @param parameter The parameter(s) to be decoded.
+# @param lead_time The lead time(s) to be extracted. May be a vector!
+# @param members Mostly ignored, but could be added as a (constant) column to output.
+#        If present it must be a single string value (FA files do not contain multiple ensemble members)
+# @param vertical_coordinate Not used. Only there for API reasons.
+# @param init Interpolation weights (and domain information).
+# @param method Interpolation method (only necessary if the weights are not yet initialised)
+# @param use_mask If TRUE, use land/sea mask in interpolation
+# @param fa_type For some fields (e.g. precipitation) arome and alaro
+#        use different names, so we should specify.
+# @param fa_vector If true, wind speed will be calculated from U and V components.
+# @param ... Ignored and simply passed to read_fatar
+# @return a list of two tibbles. One with interpolated forecasts for the stations list,
+#         and one with parameter units.
 
 read_fatar_interpolate <- function(file_name, parameter,
                                    lead_time,
