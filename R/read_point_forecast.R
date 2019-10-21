@@ -27,7 +27,10 @@
 #'   example, the FCTABLE files are constructed from lagged model runs the lags
 #'   must be given here to ensure that the correct file names are generated. If,
 #'   however, you simply want to add lagged members to a forecast, you should do
-#'   that using \link[harpPoint]{lag_members}.
+#'   that using \link[harpPoint]{lag_forecast}.
+#' @param merge_lags A logical that, if set to TRUE (the default), lagged
+#'   ensemble members will be shifted in time and joined to the parent forecast as
+#'   derived from \code{start_date} and \code{by}.
 #' @param by Used in constructing the file names. A string of a number followed
 #'   by a letter (the default is "6h"), where the letter can be "d" for days,
 #'   "h" for hours, "m" for minutes and "s" for seconds. Should be set to the
@@ -82,6 +85,7 @@ read_point_forecast <- function(
   parameter,
   lead_time           = seq(0, 48, 3),
   lags                = "0s",
+  merge_lags          = TRUE,
   by                  = "6h",
   file_path           = ".",
   file_template       = NULL,
@@ -120,7 +124,7 @@ read_point_forecast <- function(
     lags_passed <- FALSE
   }
 
-  if (drop_any_na && !lags_passed) {
+  if (drop_any_na && merge_lags) {
     drop_function <- dplyr::all_vars(!is.na(.))
   } else {
     drop_function <- dplyr::any_vars(!is.na(.))
@@ -387,8 +391,14 @@ read_point_forecast <- function(
 
   }
 
-  fcst <- purrr::map(fcst, split_sub_models, member_regexp) %>%
-    merge_names_df(lag_table$fcst_model)
+  fcst <- purrr::map(fcst, split_sub_models, member_regexp)
+
+  if (merge_lags) {
+    fcst <- lag_and_join(fcst, lag_table)
+  } else {
+    fcst <- merge_names_df(fcst, lag_table$fcst_model)
+  }
+
 
   attr(fcst, "missing_files") <- missing_files
   class(fcst) <- "harp_fcst"
@@ -427,4 +437,47 @@ merge_names_df <- function(df_list, df_names) {
     }
   }
   merged
+}
+
+# Adjust fcdate and lead time of lagged members and join to unlagged.
+lag_and_join <- function(fcst_list, lags_df) {
+
+  lag_seconds <- purrr::map2_dbl(
+    as.numeric(gsub("\\D", "", lags_df$lag)),
+    lags_df$lag,
+    ~ .x * units_multiplier(.y)
+  )
+
+  non_zero_values <- which(lag_seconds > 0)
+  if (!any(non_zero_values)) {
+    fcst_list <- merge_names_df(fcst_list, lags_df$fcst_model)
+    return(fcst_list)
+  }
+
+  fcst_list[non_zero_values] <- purrr::map2(
+    fcst_list[non_zero_values],
+    lag_seconds[non_zero_values],
+    ~ dplyr::mutate(
+        .x,
+        fcdate     = .data$fcdate + .y,
+        leadtime   = .data$leadtime - .y / 3600,
+        fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
+      )
+  )
+
+  join_lags <- function(inner_list) {
+    if (length(inner_list) > 1) {
+      join_cols <- purrr::map(inner_list, colnames) %>%
+        purrr::reduce(intersect)
+      purrr::reduce(inner_list, dplyr::inner_join, by = join_cols, suffix = c("", "_lag"))
+    } else {
+      inner_list[[1]]
+    }
+  }
+
+  fcst_list <- split(fcst_list, lags_df$fcst_model) %>%
+    purrr::map(join_lags)
+
+  fcst_list
+
 }

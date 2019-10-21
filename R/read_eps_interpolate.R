@@ -516,6 +516,16 @@ read_eps_interpolate <- function(
       by = c("eps_model", "sub_model", "member")
     )
 
+    if (all(!file.exists(data_files$file_name))) {
+      warning(
+        "No files found for ", fcst_date, ". Missing files:\n", paste(data_files$file_name, collapse = "\n"),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      if (return_data) function_output[[list_counter]] <- NULL
+      next()
+    }
+
     # Get the data
 
     message("Reading data for ", fcst_date)
