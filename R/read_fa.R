@@ -83,24 +83,24 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
 }
 
 
-#' Read FA files & interpolate
-#' @param file_name Name of a tar archive containing FA files
-#' @param parameter The parameter(s) to be decoded.
-#' @param lead_time The lead time(s) to be extracted. May be a vector!
-#' @param members Mostly ignored, but could be added as a (constant) column to output.
-#'        If present it must be a single string value (FA files do not contain multiple ensemble members)
-#' @param vertical_coordinate Not used. Only there for API reasons.
-#' @param init Interpolation weights (and domain information).
-#' @param method Interpolation method (only necessary if the weights are not yet initialised)
-#' @param use_mask If TRUE, use land/sea mask in interpolation
-#' @param fa_type For some fields (e.g. precipitation) arome and alaro
-#'    use different names, so we should specify.
-#' @param fa_vector If true, wind speed will be calculated from U and V components.
+# Read FA files & interpolate
+# @param file_name Name of a tar archive containing FA files
+# @param parameter The parameter(s) to be decoded.
+# @param lead_time The lead time(s) to be extracted. May be a vector!
+# @param members Mostly ignored, but could be added as a (constant) column to output.
+#        If present it must be a single string value (FA files do not contain multiple ensemble members)
+# @param vertical_coordinate Not used. Only there for API reasons.
+# @param init Interpolation weights (and domain information).
+# @param method Interpolation method (only necessary if the weights are not yet initialised)
+# @param use_mask If TRUE, use land/sea mask in interpolation
+# @param fa_type For some fields (e.g. precipitation) arome and alaro
+#    use different names, so we should specify.
+# @param fa_vector If true, wind speed will be calculated from U and V components.
 
-#' @param ... Ignored and simply passed to read_fatar
+# @param ... Ignored and simply passed to read_fatar
 
-#' @param ... Extra arguments for read_fa[tar]
-#' @return A tibble with interpolated forecasts for the stations list
+# @param ... Extra arguments for read_fa[tar]
+# @return A tibble with interpolated forecasts for the stations list
 #
 # NOT exported - used internally.
 read_fa_interpolate <- function(file_name,
