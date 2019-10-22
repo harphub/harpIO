@@ -128,7 +128,7 @@ read_fatar_interpolate <- function(file_name, parameter,
   if (length(parameter)>1) {
   # TODO: clean this up: if only 1 leadtime, you have 1 less dimension...
     if (length(lead_time)==1) {
-      # FIXME: in fact you should create 1 column forecast and one column "parameter" 
+      # FIXME: in fact you should create 1 column forecast and one column "parameter"
       for (prm in seq_along(parameter)) fctable[[parameter[prm]]] <- as.vector(fcpoints[,prm])
     } else {
       for (prm in seq_along(parameter)) fctable[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
@@ -141,7 +141,7 @@ read_fatar_interpolate <- function(file_name, parameter,
   }
   for (nn in names(init$stations)) fctable[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
-  if (!is.na(members)) fctable$members <- members
+  if (!is.na(members)) fctable$member <- members
   units <- tibble::tibble(parameter = parameter,
                           units = attr(all_data, "info")$units)
   list(fcst_data = fctable, units = units)

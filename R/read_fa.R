@@ -138,7 +138,7 @@ read_fa_interpolate <- function(file_name,
     result[["forecast"]] <- as.vector(fcpoints)
     result[["parameter"]] <- parameter
   }
-  if (!is.na(members)) result$members <- members
+  if (!is.na(members)) result$member <- members
 
   list(fcst_data = result,
        units = tibble::tibble(parameter = parameter,
