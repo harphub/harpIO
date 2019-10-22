@@ -138,7 +138,7 @@ read_grib_interpolate <- function(file_name,
   result <- tidyr::gather(result, key = parameter, value = forecast, parameter)
   for (nn in names(init$stations)) result[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
-  if (!is.null(members)) result$members <- members
+  if (!is.null(members)) result$member <- members
   list(fcst_data = dplyr::select(result, -.data$elev, -.data$name),
        units = tibble::tibble(parameter = parameter,
                               units = attr(all_data, "info")$unit))
