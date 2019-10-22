@@ -275,7 +275,7 @@ read_point_forecast <- function(
 
   no_members <- sapply(fcst, function(x) !any(grepl(fcst_suffix, names(x))))
   no_members_warning <- function(mname, lag_time, mbr, no_mbrs) {
-    if(no_mbrs) {
+    if (no_mbrs) {
       warning("Members ", paste(mbr, collapse = ","), " not found for ", mname, ", lag: ", lag_time, immediate. = TRUE, call. = FALSE)
     }
   }
@@ -325,7 +325,7 @@ read_point_forecast <- function(
           by            = by,
           lags          = .y,
           parameter     = param_name,
-          eps_model     = .x,
+          eps_model     = gsub("_unshifted", "", .x),
           lead_time     = ..3 - readr::parse_number(.y),
           file_template = file_template
         )
