@@ -37,8 +37,8 @@ however, you simply want to add lagged members to a forecast, you should do
 that using \link[harpPoint]{lag_forecast}.}
 
 \item{merge_lags}{A logical that, if set to TRUE (the default), lagged
-ensemble members will be shifted in time and joined to the parent forecast as
-derived from \code{start_date} and \code{by}.}
+ensemble members will be shifted in time and joined to the parent forecast
+as derived from \code{start_date} and \code{by}.}
 
 \item{by}{Used in constructing the file names. A string of a number followed
 by a letter (the default is "6h"), where the letter can be "d" for days,
@@ -49,7 +49,11 @@ fastest varying time dimension in the desired file names.}
 
 \item{file_template}{The template for the file names of the files to be read
 from. This would normally be one of the "fctable_*" templates that can be
-seen in \code\link{show_file_templates}.}
+seen in \code\link{show_file_templates}. Can be a single string, a
+character vector or list of the same length as \code{fcst_model}. If not
+named, the order of templates is assumed to be the same as in
+\code{fcst_model}. If named, the names must match the entries in
+\code{fcst_model}.}
 
 \item{drop_any_na}{Set to TRUE (the default) to remove all cases where there
 is at least one missing value. This ensures that when you come to analyse a
