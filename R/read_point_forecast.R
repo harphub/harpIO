@@ -29,8 +29,8 @@
 #'   however, you simply want to add lagged members to a forecast, you should do
 #'   that using \link[harpPoint]{lag_forecast}.
 #' @param merge_lags A logical that, if set to TRUE (the default), lagged
-#'   ensemble members will be shifted in time and joined to the parent forecast as
-#'   derived from \code{start_date} and \code{by}.
+#'   ensemble members will be shifted in time and joined to the parent forecast
+#'   as derived from \code{start_date} and \code{by}.
 #' @param by Used in constructing the file names. A string of a number followed
 #'   by a letter (the default is "6h"), where the letter can be "d" for days,
 #'   "h" for hours, "m" for minutes and "s" for seconds. Should be set to the
@@ -38,7 +38,11 @@
 #' @param file_path The path to the data.
 #' @param file_template The template for the file names of the files to be read
 #'   from. This would normally be one of the "fctable_*" templates that can be
-#'   seen in \code\link{show_file_templates}.
+#'   seen in \code\link{show_file_templates}. Can be a single string, a
+#'   character vector or list of the same length as \code{fcst_model}. If not
+#'   named, the order of templates is assumed to be the same as in
+#'   \code{fcst_model}. If named, the names must match the entries in
+#'   \code{fcst_model}.
 #' @param drop_any_na Set to TRUE (the default) to remove all cases where there
 #'   is at least one missing value. This ensures that when you come to analyse a
 #'   forecast, only those forecasts with a full set of ensmeble members / data
@@ -99,12 +103,12 @@ read_point_forecast <- function(
 
   switch(tolower(fcst_type),
     "eps" = {
-      file_template <- ifelse(is.null(file_template), "fctable_eps", file_template)
+      if (is.null(file_template)) file_template <- "fctable_eps"
       member_regexp <- "[[:graph:]]+(?=_mbr[[:digit:]]+)"
       fcst_suffix   <- "_mbr"
     },
     "det" = {
-      file_template <- ifelse(is.null(file_template), "fctable_det", file_template)
+      if (is.null(file_template)) file_template <- "fctable_det"
       member_regexp <- "[[:graph:]]+(?=_det)"
       fcst_suffix   <- "_det"
     },
@@ -166,20 +170,65 @@ read_point_forecast <- function(
     }
   }
 
-  lag_table <- purrr::map2_dfr(fcst_model, lags, ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE))
-  file_names <- purrr::map2(
-    lag_table$fcst_model,
-    lag_table$lag,
+  if (length(file_template) == 1) {
+    if (length(fcst_model) > 1) {
+      warning("Only 1 'file_template' defined. Recycling for all 'fcst_model'.", call. = FALSE, immediate. = TRUE)
+    }
+    template_table <- data.frame(
+      fcst_model       = fcst_model,
+      file_template    = unlist(file_template),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    if (length(file_template) != length(fcst_model)) {
+      stop(
+        "You must have either 1 'file_template', or there must be the same number of elements\n",
+        "in 'file_template' as in 'fcst_model'.",
+        call. = FALSE
+      )
+    } else {
+      if (is.null(names(file_template))) {
+        warning(
+          "No names specified for 'file_template'. Assuming the same order as 'fcst_model'.",
+          call.      = FALSE,
+          immediate. = TRUE
+        )
+        template_table <- data.frame(
+          fcst_model       = fcst_model,
+          file_template    = unlist(file_template),
+          stringsAsFactors = FALSE
+        )
+      } else {
+        if (!identical(sort(fcst_model), sort(names(file_template)))) {
+          stop("'file_template' names must be the same as 'fcst_model'.", call. = FALSE)
+        }
+        template_table <- data.frame(
+          fcst_model       = names(file_template),
+          file_template    = unlist(file_template),
+          stringsAsFactors = FALSE)
+      }
+    }
+  }
+
+  lag_table <- purrr::map2_dfr(
+    fcst_model,
+    lags,
+    ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE)
+  ) %>%
+    dplyr::inner_join(template_table)
+
+  file_names <- purrr::pmap(
+    as.list(lag_table),
     ~ get_filenames(
       file_path     = file_path,
       start_date    = start_date,
       end_date      = end_date,
       by            = by,
-      lags          = .y,
+      lags          = ..2,
       parameter     = param_name,
-      eps_model     = gsub("_unshifted", "", .x),
+      eps_model     = gsub("_unshifted", "", ..1),
       lead_time     = lead_time,
-      file_template = file_template
+      file_template = ..3
     )
   )
 
