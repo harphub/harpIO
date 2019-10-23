@@ -50,7 +50,6 @@ get_netcdf_param_MET <- Vectorize(function (param, vc = NA) {
     "terrain"  , "surface_geopotential",
     "topo"     , "surface_geopotential",
     "pcp"      , "precipitation_amount_acc",
-    "g10m"     , "wind_speed_of_gust",
     "tg1"      , "TG1",
     "tg2"      , "TG2",
     "tg3"      , "TG3",
