@@ -172,7 +172,7 @@ read_eps_interpolate <- function(
   lapse_rate           = 0.0065,
   vertical_coordinate  = c("pressure", "model", "height", NA),
   clim_file            = NULL,
-  clim_format          = NULL,
+  clim_format          = file_format,
   interpolation_method = "nearest",
   use_mask             = FALSE,
   sqlite_path          = NULL,

@@ -130,12 +130,14 @@ read_grib_interpolate <- function(file_name,
   if (length(parameter)>1) {
     # FIXME: multiple parameters all in same columns "forecast" and "parameter"
     for (prm in seq_along(parameter)) result[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
+    # AS: I moved the below line to here - I'm pretty sure it doesn't belong outside the if block
+    result <- tidyr::gather(result, key = parameter, value = forecast, parameter)
   } else {
 #    result[[parameter]] <- fcpoints
     result[["forecast"]] <- fcpoints
     result[["parameter"]] <- parameter
   }
-  result <- tidyr::gather(result, key = parameter, value = forecast, parameter)
+
   for (nn in names(init$stations)) result[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
   if (!is.null(members)) result$member <- members
