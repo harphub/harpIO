@@ -106,6 +106,10 @@ read_vfile <- function(
       nrows     = num_synop
     )
 
+    if (is.element("AccPcp12h.1", colnames(synop_data))) {
+      synop_data <- dplyr::rename(synop_data, AccPcpOther12h = .data$AccPcp12h.1)
+    }
+
   }
 
   # temp data

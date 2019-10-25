@@ -100,7 +100,8 @@ read_point_obs <- function(
     if (parameter == "AccPcp12h") {
       message("Deriving 12h precipitation from 6h precipitation")
       obs <- derive_12h_precip(obs)
-    } else {
+    }
+    if (parameter == "AccPcp3h") {
       message("Deriving 3h precipitation from 6h precipitation")
       obs <- derive_3h_precip(obs)
     }
