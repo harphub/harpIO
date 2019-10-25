@@ -196,6 +196,12 @@ file_templates <- function() {
       "meps_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
+    "meps_subset" ,  file.path(
+      "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
+      "{YYYY}", "{MM}", "{DD}",
+      "meps_subset_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+    ),
+
     "obstable" , file.path(
       "{file_path}",
       "OBSTABLE_{YYYY}.sqlite"
