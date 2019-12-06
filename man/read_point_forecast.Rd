@@ -60,7 +60,7 @@ is at least one missing value. This ensures that when you come to analyse a
 forecast, only those forecasts with a full set of ensmeble members / data
 are read in. For reading lagged ensembles, this is automatically set to
 FALSE. The cases with at least one missing member are then dropped when the
-lagged members are created using \code{\link[harpPoint]{lag_forecast}}.}
+lagged members are created using \link[harpPoint]{lag_forecast}.}
 
 \item{stations}{The stations to retrieve forecasts for. This should be a
 vector of station ID numbers. Set to NULL to retrieve all stations.}

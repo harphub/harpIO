@@ -38,7 +38,7 @@
 #' @param file_path The path to the data.
 #' @param file_template The template for the file names of the files to be read
 #'   from. This would normally be one of the "fctable_*" templates that can be
-#'   seen in \code\link{show_file_templates}. Can be a single string, a
+#'   seen in \link{show_file_templates}. Can be a single string, a
 #'   character vector or list of the same length as \code{fcst_model}. If not
 #'   named, the order of templates is assumed to be the same as in
 #'   \code{fcst_model}. If named, the names must match the entries in
@@ -48,7 +48,7 @@
 #'   forecast, only those forecasts with a full set of ensmeble members / data
 #'   are read in. For reading lagged ensembles, this is automatically set to
 #'   FALSE. The cases with at least one missing member are then dropped when the
-#'   lagged members are created using \code{\link[harpPoint]{lag_forecast}}.
+#'   lagged members are created using \link[harpPoint]{lag_forecast}.
 #' @param stations The stations to retrieve forecasts for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #' @param members The members to retrieve if reading an EPS forecast. To select
