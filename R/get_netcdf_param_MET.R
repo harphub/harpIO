@@ -22,7 +22,7 @@ get_netcdf_param_MET <- Vectorize(function (param, vc = NA) {
     "tmax"     , "air_temperature_max",
     "q"        , "specific_humidity",
     "q2m"      , "specific_humidity_2m",
-    "rh"       , "relative_hunidity",
+    "rh"       , "relative_humidity",
     "rh2m"     , "relative_humidity_2m",
     "caf"      , "cloud_area_fraction",
     "cctot"    , "cloud_area_fraction",

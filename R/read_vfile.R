@@ -18,6 +18,11 @@ read_vfile <- function(
 
   empty_data <- empty_data_interpolate(members, lead_time, empty_type = data_type)
 
+  if (file.size(v_file_name) == 0) {
+    warning("Unable to read: ", v_file_name, "\n", call. = FALSE, immediate. = TRUE)
+    return(list(synop_data = empty_data, temp_data = empty_data))
+  }
+
   file_connection <- file(v_file_name, "r")
 
   # metadata
