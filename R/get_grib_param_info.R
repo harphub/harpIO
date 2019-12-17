@@ -117,7 +117,7 @@ get_grib_param_info <- function(param) {
     "altitude" = {
       short_name   <-  "z"
       param_number <-  6
-      level_type   <-  105
+      level_type   <-  c(105, 1)
       level_number <-  0
     },
     "z"        = {

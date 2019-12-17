@@ -39,8 +39,15 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
     grib_position <- grib_info %>%
       dplyr::filter(
         .data$shortName              == param_info$short_name,
-        .data$indicatorOfParameter   == param_info$param_number,
-        .data$indicatorOfTypeOfLevel == param_info$level_type,
+        .data$indicatorOfTypeOfLevel == param_info$level_type[1],
+        .data$level                  == param_info$level_number
+      )
+  }
+  if (nrow(grib_position) < 1 && length(param_info$level_type) == 2) {
+    grib_position <- grib_info %>%
+      dplyr::filter(
+        .data$shortName              == param_info$short_name,
+        .data$indicatorOfTypeOfLevel == param_info$level_type[2],
         .data$level                  == param_info$level_number
       )
   }
