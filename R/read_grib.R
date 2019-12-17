@@ -30,16 +30,21 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
       call. = FALSE
     )
   }
-  grib_info     <- Rgrib2::Gopen(filename)
+  grib_info <- Rgrib2::Gopen(filename)
   #
-  grib_position <- grib_info %>%
-    dplyr::filter(
-      shortName              == param_info$short_name,
-      indicatorOfParameter   == param_info$param_number,
-      indicatorOfTypeOfLevel == param_info$level_type,
-      level                  == param_info$level_number
-    ) %>%
-    dplyr::pull(position)
+
+  if (grepl("[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+    grib_position <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
+  } else {
+    grib_position <- grib_info %>%
+      dplyr::filter(
+        .data$shortName              == param_info$short_name,
+        .data$indicatorOfParameter   == param_info$param_number,
+        .data$indicatorOfTypeOfLevel == param_info$level_type,
+        .data$level                  == param_info$level_number
+      )
+  }
+  grib_position <- dplyr::pull(grib_position, .data$position)
   #
 
   if (length(grib_position) == 0) {
