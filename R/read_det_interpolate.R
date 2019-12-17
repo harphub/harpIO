@@ -292,6 +292,7 @@ read_det_interpolate <- function(
         dplyr::mutate(
           forecast = .data$forecast + lapse_rate * (.data$model_elevation - .data$elev)
         ) %>%
+        dplyr::filter(.data$elev > -9999) %>%
         dplyr::select(
           -dplyr::contains(".station"),
           -.data$elev,
