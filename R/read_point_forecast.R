@@ -365,7 +365,8 @@ read_point_forecast <- function(
         list(
           lag_table$fcst_model[unread_leads],
           lag_table$lag[unread_leads],
-          lead_time_accum[unread_leads]
+          lead_time_accum[unread_leads],
+          lag_table$file_template[unread_leads]
         ),
         ~ get_filenames(
           file_path     = file_path,
@@ -376,7 +377,7 @@ read_point_forecast <- function(
           parameter     = param_name,
           eps_model     = gsub("_unshifted", "", .x),
           lead_time     = ..3 - readr::parse_number(.y),
-          file_template = file_template
+          file_template = ..4
         )
       )
 
