@@ -9,15 +9,9 @@
 #'         If the parameter is not found, the geofield will have value NA.
 #
 # NOT exported - used internally.
-<<<<<<< HEAD
-#' @examples
-#' model_geofield <- read_fatar(filename, "t2m", lead_time=0)
-#' model_geofield <- read_fa(filename, "t500", lead_time=6)
-=======
 # @examples
 # model_geofield <- read_fatar(filename, "t2m", lead_time=0)
 # model_geofield <- read_fa(filename, "t500", lead_time=6)
->>>>>>> 12af17ddbd83242d57b4331ec70bf8a3eaba33e7
 
 read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NULL,
                        fa_type="arome", fa_vector=TRUE, lt_unit="h", ...) {

@@ -1,17 +1,22 @@
 # Initialise domain, interpolation, land/sea mask etc. for a model
 #
-# @param climfile The path of a "clim" file containing topography & land/sea mask
-# @param ftype File type of the clim file (fa, grib ...).
+# @param file The path of a "clim" file containing topography & land/sea mask
+# @param file_format File type of the clim file (fa, grib ...).
+# @param parameter A parameter that can be read from the file (only for domain)
+#        if correct_t2m == TRUE, parameter is always set to "topo"
 # @param domain A \code{geodomain}, only needed if it can not be retrieved from clim file.
-# @param stations The locations for which to initialise interpolation
+# @param stations The locations for which to initialise interpolation. 
+#    If NULL, a default (global) list is taken.
 # @param method Interpolation method ("bilin", "nn"...)
 # @param use_mask Should L/S mask be applied when initialising the interpolation?
 # @param drop_NA Should weights/stations that are NA be removed?
+# @correct_t2m Should model elevation be added for lapse rate correction?
 # @param ... Arguments for interpolation method. Currently not used.
-# @return A list with various initialisations. It is also assigned to the global environment.
+# @return A list with various initialisations.
 # Not exported - used internally
 
-initialise_interpolation <- function(clim_file=NULL, file_format=NULL,
+initialise_interpolation <- function(filename=NULL, file_format=NULL,
+                                     parameter="topo",
                                      domain = NULL,
                                      stations=NULL,
                                      method="closest", use_mask=FALSE,
@@ -25,74 +30,72 @@ initialise_interpolation <- function(clim_file=NULL, file_format=NULL,
   # Also, we don't want e.g. netcdf to do the model_elevation for every file
   # but for now, we will leave it like this, because netcdf uses different
   # interpolation code. TODO: !!!
-  if (file_format %in% c("ncdf", "vfld")) return(list(stations=stations))
-#  message("initialising interpolation")
+  # AD: I think we could extract topo for netcdf already?
+  if (file_format %in% c("netcdf", "vfld")) return(list(stations=stations))
 
-  init <- list()
-  if (!is.null(clim_file)) {
-    ## if a clim_file is specified, we extract topo in any case
+  init <- list(stations = stations, method = method, use_mask = use_mask)
+  if (!is.null(filename)) {
+    if (correct_t2m) parameter <- "topo"
+    ## if a filename is specified, we could extract topo in any case
     ## after all, we have to extract at least 1 field to get the domain
     ## unless we know an extra function like "open_XXX" (FAopen, Gopen return domain info)
-    ## if the file doesn't contain "topo" we'll get a warning, but still have domain info.
-#    if (correct_t2m) {
-      err <- try(init$topo <- read_grid(clim_file,
-                                        parameter = "topo",
-                                        file_format = file_format)/8.80655, silent=TRUE)
-      # note that if topo is not available, there is no error, just a warning!
-      # that's fine, because from an NA field we can still get domain information.
-      if (inherits(err, "try-error")) warning("Could not read topographic data.", immediate.=TRUE)
-      else init$domain <- attr(init$topo, "domain")
-      if (any(is.na(init$topo))) {
-        init$topo <- NULL
-      }
-#    }
+    ## if the file doesn't contain "topo" we'll get a warning,
+    ## but still have domain info (well, for most formats at least).
+    err <- try(pfield <- read_grid(filename,
+                                   parameter,
+                                   file_format)/8.80655, silent=TRUE)
+    if (inherits(err, "try-error")) warning("Could not read ", parameter,".", immediate.=TRUE)
+    else init$domain <- attr(pfield, "domain")
+    if (parameter == "topo" && !any(is.na(pfield))) init$topo <- pfield
+
     if (use_mask) {
-      err <- try(init$lsm <- read_grid(clim_file, parameter="lsm", file_format=file_format), silent=TRUE)
-      if (inherits(err, "try-error")) warning("Could not read land/sea mask.", immediate.=TRUE)
-      else if (is.null(init$domain)) init$domain <- attr(init$topo, "domain")
+      err <- try(init$lsm <- read_grid(filename,
+                                       parameter="lsm",
+                                       file_format=file_format), silent=TRUE)
+      if (inherits(err, "try-error")) stop("Could not read land/sea mask.", immediate.=TRUE)
+      else if (is.null(init$domain)) init$domain <- attr(init$lsm, "domain")
     }
   } else if (!is.null(domain)) {
 #    print(str(domain))
     message("Domain provided")
-    if (inherits(domain, "geodomain")) {
-      init[["domain"]] <- domain
-    } else {
-      init[["domain"]] <- meteogrid::as.geodomain(domain)
-    }
+    init[["domain"]] <- meteogrid::as.geodomain(domain)
   } else {
 #    if (!"domain" %in% names(init)) stop("You must provide a clim file or a domain definition.")
     # you have no domain information, so you can't initialise anything else (yet)
     return(list(stations=stations, method=method))
   }
+
   if (use_mask) {
     if (!"lsm" %in% names(init)) stop("Can not use L/S mask without lsm field.")
     if (!"lsm" %in% names(stations)) stop("Can not use L/S mask: station list does not have this data.")
   }
-  if (is.null(init$domain)) stop("No domain information available. Can not interpolate.")
-  iweights <- meteogrid::point.interp.init(domain=init$domain,
-                                             lon=stations$lon, lat=stations$lat,
-                                             method=method,
-                                             mask=if (use_mask) init$lsm else NULL,
-                                             pointmask=stations$lsm, ...)
+
+  if (!is.null(init$domain)) {
+    iweights <- meteogrid::point.interp.init(domain=init$domain,
+                                               lon=stations$lon, lat=stations$lat,
+                                               method=method,
+                                               mask=if (use_mask) init$lsm else NULL,
+                                               pointmask=stations$lsm, ...)
     ## keep only the stations/weights that are non-NA (e.g. inside the domain)?
-  if (drop_NA) {
-    drop <- apply(iweights, 1, function(x) any(is.na(x)))
-    stations <- stations[!drop,]
-    iweights <- iweights[!drop,]
-  }
+    if (drop_NA) {
+      drop <- apply(iweights, 1, function(x) any(is.na(x)))
+      stations <- stations[!drop,]
+      iweights <- iweights[!drop,]
+    }
 #  if (correct_t2m) {
-  if ("topo" %in% names(init) && !any(is.na(init$topo))) {
-      stations$model_elevation <- meteogrid::point.interp(
-                                  infield=init$topo, weights=iweights)
+    if ("topo" %in% names(init) && !any(is.na(init$topo))) {
+        stations$model_elevation <- meteogrid::point.interp(
+                                    infield=init$topo, weights=iweights)
 #  } else {
 #      if (! "model_elevation" %in% names(stations))
 #      stop("No model elevation available. Can not do T2m corrections.\n",
-#           "Please provide a clim_file containing model elevation.")
+#           "Please provide a filename containing model elevation.")
 #    }
+    }
+    init$weights <- iweights
+    init$stations <- stations
+  } else {
+    message("No domain information available. Can not initialise interpolation.")
   }
-  init$weights <- iweights
-  init$stations <- stations
-  init$method <- method
-
   invisible(init)
 }

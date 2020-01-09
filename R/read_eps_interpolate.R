@@ -424,7 +424,7 @@ read_eps_interpolate <- function(
   if (!is.null(clim_file)) {
     message("Initialising interpolation.")
     init <- initialise_interpolation(
-      file_format = clim_format,
+      filename    = clim_format,
       clim_file   = clim_file,
       correct_t2m = correct_t2m,
       method      = interpolation_method,
@@ -524,6 +524,23 @@ read_eps_interpolate <- function(
       )
       if (return_data) function_output[[list_counter]] <- NULL
       next()
+    }
+
+    # Initialise interpolation from first file_name (if necessary)
+    if (is.null(init$weights) && ! file_format %in% c("vfld", "netcdf")) {
+      # NOTE: even if there is no "topo" or "lsm" field, we will should able to
+      #       derive the domain
+      ff <- which(file.exists(data_files$file_name))[1]
+      message("Initialising interpolation from forecast file.")
+      init <- initialise_interpolation(
+        filename    = data_files$file_name[ff],
+        file_format = file_format,
+        parameter   = parameter,
+        correct_t2m = correct_t2m,
+        method      = interpolation_method,
+        use_mask    = use_mask,
+        stations    = stations
+      )
     }
 
     # Get the data
