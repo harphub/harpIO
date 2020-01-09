@@ -5,11 +5,11 @@
 \title{Read point forecasts from FCTABLE files}
 \usage{
 read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
-  lead_time = seq(0, 48, 3), lags = "0s", by = "6h",
-  file_path = ".", file_template = NULL, drop_any_na = TRUE,
-  stations = NULL, members = NULL, accumulate = TRUE,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
-  get_lat_and_lon = FALSE)
+  lead_time = seq(0, 48, 3), lags = "0s", merge_lags = TRUE,
+  by = "6h", file_path = ".", file_template = NULL,
+  drop_any_na = TRUE, stations = NULL, members = NULL,
+  accumulate = TRUE, vertical_coordinate = c(NA_character_, "pressure",
+  "model", "height"), get_lat_and_lon = FALSE)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to be read in. Should be in
@@ -34,7 +34,11 @@ file names and to set which lead times are retrieved.}
 example, the FCTABLE files are constructed from lagged model runs the lags
 must be given here to ensure that the correct file names are generated. If,
 however, you simply want to add lagged members to a forecast, you should do
-that using \link[harpPoint]{lag_members}.}
+that using \link[harpPoint]{lag_forecast}.}
+
+\item{merge_lags}{A logical that, if set to TRUE (the default), lagged
+ensemble members will be shifted in time and joined to the parent forecast
+as derived from \code{start_date} and \code{by}.}
 
 \item{by}{Used in constructing the file names. A string of a number followed
 by a letter (the default is "6h"), where the letter can be "d" for days,
@@ -45,14 +49,18 @@ fastest varying time dimension in the desired file names.}
 
 \item{file_template}{The template for the file names of the files to be read
 from. This would normally be one of the "fctable_*" templates that can be
-seen in \code\link{show_file_templates}.}
+seen in \link{show_file_templates}. Can be a single string, a
+character vector or list of the same length as \code{fcst_model}. If not
+named, the order of templates is assumed to be the same as in
+\code{fcst_model}. If named, the names must match the entries in
+\code{fcst_model}.}
 
 \item{drop_any_na}{Set to TRUE (the default) to remove all cases where there
 is at least one missing value. This ensures that when you come to analyse a
 forecast, only those forecasts with a full set of ensmeble members / data
 are read in. For reading lagged ensembles, this is automatically set to
 FALSE. The cases with at least one missing member are then dropped when the
-lagged members are created using \code{\link[harpPoint]{lag_forecast}}.}
+lagged members are created using \link[harpPoint]{lag_forecast}.}
 
 \item{stations}{The stations to retrieve forecasts for. This should be a
 vector of station ID numbers. Set to NULL to retrieve all stations.}

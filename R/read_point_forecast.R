@@ -27,7 +27,10 @@
 #'   example, the FCTABLE files are constructed from lagged model runs the lags
 #'   must be given here to ensure that the correct file names are generated. If,
 #'   however, you simply want to add lagged members to a forecast, you should do
-#'   that using \link[harpPoint]{lag_members}.
+#'   that using \link[harpPoint]{lag_forecast}.
+#' @param merge_lags A logical that, if set to TRUE (the default), lagged
+#'   ensemble members will be shifted in time and joined to the parent forecast
+#'   as derived from \code{start_date} and \code{by}.
 #' @param by Used in constructing the file names. A string of a number followed
 #'   by a letter (the default is "6h"), where the letter can be "d" for days,
 #'   "h" for hours, "m" for minutes and "s" for seconds. Should be set to the
@@ -35,13 +38,17 @@
 #' @param file_path The path to the data.
 #' @param file_template The template for the file names of the files to be read
 #'   from. This would normally be one of the "fctable_*" templates that can be
-#'   seen in \code\link{show_file_templates}.
+#'   seen in \link{show_file_templates}. Can be a single string, a
+#'   character vector or list of the same length as \code{fcst_model}. If not
+#'   named, the order of templates is assumed to be the same as in
+#'   \code{fcst_model}. If named, the names must match the entries in
+#'   \code{fcst_model}.
 #' @param drop_any_na Set to TRUE (the default) to remove all cases where there
 #'   is at least one missing value. This ensures that when you come to analyse a
 #'   forecast, only those forecasts with a full set of ensmeble members / data
 #'   are read in. For reading lagged ensembles, this is automatically set to
 #'   FALSE. The cases with at least one missing member are then dropped when the
-#'   lagged members are created using \code{\link[harpPoint]{lag_forecast}}.
+#'   lagged members are created using \link[harpPoint]{lag_forecast}.
 #' @param stations The stations to retrieve forecasts for. This should be a
 #'   vector of station ID numbers. Set to NULL to retrieve all stations.
 #' @param members The members to retrieve if reading an EPS forecast. To select
@@ -82,6 +89,7 @@ read_point_forecast <- function(
   parameter,
   lead_time           = seq(0, 48, 3),
   lags                = "0s",
+  merge_lags          = TRUE,
   by                  = "6h",
   file_path           = ".",
   file_template       = NULL,
@@ -95,12 +103,12 @@ read_point_forecast <- function(
 
   switch(tolower(fcst_type),
     "eps" = {
-      file_template <- ifelse(is.null(file_template), "fctable_eps", file_template)
+      if (is.null(file_template)) file_template <- "fctable_eps"
       member_regexp <- "[[:graph:]]+(?=_mbr[[:digit:]]+)"
       fcst_suffix   <- "_mbr"
     },
     "det" = {
-      file_template <- ifelse(is.null(file_template), "fctable_det", file_template)
+      if (is.null(file_template)) file_template <- "fctable_det"
       member_regexp <- "[[:graph:]]+(?=_det)"
       fcst_suffix   <- "_det"
     },
@@ -120,7 +128,7 @@ read_point_forecast <- function(
     lags_passed <- FALSE
   }
 
-  if (drop_any_na && !lags_passed) {
+  if (drop_any_na && merge_lags) {
     drop_function <- dplyr::all_vars(!is.na(.))
   } else {
     drop_function <- dplyr::any_vars(!is.na(.))
@@ -162,20 +170,65 @@ read_point_forecast <- function(
     }
   }
 
-  lag_table <- purrr::map2_dfr(fcst_model, lags, ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE))
-  file_names <- purrr::map2(
-    lag_table$fcst_model,
-    lag_table$lag,
+  if (length(file_template) == 1) {
+    if (length(fcst_model) > 1) {
+      warning("Only 1 'file_template' defined. Recycling for all 'fcst_model'.", call. = FALSE, immediate. = TRUE)
+    }
+    template_table <- data.frame(
+      fcst_model       = fcst_model,
+      file_template    = unlist(file_template),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    if (length(file_template) != length(fcst_model)) {
+      stop(
+        "You must have either 1 'file_template', or there must be the same number of elements\n",
+        "in 'file_template' as in 'fcst_model'.",
+        call. = FALSE
+      )
+    } else {
+      if (is.null(names(file_template))) {
+        warning(
+          "No names specified for 'file_template'. Assuming the same order as 'fcst_model'.",
+          call.      = FALSE,
+          immediate. = TRUE
+        )
+        template_table <- data.frame(
+          fcst_model       = fcst_model,
+          file_template    = unlist(file_template),
+          stringsAsFactors = FALSE
+        )
+      } else {
+        if (!identical(sort(fcst_model), sort(names(file_template)))) {
+          stop("'file_template' names must be the same as 'fcst_model'.", call. = FALSE)
+        }
+        template_table <- data.frame(
+          fcst_model       = names(file_template),
+          file_template    = unlist(file_template),
+          stringsAsFactors = FALSE)
+      }
+    }
+  }
+
+  lag_table <- purrr::map2_dfr(
+    fcst_model,
+    lags,
+    ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE)
+  ) %>%
+    dplyr::inner_join(template_table)
+
+  file_names <- purrr::pmap(
+    as.list(lag_table),
     ~ get_filenames(
       file_path     = file_path,
       start_date    = start_date,
       end_date      = end_date,
       by            = by,
-      lags          = .y,
+      lags          = ..2,
       parameter     = param_name,
-      eps_model     = gsub("_unshifted", "", .x),
+      eps_model     = gsub("_unshifted", "", ..1),
       lead_time     = lead_time,
-      file_template = file_template
+      file_template = ..3
     )
   )
 
@@ -271,7 +324,7 @@ read_point_forecast <- function(
 
   no_members <- sapply(fcst, function(x) !any(grepl(fcst_suffix, names(x))))
   no_members_warning <- function(mname, lag_time, mbr, no_mbrs) {
-    if(no_mbrs) {
+    if (no_mbrs) {
       warning("Members ", paste(mbr, collapse = ","), " not found for ", mname, ", lag: ", lag_time, immediate. = TRUE, call. = FALSE)
     }
   }
@@ -312,7 +365,8 @@ read_point_forecast <- function(
         list(
           lag_table$fcst_model[unread_leads],
           lag_table$lag[unread_leads],
-          lead_time_accum[unread_leads]
+          lead_time_accum[unread_leads],
+          lag_table$file_template[unread_leads]
         ),
         ~ get_filenames(
           file_path     = file_path,
@@ -321,9 +375,9 @@ read_point_forecast <- function(
           by            = by,
           lags          = .y,
           parameter     = param_name,
-          eps_model     = .x,
+          eps_model     = gsub("_unshifted", "", .x),
           lead_time     = ..3 - readr::parse_number(.y),
-          file_template = file_template
+          file_template = ..4
         )
       )
 
@@ -387,8 +441,14 @@ read_point_forecast <- function(
 
   }
 
-  fcst <- purrr::map(fcst, split_sub_models, member_regexp) %>%
-    merge_names_df(lag_table$fcst_model)
+  fcst <- purrr::map(fcst, split_sub_models, member_regexp)
+
+  if (merge_lags) {
+    fcst <- lag_and_join(fcst, lag_table)
+  } else {
+    fcst <- merge_names_df(fcst, lag_table$fcst_model)
+  }
+
 
   attr(fcst, "missing_files") <- missing_files
   class(fcst) <- "harp_fcst"
@@ -427,4 +487,47 @@ merge_names_df <- function(df_list, df_names) {
     }
   }
   merged
+}
+
+# Adjust fcdate and lead time of lagged members and join to unlagged.
+lag_and_join <- function(fcst_list, lags_df) {
+
+  lag_seconds <- purrr::map2_dbl(
+    as.numeric(gsub("\\D", "", lags_df$lag)),
+    lags_df$lag,
+    ~ .x * units_multiplier(.y)
+  )
+
+  non_zero_values <- which(lag_seconds > 0)
+  if (!any(non_zero_values)) {
+    fcst_list <- merge_names_df(fcst_list, lags_df$fcst_model)
+    return(fcst_list)
+  }
+
+  fcst_list[non_zero_values] <- purrr::map2(
+    fcst_list[non_zero_values],
+    lag_seconds[non_zero_values],
+    ~ dplyr::mutate(
+        .x,
+        fcdate     = .data$fcdate + .y,
+        leadtime   = .data$leadtime - .y / 3600,
+        fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
+      )
+  )
+
+  join_lags <- function(inner_list) {
+    if (length(inner_list) > 1) {
+      join_cols <- purrr::map(inner_list, colnames) %>%
+        purrr::reduce(intersect)
+      purrr::reduce(inner_list, dplyr::inner_join, by = join_cols, suffix = c("", "_lag"))
+    } else {
+      inner_list[[1]]
+    }
+  }
+
+  fcst_list <- split(fcst_list, lags_df$fcst_model) %>%
+    purrr::map(join_lags)
+
+  fcst_list
+
 }

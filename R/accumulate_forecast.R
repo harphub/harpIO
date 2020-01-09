@@ -129,7 +129,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
       bad_data_lagged <- dplyr::rename(bad_data_lagged, forecast1 = .data$forecast)
 
       join_cols <- intersect(
-        c("leadtime", "SID", "fcdate", "fcst_cycle", "member", "units"),
+        c("leadtime", "SID", "fcdate", "fcst_cycle", "member", "units", "parameter", "model_elevation"),
         names(bad_data)
       )
       bad_data <- bad_data %>%

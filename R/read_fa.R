@@ -1,20 +1,20 @@
-#' Read a field from an FA file
-#'
-#' @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
-#'        It may also be a \code{FAfile} object.
-#' @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
-#'        work.
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param fa_type The kind of model file: "arome", "alaro", "surfex"...
-#' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
-#' @param ... Ignored
-#' @return A 2d geofield object (2d array with projection information)
+# Read a field from an FA file
+#
+# @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
+#        It may also be a \code{FAfile} object.
+# @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
+#        work.
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param fa_type The kind of model file: "arome", "alaro", "surfex"...
+# @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
+# @param ... Ignored
+# @return A 2d geofield object (2d array with projection information)
 #
 # NOT exported. Used internally.
-#' @examples
-#' model_geofield <- read_fa(file_name, "t2m")
-#' model_geofield <- read_fa(file_name, "t500")
-#' model_geofield <- read_fa(file_name, "topo")
+# @examples
+# model_geofield <- read_fa(file_name, "t2m")
+# model_geofield <- read_fa(file_name, "t500")
+# model_geofield <- read_fa(file_name, "topo")
 
 read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
@@ -83,24 +83,24 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
 }
 
 
-#' Read FA files & interpolate
-#' @param file_name Name of a tar archive containing FA files
-#' @param parameter The parameter(s) to be decoded.
-#' @param lead_time The lead time(s) to be extracted. May be a vector!
-#' @param members Mostly ignored, but could be added as a (constant) column to output.
-#'        If present it must be a single string value (FA files do not contain multiple ensemble members)
-#' @param vertical_coordinate Not used. Only there for API reasons.
-#' @param init Interpolation weights (and domain information).
-#' @param method Interpolation method (only necessary if the weights are not yet initialised)
-#' @param use_mask If TRUE, use land/sea mask in interpolation
-#' @param fa_type For some fields (e.g. precipitation) arome and alaro
-#'    use different names, so we should specify.
-#' @param fa_vector If true, wind speed will be calculated from U and V components.
+# Read FA files & interpolate
+# @param file_name Name of a tar archive containing FA files
+# @param parameter The parameter(s) to be decoded.
+# @param lead_time The lead time(s) to be extracted. May be a vector!
+# @param members Mostly ignored, but could be added as a (constant) column to output.
+#        If present it must be a single string value (FA files do not contain multiple ensemble members)
+# @param vertical_coordinate Not used. Only there for API reasons.
+# @param init Interpolation weights (and domain information).
+# @param method Interpolation method (only necessary if the weights are not yet initialised)
+# @param use_mask If TRUE, use land/sea mask in interpolation
+# @param fa_type For some fields (e.g. precipitation) arome and alaro
+#    use different names, so we should specify.
+# @param fa_vector If true, wind speed will be calculated from U and V components.
 
-#' @param ... Ignored and simply passed to read_fatar
+# @param ... Ignored and simply passed to read_fatar
 
-#' @param ... Extra arguments for read_fa[tar]
-#' @return A tibble with interpolated forecasts for the stations list
+# @param ... Extra arguments for read_fa[tar]
+# @return A tibble with interpolated forecasts for the stations list
 #
 # NOT exported - used internally.
 read_fa_interpolate <- function(file_name,
@@ -138,7 +138,7 @@ read_fa_interpolate <- function(file_name,
     result[["forecast"]] <- as.vector(fcpoints)
     result[["parameter"]] <- parameter
   }
-  if (!is.na(members)) result$members <- members
+  if (!is.na(members)) result$member <- members
 
   list(fcst_data = result,
        units = tibble::tibble(parameter = parameter,

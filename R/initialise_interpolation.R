@@ -11,7 +11,7 @@
 # @return A list with various initialisations. It is also assigned to the global environment.
 # Not exported - used internally
 
-initialise_interpolation <- function(clim_file=NULL, file_format="fa",
+initialise_interpolation <- function(clim_file=NULL, file_format=NULL,
                                      domain = NULL,
                                      stations=NULL,
                                      method="closest", use_mask=FALSE,
@@ -20,7 +20,7 @@ initialise_interpolation <- function(clim_file=NULL, file_format="fa",
   # default station list:
   if (is.null(stations)) stations <- get("station_list")
   # some file types need only the stations anyway
-  # NO: also model_elevantion should be initialised for vfld & netcdf
+  # NO: also model_elevation should be initialised for vfld & netcdf
   #     so all formats are equivalent...
   # Also, we don't want e.g. netcdf to do the model_elevation for every file
   # but for now, we will leave it like this, because netcdf uses different
@@ -34,9 +34,10 @@ initialise_interpolation <- function(clim_file=NULL, file_format="fa",
     ## after all, we have to extract at least 1 field to get the domain
     ## unless we know an extra function like "open_XXX" (FAopen, Gopen return domain info)
     ## if the file doesn't contain "topo" we'll get a warning, but still have domain info.
-    read_function <- get(paste0("read_", file_format))
 #    if (correct_t2m) {
-      err <- try(init$topo <- read_function(clim_file, parameter="topo")/9.80655, silent=TRUE)
+      err <- try(init$topo <- read_grid(clim_file,
+                                        parameter = "topo",
+                                        file_format = file_format)/8.80655, silent=TRUE)
       # note that if topo is not available, there is no error, just a warning!
       # that's fine, because from an NA field we can still get domain information.
       if (inherits(err, "try-error")) warning("Could not read topographic data.", immediate.=TRUE)
@@ -46,8 +47,8 @@ initialise_interpolation <- function(clim_file=NULL, file_format="fa",
       }
 #    }
     if (use_mask) {
-      err <- try(init$lsm <- read_function(clim_file, parameter="lsm"), silent=TRUE)
-      if (inherits(err, "try-error")) warning("Could not read topographic data.", immediate.=TRUE)
+      err <- try(init$lsm <- read_grid(clim_file, parameter="lsm", file_format=file_format), silent=TRUE)
+      if (inherits(err, "try-error")) warning("Could not read land/sea mask.", immediate.=TRUE)
       else if (is.null(init$domain)) init$domain <- attr(init$topo, "domain")
     }
   } else if (!is.null(domain)) {
@@ -61,7 +62,7 @@ initialise_interpolation <- function(clim_file=NULL, file_format="fa",
   } else {
 #    if (!"domain" %in% names(init)) stop("You must provide a clim file or a domain definition.")
     # you have no domain information, so you can't initialise anything else (yet)
-    return(list(stations=stations))
+    return(list(stations=stations, method=method))
   }
   if (use_mask) {
     if (!"lsm" %in% names(init)) stop("Can not use L/S mask without lsm field.")

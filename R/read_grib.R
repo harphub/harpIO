@@ -1,14 +1,14 @@
-#' Read a field from a grib file
-#'
-#' @param filename The grib file name.
-#' @param parameter The parameter to read. Standard HARP names are used.
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param ... Arguments for \code{Rgrib2::Gdec}
-#'
-#' @return A geofield object with 2d array and projection information
-#'
+# Read a field from a grib file
+#
+# @param filename The grib file name.
+# @param parameter The parameter to read. Standard HARP names are used.
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param ... Arguments for \code{Rgrib2::Gdec}
+#
+# @return A geofield object with 2d array and projection information
+#
 # NOT exported - used internally.
-#' @examples
+# @examples
 # file_name <- "/lustre/storeB/users/andrewts/mepsr_data/grib/fc2017052600+001grib_fp"
 # model_geofield <- read_grib(file_name, "t2m")
 # model_geofield <- read_grib(file_name, "t500")
@@ -30,16 +30,28 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
       call. = FALSE
     )
   }
-  grib_info     <- Rgrib2::Gopen(filename)
+  grib_info <- Rgrib2::Gopen(filename)
   #
-  grib_position <- grib_info %>%
-    dplyr::filter(
-      shortName              == param_info$short_name,
-      indicatorOfParameter   == param_info$param_number,
-      indicatorOfTypeOfLevel == param_info$level_type,
-      level                  == param_info$level_number
-    ) %>%
-    dplyr::pull(position)
+
+  if (grepl("[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+    grib_position <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
+  } else {
+    grib_position <- grib_info %>%
+      dplyr::filter(
+        .data$shortName              == param_info$short_name,
+        .data$indicatorOfTypeOfLevel == param_info$level_type[1],
+        .data$level                  == param_info$level_number
+      )
+  }
+  if (nrow(grib_position) < 1 && length(param_info$level_type) == 2) {
+    grib_position <- grib_info %>%
+      dplyr::filter(
+        .data$shortName              == param_info$short_name,
+        .data$indicatorOfTypeOfLevel == param_info$level_type[2],
+        .data$level                  == param_info$level_number
+      )
+  }
+  grib_position <- dplyr::pull(grib_position, .data$position)
   #
 
   if (length(grib_position) == 0) {
@@ -67,21 +79,21 @@ read_grib <- function(filename, parameter, meta = TRUE, ...) {
 
 }
 
-#' Read a field from a grib file & interpolate
-#'
-#' @param file_name The grib file name.
-#' @param parameter The parameter to read. Standard HARP names are used.
-#' @param lead_time lead time
-#' @param members ens members
-#' @param vertical_coordinate Not yet used.
-#' @param init Initialisation for interpolation. A list that contains
-#'    station locations and (possibly) pre-calculated interpolation weights etc.
-#' @param method Interpolation method (only necessary if the weights are not yet initialised)
-#' @param use_mask If TRUE, use land/sea mask in interpolation
-#' @param meta If TRUE, also read all meta data (domain, time properties).
-#' @param ... Arguments for \code{Rgrib2::Gdec}
-#'
-#' @return A tibble
+# Read a field from a grib file & interpolate
+#
+# @param file_name The grib file name.
+# @param parameter The parameter to read. Standard HARP names are used.
+# @param lead_time lead time
+# @param members ens members
+# @param vertical_coordinate Not yet used.
+# @param init Initialisation for interpolation. A list that contains
+#    station locations and (possibly) pre-calculated interpolation weights etc.
+# @param method Interpolation method (only necessary if the weights are not yet initialised)
+# @param use_mask If TRUE, use land/sea mask in interpolation
+# @param meta If TRUE, also read all meta data (domain, time properties).
+# @param ... Arguments for \code{Rgrib2::Gdec}
+#
+# @return A tibble
 # NOT exported. Used internally.
 read_grib_interpolate <- function(file_name,
                                   parameter,
@@ -130,15 +142,17 @@ read_grib_interpolate <- function(file_name,
   if (length(parameter)>1) {
     # FIXME: multiple parameters all in same columns "forecast" and "parameter"
     for (prm in seq_along(parameter)) result[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
+    # AS: I moved the below line to here - I'm pretty sure it doesn't belong outside the if block
+    result <- tidyr::gather(result, key = parameter, value = forecast, parameter)
   } else {
 #    result[[parameter]] <- fcpoints
     result[["forecast"]] <- fcpoints
     result[["parameter"]] <- parameter
   }
-  result <- tidyr::gather(result, key = parameter, value = forecast, parameter)
+
   for (nn in names(init$stations)) result[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
-  if (!is.null(members)) result$members <- members
+  if (!is.null(members)) result$member <- members
   list(fcst_data = dplyr::select(result, -.data$elev, -.data$name),
        units = tibble::tibble(parameter = parameter,
                               units = attr(all_data, "info")$unit))

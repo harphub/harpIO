@@ -9,9 +9,15 @@
 #'         If the parameter is not found, the geofield will have value NA.
 #
 # NOT exported - used internally.
+<<<<<<< HEAD
 #' @examples
 #' model_geofield <- read_fatar(filename, "t2m", lead_time=0)
 #' model_geofield <- read_fa(filename, "t500", lead_time=6)
+=======
+# @examples
+# model_geofield <- read_fatar(filename, "t2m", lead_time=0)
+# model_geofield <- read_fa(filename, "t500", lead_time=6)
+>>>>>>> 12af17ddbd83242d57b4331ec70bf8a3eaba33e7
 
 read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NULL,
                        fa_type="arome", fa_vector=TRUE, lt_unit="h", ...) {
@@ -81,22 +87,22 @@ read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NU
   result
 }
 
-#' Read fa-tar files and interpolate to a set of locations
-#' @param file_name Name of a tar archive containing FA files
-#' @param parameter The parameter(s) to be decoded.
-#' @param lead_time The lead time(s) to be extracted. May be a vector!
-#' @param members Mostly ignored, but could be added as a (constant) column to output.
-#'        If present it must be a single string value (FA files do not contain multiple ensemble members)
-#' @param vertical_coordinate Not used. Only there for API reasons.
-#' @param init Interpolation weights (and domain information).
-#' @param method Interpolation method (only necessary if the weights are not yet initialised)
-#' @param use_mask If TRUE, use land/sea mask in interpolation
-#' @param fa_type For some fields (e.g. precipitation) arome and alaro
-#'        use different names, so we should specify.
-#' @param fa_vector If true, wind speed will be calculated from U and V components.
-#' @param ... Ignored and simply passed to read_fatar
-#' @return a list of two tibbles. One with interpolated forecasts for the stations list,
-#'         and one with parameter units.
+# Read fa-tar files and interpolate to a set of locations
+# @param file_name Name of a tar archive containing FA files
+# @param parameter The parameter(s) to be decoded.
+# @param lead_time The lead time(s) to be extracted. May be a vector!
+# @param members Mostly ignored, but could be added as a (constant) column to output.
+#        If present it must be a single string value (FA files do not contain multiple ensemble members)
+# @param vertical_coordinate Not used. Only there for API reasons.
+# @param init Interpolation weights (and domain information).
+# @param method Interpolation method (only necessary if the weights are not yet initialised)
+# @param use_mask If TRUE, use land/sea mask in interpolation
+# @param fa_type For some fields (e.g. precipitation) arome and alaro
+#        use different names, so we should specify.
+# @param fa_vector If true, wind speed will be calculated from U and V components.
+# @param ... Ignored and simply passed to read_fatar
+# @return a list of two tibbles. One with interpolated forecasts for the stations list,
+#         and one with parameter units.
 
 read_fatar_interpolate <- function(file_name, parameter,
                                    lead_time,
@@ -128,7 +134,7 @@ read_fatar_interpolate <- function(file_name, parameter,
   if (length(parameter)>1) {
   # TODO: clean this up: if only 1 leadtime, you have 1 less dimension...
     if (length(lead_time)==1) {
-      # FIXME: in fact you should create 1 column forecast and one column "parameter" 
+      # FIXME: in fact you should create 1 column forecast and one column "parameter"
       for (prm in seq_along(parameter)) fctable[[parameter[prm]]] <- as.vector(fcpoints[,prm])
     } else {
       for (prm in seq_along(parameter)) fctable[[parameter[prm]]] <- as.vector(fcpoints[,,prm])
@@ -141,7 +147,7 @@ read_fatar_interpolate <- function(file_name, parameter,
   }
   for (nn in names(init$stations)) fctable[[nn]] <- rep(init$stations[[nn]], length(lead_time))
   # add some (constant value) columns if requested
-  if (!is.na(members)) fctable$members <- members
+  if (!is.na(members)) fctable$member <- members
   units <- tibble::tibble(parameter = parameter,
                           units = attr(all_data, "info")$units)
   list(fcst_data = fctable, units = units)

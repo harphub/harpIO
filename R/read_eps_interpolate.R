@@ -172,7 +172,7 @@ read_eps_interpolate <- function(
   lapse_rate           = 0.0065,
   vertical_coordinate  = c("pressure", "model", "height", NA),
   clim_file            = NULL,
-  clim_format          = NULL,
+  clim_format          = file_format,
   interpolation_method = "nearest",
   use_mask             = FALSE,
   sqlite_path          = NULL,
@@ -516,6 +516,16 @@ read_eps_interpolate <- function(
       by = c("eps_model", "sub_model", "member")
     )
 
+    if (all(!file.exists(data_files$file_name))) {
+      warning(
+        "No files found for ", fcst_date, ". Missing files:\n", paste(data_files$file_name, collapse = "\n"),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+      if (return_data) function_output[[list_counter]] <- NULL
+      next()
+    }
+
     # Get the data
 
     message("Reading data for ", fcst_date)
@@ -588,6 +598,7 @@ read_eps_interpolate <- function(
         dplyr::mutate(
           forecast = .data$forecast + lapse_rate * (.data$model_elevation - .data$elev)
         ) %>%
+        dplyr::filter(.data$elev > -9999) %>%
         dplyr::select(
           -dplyr::contains(".station"),
           -.data$elev,

@@ -145,7 +145,7 @@ read_det_interpolate <- function(
   lapse_rate           = 0.0065,
   vertical_coordinate  = c("pressure", "model", "height", NA),
   clim_file            = NULL,
-  clim_format          = NULL,
+  clim_format          = file_format,
   interpolation_method = "nearest",
   use_mask             = FALSE,
   sqlite_path          = NULL,
@@ -292,6 +292,7 @@ read_det_interpolate <- function(
         dplyr::mutate(
           forecast = .data$forecast + lapse_rate * (.data$model_elevation - .data$elev)
         ) %>%
+        dplyr::filter(.data$elev > -9999) %>%
         dplyr::select(
           -dplyr::contains(".station"),
           -.data$elev,

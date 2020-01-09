@@ -211,14 +211,14 @@ dbquery <- function(conn, sql, maxtry=20, sleep=5){
 }
 
 #############################
-#' Create a new table in an SQLite data base
+# Create a new table in an SQLite data base
 #
-#' @param db A database connection
-#' @param name A name for the table. If it already exists, nothing happens.
-#' @param a data.frame. Only column names and type are used. Alternatively, it
-#'    can also be a named vector of date types.
-#' @param primary Primary keys
-#' @export
+# @param db A database connection
+# @param name A name for the table. If it already exists, nothing happens.
+# @param a data.frame. Only column names and type are used. Alternatively, it
+#    can also be a named vector of date types.
+# @param primary Primary keys
+# @export
 create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
   if (DBI::dbExistsTable(db, name)) {
 ## TODO: check fields are the same!!!
