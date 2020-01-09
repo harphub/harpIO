@@ -1,12 +1,12 @@
-#' Read a field from an FA file in a tar archive
-#'
-#' @param filename A tar archive of FA files.
-#' @param parameter The parameter to read. Standard HARP names are used,
-#'        but full FA field names will also work. If NULL, only domain information is read.
-#' @param lead_time Expressed in hours.
-#' @param ... Arguments for \code{read_fa}
-#' @return A 2d geofield object (2d array with projection information).
-#'         If the parameter is not found, the geofield will have value NA.
+# Read a field from an FA file in a tar archive
+#
+# @param filename A tar archive of FA files.
+# @param parameter The parameter to read. Standard HARP names are used,
+#        but full FA field names will also work. If NULL, only domain information is read.
+# @param lead_time Expressed in hours.
+# @param ... Arguments for \code{read_fa}
+# @return A 2d geofield object (2d array with projection information).
+#         If the parameter is not found, the geofield will have value NA.
 #
 # NOT exported - used internally.
 # @examples
