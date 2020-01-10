@@ -133,8 +133,6 @@ read_grib_interpolate <- function(file_name,
       use_mask    = use_mask,
       drop_NA     = TRUE
     )
-    ## assign init to the calling function, so it can be re-used?
-    assign("init", init, env = parent.frame())
   }
   fcpoints <- meteogrid::point.interp(all_data, weights=init$weights)
   # this (currently) creates an array width dimensions (station[,ldt][,prm])

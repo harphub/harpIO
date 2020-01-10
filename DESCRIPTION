@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9117
+Version: 0.0.0.9118
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -38,6 +38,6 @@ Suggests:
     meteogrid (>= 3.8.2),
     Rgrib2 (>= 1.3.1),
     Rfa (>= 4.3.1),
-    h5
+    hdf5r
 URL: https://github.com/andrew-MET/harpIO
 BugReports: https://github.com/andrew-MET/harpIO/issues

@@ -35,39 +35,43 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
 
   init <- list(stations = stations, method = method, use_mask = use_mask)
   if (!is.null(filename)) {
-    if (correct_t2m) parameter <- "topo"
     ## if a filename is specified, we could extract topo in any case
     ## after all, we have to extract at least 1 field to get the domain
     ## unless we know an extra function like "open_XXX" (FAopen, Gopen return domain info)
     ## if the file doesn't contain "topo" we'll get a warning,
     ## but still have domain info (well, for most formats at least).
     err <- try(pfield <- read_grid(filename,
-                                   parameter,
+                                   "topo",
                                    file_format)/8.80655, silent=TRUE)
-    if (inherits(err, "try-error")) warning("Could not read ", parameter,".", immediate.=TRUE)
+    if (inherits(err, "try-error") && correct_t2m) warning("Could not read topography.", immediate.=TRUE)
     else init$domain <- attr(pfield, "domain")
-    if (parameter == "topo" && !any(is.na(pfield))) init$topo <- pfield
+    ## TODO: check that this never fails?
+
+    if (!any(is.na(pfield))) init$topo <- pfield
 
     if (use_mask) {
-      err <- try(init$lsm <- read_grid(filename,
+      if (!"lsm" %in% names(stations)) stop("Can not use L/S mask: station list does not have this data.")
+      err <- try(pfield <- read_grid(filename,
                                        parameter="lsm",
                                        file_format=file_format), silent=TRUE)
-      if (inherits(err, "try-error")) stop("Could not read land/sea mask.", immediate.=TRUE)
-      else if (is.null(init$domain)) init$domain <- attr(init$lsm, "domain")
+      if (inherits(err, "try-error") || any(is.na(pfield))) {
+        warning("Could not read land/sea mask (or it contains missing values).", immediate.=TRUE)
+        stop("Can not use L/S mask without lsm field.")
+      } else {
+        init$lsm <- pfield
+        if (is.null(init$domain)) init$domain <- attr(init$lsm, "domain")
+      }
+    }
+    # maybe some read_XXX functions don't return domain information when "topo" is missing:
+    if (is.null(init$domain) && !is.null(parameter)) {
+      err <- try(pfield <- read_grid(filename, parameter, file_format), silent=TRUE)
+      if (inherits(err, "try-error") && correct_t2m) warning("Could not read ", parameter,".", immediate.=TRUE)
+      else init$domain <- attr(pfield, "domain")
     }
   } else if (!is.null(domain)) {
 #    print(str(domain))
     message("Domain provided")
-    init[["domain"]] <- meteogrid::as.geodomain(domain)
-  } else {
-#    if (!"domain" %in% names(init)) stop("You must provide a clim file or a domain definition.")
-    # you have no domain information, so you can't initialise anything else (yet)
-    return(list(stations=stations, method=method))
-  }
-
-  if (use_mask) {
-    if (!"lsm" %in% names(init)) stop("Can not use L/S mask without lsm field.")
-    if (!"lsm" %in% names(stations)) stop("Can not use L/S mask: station list does not have this data.")
+    init$domain <- meteogrid::as.geodomain(domain)
   }
 
   if (!is.null(init$domain)) {
@@ -82,15 +86,10 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
       stations <- stations[!drop,]
       iweights <- iweights[!drop,]
     }
-#  if (correct_t2m) {
-    if ("topo" %in% names(init) && !any(is.na(init$topo))) {
+
+    if (!is.null(init$topo)) {
         stations$model_elevation <- meteogrid::point.interp(
                                     infield=init$topo, weights=iweights)
-#  } else {
-#      if (! "model_elevation" %in% names(stations))
-#      stop("No model elevation available. Can not do T2m corrections.\n",
-#           "Please provide a filename containing model elevation.")
-#    }
     }
     init$weights <- iweights
     init$stations <- stations
