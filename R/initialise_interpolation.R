@@ -43,11 +43,13 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     err <- try(pfield <- read_grid(filename,
                                    "topo",
                                    file_format)/8.80655, silent=TRUE)
-    if (inherits(err, "try-error") && correct_t2m) warning("Could not read topography.", immediate.=TRUE)
-    else init$domain <- attr(pfield, "domain")
-    ## TODO: check that this never fails?
-
-    if (!any(is.na(pfield))) init$topo <- pfield
+    if (inherits(err, "try-error") && correct_t2m) warning("Error reading topography.", immediate.=TRUE)
+    else {
+      init$domain <- attr(pfield, "domain")
+      ## TODO: check that this never fails?
+      if (!any(is.na(pfield))) init$topo <- pfield
+      else if (correct_t2m) warning("Topography field contains missing values.", immediate.=TRUE)
+    }
 
     if (use_mask) {
       if (!"lsm" %in% names(stations)) stop("Can not use L/S mask: station list does not have this data.")
@@ -65,8 +67,11 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     # maybe some read_XXX functions don't return domain information when "topo" is missing:
     if (is.null(init$domain) && !is.null(parameter)) {
       err <- try(pfield <- read_grid(filename, parameter, file_format), silent=TRUE)
-      if (inherits(err, "try-error") && correct_t2m) warning("Could not read ", parameter,".", immediate.=TRUE)
-      else init$domain <- attr(pfield, "domain")
+      if (inherits(err, "try-error") ) {
+        warning("Could not read ", parameter,".", immediate.=TRUE)
+      } else {
+        init$domain <- attr(pfield, "domain")
+      }
     }
   } else if (!is.null(domain)) {
 #    print(str(domain))
