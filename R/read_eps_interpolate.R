@@ -164,7 +164,7 @@ read_eps_interpolate <- function(
   lags                 = NULL,
   by                   = "6h",
   file_path            = "",
-  file_format          = "vfld",
+  file_format          = NULL,
   file_template        = "vfld",
   stations             = NULL,
   correct_t2m          = TRUE,
@@ -424,8 +424,8 @@ read_eps_interpolate <- function(
   if (!is.null(clim_file)) {
     message("Initialising interpolation.")
     init <- initialise_interpolation(
-      filename    = clim_format,
-      clim_file   = clim_file,
+      filename    = clim_file,
+      file_format = clim_format,
       correct_t2m = correct_t2m,
       method      = interpolation_method,
       use_mask    = use_mask,

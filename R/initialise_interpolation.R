@@ -1,6 +1,6 @@
 # Initialise domain, interpolation, land/sea mask etc. for a model
 #
-# @param file The path of a "clim" file containing topography & land/sea mask
+# @param filename The path of a "clim" file containing topography & land/sea mask
 # @param file_format File type of the clim file (fa, grib ...).
 # @param parameter A parameter that can be read from the file (only for domain)
 #        if correct_t2m == TRUE, parameter is always set to "topo"
