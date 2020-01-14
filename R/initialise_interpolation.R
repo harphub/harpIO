@@ -98,6 +98,12 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     }
     init$weights <- iweights
     init$stations <- stations
+    # initialise wind rotation?
+#    geowind <- meteogrid::geowind.init(init$domain)
+    # we can even interpolate the angle and map factor
+#    stations$wind_rotation <- meteogrid::point.interp(geowind$angle, weights=iweights)
+#    stations$wind_factor <- meteogrid::point.interp(geowind$mapfactor, weights=iweights)
+#    init$geowind <- geowind
   } else {
     message("No domain information available. Can not initialise interpolation.")
   }

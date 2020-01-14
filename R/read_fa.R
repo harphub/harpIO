@@ -16,9 +16,11 @@
 # model_geofield <- read_fa(file_name, "t500")
 # model_geofield <- read_fa(file_name, "topo")
 
-read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=TRUE, ...) {
+read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome",
+                    fa_vector=TRUE, rotate_wind=TRUE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
   # ?accumulated fields?
+  # wind rotation, maybe with pre-calculated angle...
 # harp_env$fa_infile <- infile
 # harp_env$fa_domain <-
 ## or use the same trick as meteogrid for e.g. .Last.domain()
@@ -45,7 +47,8 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
     result <- array(NA, dim=c(attr(fafile, "domain")$nx, attr(fafile, "domain")$ny,
                               length(parameter)))
   }
-  fa_info <- lapply(parameter, get_fa_param_info, fa_type=fa_type, fa_vector=fa_vector)
+  fa_info <- lapply(parameter, get_fa_param_info, fa_type=fa_type,
+                    fa_vector=fa_vector, rotate_wind = rotate_wind)
 
   for (prm in seq_along(parameter)) {
     # TODO: fix parameter
@@ -55,13 +58,20 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
                                         outform = "M", faframe = attr(fafile, "frame")),
                  error = function(e) e)
     if (inherits(ee, "error")) fcdata <- NA
+    # FIXME: if fcdate==NA, apply_function may crash!
+    # it's wrapped in try() so it shouldn't be too bad...
 
     if (!is.null(fa_info[[prm]]$apply_function)) {
     # we drop this check: so we can decode arome/alaro versions in 1 call
 #    if (dim(result)[3] != length(fa_info[[prm]]$fa_name))
 #      warning("Not all necessary fields may be available:\n",
 #           paste(parameter$fa_info, collapse="\n"))
-      try(result[, , prm] <- fa_info[[prm]]$apply_function(fcdata))
+      # TODO: what if apply_function() accepts extra arguments (e.g. pre-initialised wind rotation)
+      #       we could try to have them in the function environment
+      #       but that would involve making a copy at every iteration
+      #       some apply_functions require fcdate to be a geofield, but we just read it as an array (outform M)
+      #       alternatively, we could pass domain separately, but that is against the spirit of "meteogrid"
+      try(result[, , prm] <- fa_info[[prm]]$apply_function(as.geofield(fcdata, domain=fafile)))
     } else {
       try(result[, , prm] <- fcdata)
     }
@@ -84,9 +94,11 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome", fa_vector=T
 
 
 # Read FA files & interpolate
-# @param file_name Name of a tar archive containing FA files
+# @param file_name Name of a FA file
 # @param parameter The parameter(s) to be decoded.
-# @param lead_time The lead time(s) to be extracted. May be a vector!
+# @param lead_time The lead time(s) to be extracted. May be a vector for some other file formats, 
+#   But for FA files, a vector is not accepted. In fact,  like members this argument is completely ignored
+#   except as a (constant) column to output.
 # @param members Mostly ignored, but could be added as a (constant) column to output.
 #        If present it must be a single string value (FA files do not contain multiple ensemble members)
 # @param vertical_coordinate Not used. Only there for API reasons.
