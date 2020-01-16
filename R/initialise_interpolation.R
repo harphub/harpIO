@@ -31,7 +31,9 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
   # but for now, we will leave it like this, because netcdf uses different
   # interpolation code. TODO: !!!
   # AD: I think we could extract topo for netcdf already?
-  if (file_format %in% c("netcdf", "vfld")) return(list(stations=stations))
+  if (!is.null(file_format) && file_format %in% c("netcdf", "vfld")) {
+    return(list(stations=stations))
+  }
 
   init <- list(stations = stations, method = method, use_mask = use_mask)
   if (!is.null(filename)) {
