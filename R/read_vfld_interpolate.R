@@ -54,13 +54,32 @@ read_vfld_interpolate <- function(
     message("Reading: ", file_name)
   } else {
     warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
-    return(list(fcst_data = empty_data, units = tibble::tibble(parameter = NA_character_, units = NA_character_)))
+    return(
+      list(
+        fcst_data = empty_data,
+        units     = tibble::tibble(
+          parameter = NA_character_,
+          units     = NA_character_
+        )
+      )
+    )
   }
 
   if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
 
   vfld_data <- read_vfile(file_name, members = members, lead_time = lead_time, v_type = "vfld")
 
+  if (is.null(vfld_data)) {
+    return(
+      list(
+        fcst_data = empty_data,
+        units     = tibble::tibble(
+          parameter = NA_character_,
+          units     = NA_character_
+        )
+      )
+    )
+  }
   # Parameter selection
 
   if (!is.null(parameter)) {

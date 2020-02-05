@@ -20,7 +20,7 @@ read_vfile <- function(
 
   if (file.size(v_file_name) == 0) {
     warning("Unable to read: ", v_file_name, "\n", call. = FALSE, immediate. = TRUE)
-    return(list(synop_data = empty_data, temp_data = empty_data))
+    return(NULL)
   }
 
   file_connection <- file(v_file_name, "r")
@@ -32,7 +32,7 @@ read_vfile <- function(
   if (length(v_metadata) < 2 | length(v_metadata) > 3) {
     warning("Unable to read: ", v_file_name, "\n", call. = FALSE, immediate. = TRUE)
     close(file_connection)
-    return(list(synop_data = empty_data, temp_data = empty_data))
+    return(NULL)
   }
 
   if (length(v_metadata) == 2) {
@@ -48,7 +48,7 @@ read_vfile <- function(
   if (v_version < 2 | v_version > 4) {
     warning("Unable to read: ", v_file_name, "\nv version = ", v_version, "\n", call. = FALSE, immediate. = TRUE)
     close(file_connection)
-    return(list(synop_data = empty_data, temp_data = empty_data))
+    return(NULL)
   }
 
   # synop data
