@@ -4,12 +4,25 @@
 \alias{read_point_forecast}
 \title{Read point forecasts from FCTABLE files}
 \usage{
-read_point_forecast(start_date, end_date, fcst_model, fcst_type, parameter,
-  lead_time = seq(0, 48, 3), lags = "0s", merge_lags = TRUE,
-  by = "6h", file_path = ".", file_template = NULL,
-  drop_any_na = TRUE, stations = NULL, members = NULL,
-  accumulate = TRUE, vertical_coordinate = c(NA_character_, "pressure",
-  "model", "height"), get_lat_and_lon = FALSE)
+read_point_forecast(
+  start_date,
+  end_date,
+  fcst_model,
+  fcst_type,
+  parameter,
+  lead_time = seq(0, 48, 3),
+  lags = "0s",
+  merge_lags = TRUE,
+  by = "6h",
+  file_path = ".",
+  file_template = NULL,
+  drop_any_na = TRUE,
+  stations = NULL,
+  members = NULL,
+  accumulate = TRUE,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
+  get_lat_and_lon = FALSE
+)
 }
 \arguments{
 \item{start_date}{Date of the first forecast to be read in. Should be in

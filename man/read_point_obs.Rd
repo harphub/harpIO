@@ -4,10 +4,18 @@
 \alias{read_point_obs}
 \title{Read point observations from OBSTABLE files}
 \usage{
-read_point_obs(start_date, end_date, parameter, obs_path = ".",
-  obsfile_template = "obstable", gross_error_check = TRUE,
-  min_allowed = NULL, max_allowed = NULL, stations = NULL,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height"))
+read_point_obs(
+  start_date,
+  end_date,
+  parameter,
+  obs_path = ".",
+  obsfile_template = "obstable",
+  gross_error_check = TRUE,
+  min_allowed = NULL,
+  max_allowed = NULL,
+  stations = NULL,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+)
 }
 \arguments{
 \item{start_date}{The start date of the observations to read.}

@@ -58,11 +58,11 @@
 #' "harmonie_grib")
 #'
 #' get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
-#' = "1d", eps_model = "my_eps", parameter = "T2m", file_template =
-#' "harmoneps_grib_fp")
+#' = "1d", eps_model = "my_eps", parameter = "T2m", members = seq(0, 2),
+#' file_template = "harmoneps_grib_fp")
 #'
 #' get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
-#' file_template = "harmoneps_grib_fp")
+#' members = seq(0, 2), file_template = "harmoneps_grib_fp")
 #'
 #' get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
 #' = "6h", eps_model = "my_eps", parameter = "T2m", members = seq(0,3),
