@@ -138,14 +138,15 @@ read_obs_convert <- function(
         HH          = substr(.data$fcdate, 9, 10),
         obs         = purrr::map(.data$file_name, read_func, ...),
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
-      ) %>%
-      dplyr::mutate(
-        file_name = purrr::map_chr(
-          purrr::transpose(.),
-          glue::glue_data,
-          sqlite_template
-        )
       )
+    obs_data <- dplyr::mutate(
+      obs_data,
+      file_name = purrr::map_chr(
+        purrr::transpose(obs_data),
+        glue::glue_data,
+        sqlite_template
+      )
+    )
 
     synop_data <- obs_data %>%
       dplyr::transmute(

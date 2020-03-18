@@ -208,8 +208,8 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     file_template = "fctable_eps_all_leads"
   )
 
-  If more than one forecast model, and at least one is lagged, lags must
-  be specified for all forecast models as a named list.
+  # If more than one forecast model, and at least one is lagged, lags must
+  # be specified for all forecast models as a named list.
   read_point_forecast(
     start_date    = 2019021700,
     end_date      = 2019021718,

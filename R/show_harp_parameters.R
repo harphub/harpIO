@@ -2,7 +2,13 @@
 #'
 #' Prints a table of default parameter names in harp and their descriptions
 #'
+#' @param cf_name Set to TRUE to show CF convention names where available rather
+#'   than description.
+#'
 #' @export
+#' @examples
+#' show_harp_parameters()
+#' show_harp_parameters(cf_name = TRUE)
 #'
 show_harp_parameters <- function(cf_name = FALSE) {
 

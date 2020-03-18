@@ -71,7 +71,7 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome",
       #       but that would involve making a copy at every iteration
       #       some apply_functions require fcdate to be a geofield, but we just read it as an array (outform M)
       #       alternatively, we could pass domain separately, but that is against the spirit of "meteogrid"
-      try(result[, , prm] <- fa_info[[prm]]$apply_function(as.geofield(fcdata, domain=fafile)))
+      try(result[, , prm] <- fa_info[[prm]]$apply_function(meteogrid::as.geofield(fcdata, domain=fafile)))
     } else {
       try(result[, , prm] <- fcdata)
     }
@@ -83,7 +83,7 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome",
       attr(result, "info")$name <- parameter
       attr(result, "info")$units <- fa_info[[1]]$units
     } else {
-      attr(result, "info")$units <- vapply(fa_info, function(x) x$units, FUN.VAL="a")
+      attr(result, "info")$units <- vapply(fa_info, function(x) x$units, FUN.VALUE="a")
       names(attr(result, "info")$units) <- parameter
     }
   } else {
@@ -96,7 +96,7 @@ read_fa <- function(filename, parameter, meta=TRUE, fa_type="arome",
 # Read FA files & interpolate
 # @param file_name Name of a FA file
 # @param parameter The parameter(s) to be decoded.
-# @param lead_time The lead time(s) to be extracted. May be a vector for some other file formats, 
+# @param lead_time The lead time(s) to be extracted. May be a vector for some other file formats,
 #   But for FA files, a vector is not accepted. In fact,  like members this argument is completely ignored
 #   except as a (constant) column to output.
 # @param members Mostly ignored, but could be added as a (constant) column to output.

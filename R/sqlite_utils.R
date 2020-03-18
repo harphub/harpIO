@@ -231,7 +231,7 @@ create_table <- function(db, name, data, primary=NULL, show_query = FALSE) {
                                              "integer"="INTEGER",
                                              "numeric"="REAL",
                                              "character"="CHARACTER",
-                                             "REAL"), FUN.VAL="a")
+                                             "REAL"), FUN.VALUE="a")
   } else {
     types <- data
   }
@@ -256,7 +256,7 @@ cleanup_table <- function(db, tabname, where.list, show_query = FALSE) {
   where.list <- lapply(where.list,
                        function(x) if (is.character(x)) paste0("'",x,"'")
                                    else x)
-  wlist <- vapply(names(where.list), FUN.VAL="a",
+  wlist <- vapply(names(where.list), FUN.VALUE="a",
                   FUN=function(cc) sprintf("%s=%s",cc,where.list[[cc]]))
   sql_cleanup <- sprintf("DELETE FROM %s WHERE %s",
                          tabname, paste(wlist, collapse=" AND "))

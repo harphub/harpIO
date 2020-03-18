@@ -6,6 +6,15 @@
 \usage{
 show_harp_parameters(cf_name = FALSE)
 }
+\arguments{
+\item{cf_name}{Set to TRUE to show CF convention names where available rather
+than description.}
+}
 \description{
 Prints a table of default parameter names in harp and their descriptions
+}
+\examples{
+show_harp_parameters()
+show_harp_parameters(cf_name = TRUE)
+
 }

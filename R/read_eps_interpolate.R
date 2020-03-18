@@ -153,7 +153,7 @@
 #'
 #' @examples
 #'
-#' if (requireNamespace("harpDate", quietly = TRUE)) {
+#' if (requireNamespace("harpData", quietly = TRUE)) {
 #'
 #'   read_eps_interpolate(
 #'     start_date    = 2019021700,
@@ -670,7 +670,8 @@ read_eps_interpolate <- function(
         members_out = paste0("mbr", formatC(.data$members_out, width = 3, flag = "0"))
       )
 
-    sqlite_params <- unique(forecast_data$parameter) %>% .[!is.na(.)]
+    sqlite_params <- unique(forecast_data$parameter)
+    sqlite_params <- sqlite_params[!is.na(sqlite_params)]
 
     # Height correction for 2m temperature
 

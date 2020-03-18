@@ -8,6 +8,9 @@ get_netcdf_param_MET(param, vc = NA)
 }
 \arguments{
 \item{param}{HARP parameter name.}
+
+\item{vc}{The vertical coordinate. Set to NA for no vertical coordinate,
+otherwise "pressure" or "model".}
 }
 \value{
 The parameter name in a MET Norway NetCDF file

@@ -37,7 +37,7 @@ read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NU
   fa_info <- lapply(parameter, get_fa_param_info, fa_type=fa_type, fa_vector=fa_vector)
 
   for (ldt in seq_along(lead_time)) {
-    fcfile <- grep(sprintf("+%04i$", lead_time[ldt]), names(filelist), val = TRUE)
+    fcfile <- grep(sprintf("+%04i$", lead_time[ldt]), names(filelist), value = TRUE)
     if (length(fcfile) != 1) {
       stop("Lead time ", lead_time[ldt], " not available in archive file\n",
            filename, "\n", length(fcfile), " hits")
@@ -75,7 +75,7 @@ read_fatar <- function(filename, parameter, lead_time=0, levels=NULL, members=NU
   }
 
   fa_info <- lapply(parameter, get_fa_param_info, fa_type = fa_type, fa_vector = fa_vector)
-  attr(result, "info")$units <- vapply(fa_info, function(x) x$units, FUN.VAL="a")
+  attr(result, "info")$units <- vapply(fa_info, function(x) x$units, FUN.VALUE="a")
   names(attr(result, "info")$units) <- parameter
 
   result

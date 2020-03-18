@@ -60,14 +60,14 @@ read_fctable <- function(
     list_count <- list_count + 1
 
     fcst <- dplyr::tbl(fcst_db, "FC") %>%
-      dplyr::filter(dplyr::between(fcdate, start_date, end_date))
+      dplyr::filter(dplyr::between(.data$fcdate, start_date, end_date))
 
     if (!is.null(lead_time)) {
-      fcst <- dplyr::filter(fcst, leadtime %in% lead_time)
+      fcst <- dplyr::filter(fcst, .data$leadtime %in% lead_time)
     }
 
     if (!is.null(stations)) {
-      fcst <- dplyr::filter(fcst, SID %in% stations)
+      fcst <- dplyr::filter(fcst, .data$SID %in% stations)
     }
 
     if (!is.null(level_col) && param$level != -999) {

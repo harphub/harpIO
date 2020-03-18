@@ -24,7 +24,8 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
 
   lead_times          <- sort(unique(.fcst$leadtime))
   required_lead_times <- union((lead_times - accumulation_time), lead_times)
-  missing_lead_times  <- setdiff(required_lead_times, lead_times) %>% .[. > 0]
+  missing_lead_times  <- setdiff(required_lead_times, lead_times)
+  missing_lead_times  <- missing_lead_times[missing_lead_times > 0]
 
 
   if (any(lead_times == accumulation_time) && !any(lead_times == 0)) {
@@ -104,9 +105,9 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
         .fcst <- tidyr::unnest(
           .fcst,
           tidyr::one_of(c("data", "lagged_data")),
-          names_repair = ~make.names(., unique = TRUE)
+          names_repair = function(x) make.names(x, unique = TRUE)
         )
-        .fcst <- dplyr::rename_at(.fcst, grep(".1$", names(.fcst)), ~gsub(".1$", "1", .))
+        .fcst <- dplyr::rename_at(.fcst, grep(".1$", names(.fcst)), function(x) gsub(".1$", "1", x))
       } else {
         .fcst <- tidyr::unnest(.fcst)
       }

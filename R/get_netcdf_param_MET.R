@@ -1,6 +1,8 @@
 #' Get MET Norway NetCDF parameter name from a HARP parameter name
 #'
 #' @param param HARP parameter name.
+#' @param vc The vertical coordinate. Set to NA for no vertical coordinate,
+#'   otherwise "pressure" or "model".
 #'
 #' @return The parameter name in a MET Norway NetCDF file
 #' @export

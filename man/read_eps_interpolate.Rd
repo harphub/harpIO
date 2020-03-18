@@ -218,7 +218,7 @@ ensemble member. This can be done through the \code{lags} argument.
 }
 \examples{
 
-if (requireNamespace("harpDate", quietly = TRUE)) {
+if (requireNamespace("harpData", quietly = TRUE)) {
 
   read_eps_interpolate(
     start_date    = 2019021700,
