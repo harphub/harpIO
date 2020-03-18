@@ -4,16 +4,19 @@
 \alias{read_grid}
 \title{Read gridded data in various formats.}
 \usage{
-read_grid(filename, file_format = NULL, ...)
+read_grid(filename, parameter, file_format = NULL, ...)
 }
 \arguments{
 \item{filename}{A character string with the (full) file name.}
+
+\item{parameter}{The parameter to be read.}
 
 \item{...}{All arguments passed to the specified reader function.}
 
 \item{format}{The file format. Possible values include grib, netcdf, FA,
 hdf5... Whatever the value is, it is suposed to correspond to a function
-"read_XXX" that can deal with the format.}
+"read_XXX" that can deal with the format. If not specified, the format
+can often be guessed correctly from file extension or the first few bytes.}
 }
 \value{
 A geofield or (possibly) a plain  matrix.

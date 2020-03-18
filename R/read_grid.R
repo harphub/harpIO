@@ -1,7 +1,7 @@
 #' Read gridded data in various formats.
 #'
 #' @param filename A character string with the (full) file name.
-#' @param parameter The parameter to be extracted/decoded.
+#' @param parameter The parameter to be read.
 #' @param format The file format. Possible values include grib, netcdf, FA,
 #'   hdf5... Whatever the value is, it is suposed to correspond to a function
 #'   "read_XXX" that can deal with the format. If not specified, the format
@@ -25,18 +25,18 @@
 #'     parameter = "tcc"
 #'   )
 #' }
-read_grid <- function(filename, file_format=NULL, ...) {
+read_grid <- function(filename, parameter, file_format = NULL, ...) {
   if (is.null(file_format)) file_format <- guess_format(filename)
-  if (is.na(file_format)) stop("Please provide explicit file format for ", filename)
+  if (is.na(file_format)) stop("Please provide explicit file format for ", filename, call. = FALSE)
   reader <- get(paste0("read_", file_format))
   reader(filename = filename, parameter = parameter, ...)
 }
 
 #' @export
 #' @inheritParams read_grid
-read_grid_interpolate <- function(filename, parameter, file_format=NULL, ...) {
+read_grid_interpolate <- function(filename, parameter, file_format = NULL, ...) {
   if (is.null(file_format)) file_format <- guess_format(filename)
-  if (is.na(file_format)) stop("Please provide explicit file format for ", filename)
+  if (is.na(file_format)) stop("Please provide explicit file format for ", filename, call. = FALSE)
   reader <- get(paste0("read_", file_format, "_interpolate"))
   reader(filename = filename, parameter = parameter, ...)
 }
@@ -45,7 +45,7 @@ read_grid_interpolate <- function(filename, parameter, file_format=NULL, ...) {
 # @param filename The filename
 # @return A character string with the format, or NA.
 guess_format <- function(filename) {
-  if (!file.exists(filename)) stop("File not found.")
+  if (!file.exists(filename)) stop("File not found.", call. = FALSE)
 
   # first we try the file extension:
   ## TODO: tar? csv, txt...?

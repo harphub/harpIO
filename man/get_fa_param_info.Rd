@@ -4,7 +4,12 @@
 \alias{get_fa_param_info}
 \title{FA parameter names}
 \usage{
-get_fa_param_info(param, fa_type = "arome", fa_vector = TRUE)
+get_fa_param_info(
+  param,
+  fa_type = "arome",
+  fa_vector = TRUE,
+  rotate_wind = TRUE
+)
 }
 \arguments{
 \item{param}{Parameter name}
@@ -14,6 +19,9 @@ precipitation under a different name.}
 
 \item{fa_vector}{A logical value. TRUE means that e.g. wind speed will be
 calculated from wind vector components, not searched as a separate field.}
+
+\item{rotate_wind}{If TRUE, wind fields (U, V, direction)
+are rotated from model axes to earth axes.}
 }
 \value{
 A 16 character string, or in rare cases a vector of several strings
