@@ -35,6 +35,7 @@ parse_v_parameter_synop <- function(v_parameter) {
     "N75" = {harp_param <- "N75";             param_units <- "oktas"}, # some sort of cloud cover
     "CH"  = {harp_param <- "Cbase";           param_units <- "m"}, # cloud base
     "TX"  = {harp_param <- "Tmax";            param_units <- "K"},
+    "TM"  = , # vobs uses TM for Tmin, while vfld uses TN!
     "TN"  = {harp_param <- "Tmin";            param_units <- "K"},
     "GW"  = {harp_param <- "G10m";            param_units <- "m/s"}, # instantaneous (10minutes) wind gust speed
     "GX"  = {harp_param <- "Gmax";            param_units <- "m/s"}, # max gust past 6 hours

@@ -259,19 +259,16 @@ read_det_interpolate <- function(
   }
 
   if (!is.null(clim_file)) {
-
     message("Initialising interpolation.")
     init <- initialise_interpolation(
+      filename    = clim_file,
       file_format = clim_format,
-      clim_file   = clim_file,
       correct_t2m = correct_t2m,
       method      = interpolation_method,
       use_mask    = use_mask,
       stations    = stations
     )
-
   } else {
-    # just leave it uninitialised for now
     init <- list(stations = stations)
     if (is.element("T2m", parameter) && correct_t2m && file_format != "vfld") {
       warning(
@@ -307,8 +304,26 @@ read_det_interpolate <- function(
     ) %>%
       dplyr::bind_rows()
 
-    # Get the data
 
+    # if init$weights == NULL (no clim file), run init with the first (existing) file name
+    # you could do this in an explicit loop, but that may be inefficient
+    if (is.null(init$weights) && ! file_format %in% c("vfld", "netcdf")) {
+      # NOTE: even if there is no "topo" or "lsm" field, we will should able to derive the domain
+      ff <- file.exists(data_files$file_name)
+      if (any(ff)) {
+        message("Initialising interpolation from forecast file.")
+        init <- initialise_interpolation(
+          filename    = data_files$file_name[which(ff)[1]],
+          file_format = file_format,
+          correct_t2m = correct_t2m,
+          method      = interpolation_method,
+          use_mask    = use_mask,
+          stations    = stations
+        )
+      }
+    }
+
+    # Get the data
     message("Reading data.")
 
     read_function <- get(paste("read", file_format, "interpolate", sep = "_"))

@@ -8,24 +8,28 @@
 #'   precipitation under a different name.
 #' @param fa_vector A logical value. TRUE means that e.g. wind speed will be
 #'   calculated from wind vector components, not searched as a separate field.
+#' @param rotate_wind If TRUE, wind fields (U, V, direction)
+#'   are rotated from model axes to earth axes.
 #' @return A 16 character string, or in rare cases a vector of several strings
 #'   denoting the components (e.g. total precipitation may be the sum of up to 4
 #'   fields).
 #' @export
-get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
+get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_wind = TRUE){
   ### FA names are very inconsistent ("_" vs "." separators...)
   ### so we have to do some hard-coding
   hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m",
                         "g10m", "pmsl", "td2m", "topo", "lsm",
-                        "cape", "cien")
+                        "cape", "cien", "tmin", "tmax")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
   # generic templates (there are exceptions!)
   if (tolower(param$fullname) %in% hardcoded_fields) {
     FAname <- switch(tolower(param$fullname),
                      "t2m"  = "CLSTEMPERATURE  ",
-                     "u10m" = "CLSVENT.ZONAL   ",
-                     "v10m" = "CLSVENT.MERIDIEN",
+                     "u10m" = if (rotate_wind) c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN")
+                              else "CLSVENT.ZONAL   ",
+                     "v10m" = if (rotate_wind) c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN")
+                              else "CLSVENT.MERIDIEN",
                      "s10m" = c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN"),
                      "d10m" = c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN"),
                      "rh2m" = "CLSHUMI.RELATIVE",
@@ -35,7 +39,9 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
                      "topo" = "SURFGEOPOTENTIEL",
                      "lsm"  = "SURFIND.TERREMER",
                      "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
-                     "cien"  = "SURFCIEN.POS.F00",
+                     "cien" = "SURFCIEN.POS.F00",
+                     "tmin" = "CLSMINI.TEMPERAT", 
+                     "tmax" = "CLSMAXI.TEMPERAT", 
                      stop("unknown parameter ", param$fullname))
   } else if (param$level_type %in% c("hybrid", "pressure", "height") ) {
     if (param$level_type != "pressure") plev <- param$level
@@ -53,8 +59,8 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
     FAbase <- switch(tolower(param$basename),
       "t" = "TEMPERATURE",
       "q" = "HUMI.SPECIFIQ",
-      "u" = "VENT_ZONAL",
-      "v" = "VENT_MERIDIEN",
+      "u" = if (rotate_wind) c("VENT_ZONAL   ","VENT_MERIDIEN") else "VENT_ZONAL",
+      "v" = if (rotate_wind) c("VENT_ZONAL   ","VENT_MERIDIEN") else "VENT_MERIDIEN",
       "z" = "GEOPOTENTIEL",
       "rh" = "HUMI_RELATIVE",
       #
@@ -99,6 +105,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
   ##   P : Pa or hPa ?
   apply_function <- NULL
   if (length(FAname)>1) {
+    # FIXME: MAYBE there are cases with 1 field that also need a function?
     # add the function as an attribute
     # it should be a function expecting a 3d geofield as input, not point wise!
     # because "apply'ing" such a pointwise function would be SLOW.
@@ -109,7 +116,13 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE){
     apply_function <- switch(tolower(param$basename),
               "s" = function(x) meteogrid::apply_geo3d(x, "norm", newname="Wind speed"),
               "g" = function(x) meteogrid::apply_geo3d(x, "norm", newname="Wind gust speed"),
-              "d" = function(x) meteogrid::apply_geo3d(x, "wdir", newname="Wind direction"),
+              "d" = if (rotate_wind) {
+                function(x) meteogrid::apply_geo3d(x, "rotwdir", newname="Wind direction")
+              } else {
+                function(x) meteogrid::apply_geo3d(x, "wdir", newname="Wind direction")
+              } ,
+              "u" = function(x) meteogrid::apply_geo3d(x, "rotu", newname="U"),
+              "v" = function(x) meteogrid::apply_geo3d(x, "rotv", newname="V"),
               "td" = function(x) meteogrid::as.geofield(rh2tdew(tc=x[,,2], rh=x[,,1]), domain=x),
               "snow" = function(x) meteogrid::apply_geo3d(x, "sum", newname="Snow"),
               "rain" = function(x) meteogrid::apply_geo3d(x, "sum", newname="Rain"),

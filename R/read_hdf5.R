@@ -18,21 +18,21 @@
 # @return A geofield object (if meta is TRUE) or a plain matrix.
 # NOT exported. Used internally.
 read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE, ...) {
-  if (!requireNamespace("h5", quietly=TRUE)) {
-    stop("The h5 package is not installed!", "Please install from CRAN.")
+  if (!requireNamespace("hdf5r", quietly=TRUE)) {
+    stop("The hdf5r package is not installed!", "Please install from CRAN.")
   }
   # open hdf5 file
   fName <- path.expand(filename)
   if (is.na(fName) || !file.exists(fName)) {
     stop("File", filename, "missing or file not found.")
   }
-  if (!h5::is.h5file(fName)) stop("Not a HDF5 file.")
-  ff <- h5::h5file(fName, "r")
-  on.exit(tryCatch(h5::h5close(ff), error=function(e){}, warning=function(w){}))
+  if (!hdf5r::is.h5file(fName)) stop("Not a HDF5 file.")
+  ff <- hdf5r::H5File$new(fName, "r")
+  on.exit(tryCatch(ff$close_all(), error=function(e){}, warning=function(w){}))
 
   # 1. get data itself
-  if (!h5::existsDataSet(ff,data)) stop("Data not found.")
-  zz <- t(h5::readDataSet(ff[data]))
+#  if (!hdf5r::existsDataSet(ff,data)) stop("Data not found.")
+  zz <- t(ff[[data]]$read())
   zz <- zz[, ncol(zz):1]  # transpose and put upside-down
   # ODIM-specific?
 
@@ -46,41 +46,41 @@ read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE, ...) {
   datasetN <- split.path[1]
   dataN <- split.path[2]
 
-  if (h5::existsGroup(ff, "where") ) {
-    root.where <- h5::list.attributes(ff["where"])
+  if (hdf5r::existsGroup(ff, "where") ) {
+    root.where <- hdf5r::list.attributes(ff[["where"]])
   } else root.where <- character(0)
 
-  if (h5::existsGroup(ff[datasetN], "where")) {
-    dataset.where <- h5::list.attributes(ff[datasetN]["where"])
+  if (hdf5r::existsGroup(ff[[datasetN]], "where")) {
+    dataset.where <- hdf5r::list.attributes(ff[[datasetN]][["where"]])
   } else dataset.where <- character(0)
 
-  if (h5::existsGroup(ff[datasetN][dataN], "where")) {
-    data.where <- h5::list.attributes(ff[datasetN][dataN]["where"])
+  if (hdf5r::existsGroup(ff[[datasetN]][[dataN]], "where")) {
+    data.where <- hdf5r::list.attributes(ff[[datasetN]][[dataN]][["where"]])
   } else data.where <- character(0)
 
-  if (h5::existsGroup(ff, "what") ) {
-    root.what <- h5::list.attributes(ff["what"])
+  if (hdf5r::existsGroup(ff, "what") ) {
+    root.what <- hdf5r::list.attributes(ff[["what"]])
   } else root.what <- character(0)
 
-  if (h5::existsGroup(ff[datasetN], "what")) {
-    dataset.what <- h5::list.attributes(ff[datasetN]["what"])
+  if (hdf5r::existsGroup(ff[[datasetN]], "what")) {
+    dataset.what <- hdf5r::list.attributes(ff[[datasetN]][["what"]])
   } else dataset.what <- character(0)
 
-  if (h5::existsGroup(ff[datasetN][dataN], "what")) {
-    data.what <- h5::list.attributes(ff[datasetN][dataN]["what"])
+  if (hdf5r::existsGroup(ff[[datasetN]][[dataN]], "what")) {
+    data.what <- hdf5r::list.attributes(ff[[datasetN]][[dataN]][["what"]])
   } else data.what <- character(0)
 
   get.where <- function(aname) {
-    if (aname %in% data.where) return(h5::h5attr(ff[datasetN][dataN]["where"], aname))
-    if (aname %in% dataset.where) return(h5::h5attr(ff[datasetN]["where"], aname))
-    if (aname %in% root.where) return(h5::h5attr(ff["where"], aname))
+    if (aname %in% data.where) return(hdf5r::h5attr(ff[[datasetN]][[dataN]][["where"]], aname))
+    if (aname %in% dataset.where) return(hdf5r::h5attr(ff[[datasetN]][["where"]], aname))
+    if (aname %in% root.where) return(hdf5r::h5attr(ff[["where"]], aname))
     return(NA)
   }
 
   get.what <- function(aname) {
-    if (aname %in% data.what) return(h5::h5attr(ff[datasetN][dataN]["what"], aname))
-    if (aname %in% dataset.what) return(h5::h5attr(ff[datasetN]["what"], aname))
-    if (aname %in% root.what) return(h5::h5attr(ff["what"], aname))
+    if (aname %in% data.what) return(hdf5r::h5attr(ff[[datasetN]][[dataN]][["what"]], aname))
+    if (aname %in% dataset.what) return(hdf5r::h5attr(ff[[datasetN]][["what"]], aname))
+    if (aname %in% root.what) return(hdf5r::h5attr(ff[["what"]], aname))
     return(NA)
   }
 
@@ -159,7 +159,8 @@ read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE, ...) {
                                            time=list(basedate=edate, accum=accum)))
   }
   # close file
-  h5::h5close(ff)
+#  hdf5r::h5close(ff)
+  ff$close_all()
 
   # that's all, folks
   return(zz)
