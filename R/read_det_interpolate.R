@@ -137,7 +137,7 @@ read_det_interpolate <- function(
   lead_time            = seq(0, 48, 3),
   by                   = "6h",
   file_path            = "",
-  file_format          = NULL,
+  file_format          = "vfld",
   file_template        = "vfld",
   stations             = NULL,
   correct_t2m          = TRUE,
