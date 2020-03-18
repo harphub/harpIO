@@ -153,6 +153,73 @@
 #'
 #' @examples
 #'
+#' if (requireNamespace("harpDate", quietly = TRUE)) {
+#'
+#'   read_eps_interpolate(
+#'     start_date    = 2019021700,
+#'     end_date      = 2019021718,
+#'     eps_model     = c("MEPS_prod"),
+#'     parameter     = "T2m",
+#'     lead_time     = seq(0, 12, 3),
+#'     members_in    = seq(0, 9),
+#'     by            = "6h",
+#'     file_path     = system.file("vfld", package = "harpData"),
+#'     file_template = "vfld_eps",
+#'     file_format   = "vfld",
+#'     return_data   = TRUE
+#'   )
+#'
+#'   # More than one model with different members
+#'   read_eps_interpolate(
+#'     start_date    = 2019021700,
+#'     end_date      = 2019021718,
+#'     eps_model     = c("MEPS_prod", "AROME_Arctic_eps"),
+#'     parameter     = "T2m",
+#'     lead_time     = seq(0, 12, 3),
+#'     members_in    = list(MEPS_prod = seq(0, 2), AROME_Arctic_eps = 0),
+#'     by            = "6h",
+#'     file_path     = system.file("vfld", package = "harpData"),
+#'     file_template = "vfld_eps",
+#'     file_format   = "vfld",
+#'     return_data   = TRUE
+#'   )
+#'
+#'   # Construct a multimodel EPS. Need to remove the model elevation from the output
+#'   # as the different models have different elevation data.
+#'   read_eps_interpolate(
+#'     start_date        = 2019021700,
+#'     end_date          = 2019021718,
+#'     eps_model         = list(my_multimodel_eps = c("MEPS_prod", "AROME_Arctic_eps")),
+#'     parameter         = "T2m",
+#'     lead_time         = seq(0, 12, 3),
+#'     members_in        = list(my_multimodel_eps = list(MEPS_prod = seq(0, 2), AROME_Arctic_eps = 0)),
+#'     by                = "6h",
+#'     file_path         = system.file("vfld", package = "harpData"),
+#'     file_template     = "vfld_eps",
+#'     file_format       = "vfld",
+#'     return_data       = TRUE ,
+#'     remove_model_elev = TRUE
+#'   )
+#'
+#'   # Lagged ensemble - CMEPS produces a full ensemble every 3 hours, but some
+#'   # members are produced 1 and 2 hours earlier
+#'
+#'   read_eps_interpolate(
+#'     start_date    = 2019021700,
+#'     end_date      = 2019021718,
+#'     eps_model     = "CMEPS_prod",
+#'     parameter     = "T2m",
+#'     lead_time     = seq(0, 12, 3),
+#'     members_in    = c(0, 1, 3, 4, 5, 6),
+#'     lags          = list(CMEPS_prod = paste0(c(0, 0, 2, 2, 1, 1), "h")),
+#'     by            = "3h",
+#'     file_path     = system.file("vfld", package = "harpData"),
+#'     file_template = "vfld_eps",
+#'     file_format   = "vfld",
+#'     return_data   = TRUE
+#'   )
+#'
+#' }
 read_eps_interpolate <- function(
   start_date,
   end_date,

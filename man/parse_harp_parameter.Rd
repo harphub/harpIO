@@ -4,8 +4,10 @@
 \alias{parse_harp_parameter}
 \title{Parse the parameter name and decide on level, accumulation...}
 \usage{
-parse_harp_parameter(param, vertical_coordinate = c(NA_character_,
-  "pressure", "model", "height"))
+parse_harp_parameter(
+  param,
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+)
 }
 \arguments{
 \item{param}{Parameter name - available names can be found from

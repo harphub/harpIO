@@ -21,3 +21,19 @@ A geofield or (possibly) a plain  matrix.
 \description{
 Read gridded data in various formats.
 }
+\examples{
+if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
+  read_grid(
+    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+    parameter = "T2m"
+  )
+  read_grid(
+    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+    parameter = "RH2m"
+  )
+  read_grid(
+    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+    parameter = "tcc"
+  )
+}
+}

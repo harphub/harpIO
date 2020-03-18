@@ -4,9 +4,13 @@
 \alias{save_point_verif}
 \title{Save verification data}
 \usage{
-save_point_verif(verif_data, verif_path = "./Verification",
-  verif_file_template = "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
-  ...)
+save_point_verif(
+  verif_data,
+  verif_path = "./Verification",
+ 
+    verif_file_template = "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
+  ...
+)
 }
 \arguments{
 \item{verif_data}{A verification object produced by one of the harpPoint
@@ -22,4 +26,9 @@ consistency with the default shiny app to plot verification, this should not be 
 }
 \description{
 Save verification data
+}
+\examples{
+\dontrun{
+  save_point_verif(verif_data)
+}
 }

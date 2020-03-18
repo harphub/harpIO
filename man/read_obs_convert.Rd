@@ -4,13 +4,22 @@
 \alias{read_obs_convert}
 \title{Read observations and output to sqlite OBSTABLE file(s)}
 \usage{
-read_obs_convert(start_date, end_date, by = "3h", obs_path = ".",
-  obs_format = "vobs", obsfile_template = "vobs", parameter = NULL,
-  sqlite_path = NULL, sqlite_template = "obstable",
-  return_data = FALSE, iterations_per_write = 24,
+read_obs_convert(
+  start_date,
+  end_date,
+  by = "3h",
+  obs_path = ".",
+  obs_format = "vobs",
+  obsfile_template = "vobs",
+  parameter = NULL,
+  sqlite_path = NULL,
+  sqlite_template = "obstable",
+  return_data = FALSE,
+  iterations_per_write = 24,
   sqlite_synchronous = c("off", "normal", "full", "extra"),
-  sqlite_journal_mode = c("delete", "truncate", "persist", "memory",
-  "wal", "off"), ...)
+  sqlite_journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  ...
+)
 }
 \arguments{
 \item{start_date}{Date of the first observations to be read in. Should be in
@@ -91,4 +100,16 @@ this function does nothing.
 
 For observations already stored in databases, it may be better to read
 directly from the database.
+}
+\examples{
+if (requireNamespace("harpData", quietly = TRUE)) {
+  read_obs_convert(
+    start_date  = 2019021700,
+    end_date    = 2019022023,
+    by          = "1h",
+    obs_path    = system.file("vobs", package = "harpData"),
+    return_data = TRUE
+  )
+}
+
 }

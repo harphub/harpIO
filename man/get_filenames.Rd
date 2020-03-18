@@ -4,12 +4,22 @@
 \alias{get_filenames}
 \title{Get filename(s) for meteorological data}
 \usage{
-get_filenames(file_path = "", file_date = Sys.Date(),
-  start_date = NULL, end_date = NULL, by = "6h", lags = NULL,
-  parameter = NULL, det_model = NULL, eps_model = NULL,
-  sub_model = NULL, lead_time = seq(0, 48, 3),
-  members = NA_character_, file_template = "fctable_eps",
-  filenames_only = TRUE)
+get_filenames(
+  file_path = "",
+  file_date = Sys.Date(),
+  start_date = NULL,
+  end_date = NULL,
+  by = "6h",
+  lags = NULL,
+  parameter = NULL,
+  det_model = NULL,
+  eps_model = NULL,
+  sub_model = NULL,
+  lead_time = seq(0, 48, 3),
+  members = NA_character_,
+  file_template = "fctable_eps",
+  filenames_only = TRUE
+)
 }
 \arguments{
 \item{file_path}{The static path to the data.}
@@ -85,11 +95,11 @@ get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
 "harmonie_grib")
 
 get_filenames("/my/path", start_date = 20170101, end_date = 20170131, by
-= "1d", eps_model = "my_eps", parameter = "T2m", file_template =
-"harmoneps_grib_fp")
+= "1d", eps_model = "my_eps", parameter = "T2m", members = seq(0, 2),
+file_template = "harmoneps_grib_fp")
 
 get_filenames("/my/path", file_date = 20170101, parameter = "T2m",
-file_template = "harmoneps_grib_fp")
+members = seq(0, 2), file_template = "harmoneps_grib_fp")
 
 get_filenames("/my/path", start_date = 20170101, end_date = 20170105, by
 = "6h", eps_model = "my_eps", parameter = "T2m", members = seq(0,3),

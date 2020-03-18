@@ -11,6 +11,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'   save_point_verif(verif_data)
+#' }
 save_point_verif <- function(
   verif_data,
   verif_path          = "./Verification",

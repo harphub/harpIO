@@ -213,10 +213,28 @@ file_templates <- function() {
       "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
-    "vfld_noexp" , file.path(
+    "vfld_eps" , file.path(
+      "{file_path}",
+      "{sub_model}",
+      "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
+    "vfld_det" , file.path(
+      "{file_path}",
+      "{det_model}",
+      "vfld{det_model}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
+    "vfld_eps_noexp" , file.path(
       "{file_path}",
       "{sub_model}",
       "vfldmbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
+    "vfld_det_noexp" , file.path(
+      "{file_path}",
+      "{det_model}",
+      "vfld{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
     "vobs" , file.path(
