@@ -164,7 +164,7 @@ read_eps_interpolate <- function(
   lags                 = NULL,
   by                   = "6h",
   file_path            = "",
-  file_format          = NULL,
+  file_format          = "vfld",
   file_template        = "vfld",
   stations             = NULL,
   correct_t2m          = TRUE,
