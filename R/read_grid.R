@@ -7,6 +7,21 @@
 #' @param ... All arguments passed to the specified reader function.
 #' @return A geofield or (possibly) a plain  matrix.
 #' @export
+#' @examples
+#' if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
+#'   read_grid(
+#'     system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+#'     parameter = "T2m"
+#'   )
+#'   read_grid(
+#'     system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+#'     parameter = "RH2m"
+#'   )
+#'   read_grid(
+#'     system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+#'     parameter = "tcc"
+#'   )
+#' }
 read_grid <- function(filename, file_format=NULL, ...) {
   if (is.null(file_format)) file_format <- guess_format(filename)
   if (is.na(file_format)) stop("Please provide explicit file for ", filename)

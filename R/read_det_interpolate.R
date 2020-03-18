@@ -170,32 +170,34 @@
 #'     return_data    = TRUE
 #'   )
 #'
-#'   read_det_interpolate(
-#'     2017101512,
-#'     2017101512,
-#'     "HARMUK",
-#'     "T2m",
-#'     lead_time     = 3,
-#'     file_path     = system.file("grib", package = "harpData"),
-#'     file_template = "{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib",
-#'     file_format   = "grib",
-#'     return_data   = TRUE
-#'   )
+#'   if (requireNamespace("Rgrib2", quitely = TRUE)) {
+#'     read_det_interpolate(
+#'       2017101512,
+#'       2017101512,
+#'       "HARMUK",
+#'       "T2m",
+#'       lead_time     = 3,
+#'       file_path     = system.file("grib", package = "harpData"),
+#'       file_template = "{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib",
+#'       file_format   = "grib",
+#'       return_data   = TRUE
+#'     )
 #'
-#'   # Need a clim_file that contains surface geopotential to height correct 2m temperature
-#'   read_det_interpolate(
-#'     2017101512,
-#'     2017101512,
-#'     "HARMUK",
-#'     "T2m",
-#'     lead_time      = 3,
-#'     file_path      = system.file("grib", package = "harpData"),
-#'     file_template  = "{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib",
-#'     file_format    = "grib",
-#'     clim_file      = system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
-#'     keep_model_t2m = TRUE,
-#'     return_data    = TRUE
-#'   )
+#'     # Need a clim_file that contains surface geopotential to height correct 2m temperature
+#'     read_det_interpolate(
+#'       2017101512,
+#'       2017101512,
+#'       "HARMUK",
+#'       "T2m",
+#'       lead_time      = 3,
+#'       file_path      = system.file("grib", package = "harpData"),
+#'       file_template  = "{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib",
+#'       file_format    = "grib",
+#'       clim_file      = system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+#'       keep_model_t2m = TRUE,
+#'       return_data    = TRUE
+#'     )
+#'   }
 #'
 #' }
 #'

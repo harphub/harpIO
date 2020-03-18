@@ -54,3 +54,46 @@ case of precipitation accumulations. Where possible, observations that are
 not available for the given accumulation time, they are derived from
 observations for other accumulation times, either by subtraction or addition.
 }
+\examples{
+if (requireNamespace("harpData", quietly = TRUE)) {
+  read_point_obs(
+    2019021700,
+    2019022023,
+    "T2m",
+    obs_path = system.file("OBSTABLE", package = "harpData")
+  )
+
+  # stations can be specified using a vector of station ID numbers
+  read_point_obs(
+    2019021700,
+    2019022023,
+    "T2m",
+    obs_path = system.file("OBSTABLE", package = "harpData"),
+    stations = c(1001, 1010)
+  )
+
+  # Gross error checks are done automatically but the allowable values
+  # can be changed with min_allowed and max_allowed.
+  obs <- read_point_obs(
+    2019021700,
+    2019022023,
+    "T2m",
+    obs_path = system.file("OBSTABLE", package = "harpData"),
+    min_allowed = 260,
+    max_allowed = 280
+  )
+
+  # The removed observations are stored in the attribute "bad_obs"
+  attr(obs, "bad_obs")
+
+  # For vertical profiles, the vertical coordinate must be specified
+  read_point_obs(
+    2019021700,
+    2019022023,
+    "Z",
+    obs_path            = system.file("OBSTABLE", package = "harpData"),
+    vertical_coordinate = "pressure"
+  )
+}
+
+}

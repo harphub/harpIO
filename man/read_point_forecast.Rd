@@ -124,3 +124,106 @@ In the case of lagged forecasts, no lagged members are created at this stage,
 but the \code{lags} argument is used to ensure that all of the necessary data
 for creating lagged members are read in.
 }
+\examples{
+if (requireNamespace("harpData", quietly = TRUE)) {
+  # Read data from one deterministic model
+  read_point_forecast(
+    start_date = 2019021700,
+    end_date   = 2019021718,
+    fcst_model = "AROME_Arctic_prod",
+    fcst_type  = "det",
+    parameter  = "S10m",
+    by         = "6h",
+    file_path  = system.file("FCTABLE/deterministic", package = "harpData")
+  )
+
+  # Read data from more than one deterministic model
+  read_point_forecast(
+    start_date = 2019021700,
+    end_date   = 2019021718,
+    fcst_model = c("AROME_Arctic_prod", "MEPS_prod"),
+    fcst_type  = "det",
+    parameter  = "S10m",
+    by         = "6h",
+    file_path  = system.file("FCTABLE/deterministic", package = "harpData")
+  )
+
+  # Reading ensemble data works exactly the same way, but with fcst_type = "eps".
+  # Note that all lead times are combined in the same file so
+  # file_template = "fctable_eps_all_leads".
+  read_point_forecast(
+    start_date    = 2019021700,
+    end_date      = 2019021718,
+    fcst_model    = "MEPS_prod",
+    fcst_type     = "eps",
+    parameter     = "T2m",
+    lead_time     = seq(0, 12, 3),
+    by            = "6h",
+    file_path     = system.file("FCTABLE/ensemble", package = "harpData"),
+    file_template = "fctable_eps_all_leads"
+  )
+
+  # You can select which members you want to read
+  read_point_forecast(
+    start_date    = 2019021700,
+    end_date      = 2019021718,
+    fcst_model    = "MEPS_prod",
+    fcst_type     = "eps",
+    parameter     = "T2m",
+    lead_time     = seq(0, 12, 3),
+    by            = "6h",
+    file_path     = system.file("FCTABLE/ensemble", package = "harpData"),
+    file_template = "fctable_eps_all_leads",
+    members       = c(0, 3, 6)
+  )
+
+  # If reading in vertical profiles, you must specify the vertical coordinate
+  read_point_forecast(
+    start_date          = 2019021700,
+    end_date            = 2019021718,
+    fcst_model          = "MEPS_prod",
+    fcst_type           = "eps",
+    parameter           = "T",
+    lead_time           = seq(0, 12, 3),
+    by                  = "6h",
+    file_path           = system.file("FCTABLE/ensemble", package = "harpData"),
+    file_template       = "fctable_eps_all_leads",
+    members             = c(0, 3, 6),
+    vertical_coordinate = "pressure"
+  )
+
+  # When reading a lagged ensemble, the lags must be set for times at which
+  # lagged members exist. If member numbers are duplicated "_lag" is
+  # added to the member name.
+  read_point_forecast(
+    start_date    = 2019021700,
+    end_date      = 2019021718,
+    fcst_model    = "CMEPS_prod",
+    fcst_type     = "EPS",
+    parameter     = "T2m",
+    lead_time     = seq(0, 12, 3),
+    by            = "6h",
+    lags          = paste0(seq(0, 5), "h"),
+    file_path     = system.file("FCTABLE/ensemble", package = "harpData"),
+    file_template = "fctable_eps_all_leads"
+  )
+
+  If more than one forecast model, and at least one is lagged, lags must
+  be specified for all forecast models as a named list.
+  read_point_forecast(
+    start_date    = 2019021700,
+    end_date      = 2019021718,
+    fcst_model    = c("CMEPS_prod", "MEPS_prod"),
+    fcst_type     = "EPS",
+    parameter     = "T2m",
+    lead_time     = seq(0, 12, 3),
+    by            = "6h",
+    lags          = list(
+      CMEPS_prod = paste0(seq(0, 5), "h"),
+      MEPS_prod  = "0h"
+    ),
+    file_path     = system.file("FCTABLE/ensemble", package = "harpData"),
+    file_template = "fctable_eps_all_leads"
+  )
+}
+}
