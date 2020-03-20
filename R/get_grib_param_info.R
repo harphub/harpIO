@@ -16,8 +16,10 @@
 #' get_grib_param_info("t500")
 #' get_grib_param_info("rh32h")
 #'
-get_grib_param_info <- function(param) {
-  if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
+get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
+  if (!inherits(param, "harp_parameter")) {
+    param <- parse_harp_parameter(param, vertical_coordinate = vertical_coordinate)
+  }
 
   levtype <- switch(param$level_type,
                     "height"   = 105,

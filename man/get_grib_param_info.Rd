@@ -4,7 +4,7 @@
 \alias{get_grib_param_info}
 \title{Get grib paramater information}
 \usage{
-get_grib_param_info(param)
+get_grib_param_info(param, vertical_coordinate = NA_character_)
 }
 \arguments{
 \item{param}{Parameter name (or harp_param object)}
