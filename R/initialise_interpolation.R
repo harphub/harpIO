@@ -5,7 +5,7 @@
 # @param parameter A parameter that can be read from the file (only for domain)
 #        if correct_t2m == TRUE, parameter is always set to "topo"
 # @param domain A \code{geodomain}, only needed if it can not be retrieved from clim file.
-# @param stations The locations for which to initialise interpolation. 
+# @param stations The locations for which to initialise interpolation.
 #    If NULL, a default (global) list is taken.
 # @param method Interpolation method ("bilin", "nn"...)
 # @param use_mask Should L/S mask be applied when initialising the interpolation?
@@ -44,7 +44,7 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     ## but still have domain info (well, for most formats at least).
     err <- try(pfield <- read_grid(filename,
                                    "topo",
-                                   file_format)/8.80655, silent=TRUE)
+                                   file_format)/9.80655, silent=TRUE)
     if (inherits(err, "try-error") && correct_t2m) warning("Error reading topography.", immediate.=TRUE)
     else {
       init$domain <- attr(pfield, "domain")
