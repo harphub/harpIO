@@ -4,8 +4,11 @@
 #' @param parameter The parameter to be read.
 #' @param file_format The file format. Possible values include grib, netcdf, FA,
 #'   hdf5... Whatever the value is, it is suposed to correspond to a function
-#'   "read_XXX" that can deal with the format. If not specified, the format
-#'   can often be guessed correctly from file extension or the first few bytes.
+#'   "read_XXX" that can deal with the format. If not specified, the format can
+#'   often be guessed correctly from file extension or the first few bytes.
+#' @param data_only Logical. For compatibility with current version of
+#'   harpSpatial, make sure only a geofield is returned rather than a data
+#'   frame.
 #' @param ... All arguments passed to the specified reader function.
 #' @return A geofield or (possibly) a plain  matrix.
 #' @export
@@ -25,11 +28,13 @@
 #'     parameter = "tcc"
 #'   )
 #' }
-read_grid <- function(filename, parameter, file_format = NULL, ...) {
+read_grid <- function(filename, parameter, file_format = NULL, data_only = TRUE, ...) {
   if (is.null(file_format)) file_format <- guess_format(filename)
   if (is.na(file_format)) stop("Please provide explicit file format for ", filename, call. = FALSE)
   reader <- get(paste0("read_", file_format))
-  reader(filename = filename, parameter = parameter, ...)
+  gridded_data <- reader(file_name = filename, parameter = parameter, ...)
+  if (nrow(gridded_data) == 1 && data_only) gridded_data <- gridded_data[["gridded_data"]][[1]]
+  gridded_data
 }
 
 #' @rdname read_grid
