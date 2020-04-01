@@ -20,7 +20,7 @@
 # NOT exported. Used internally.
 #
 # @examples
-read_netcdf_interpolate <- function(
+read_netcdf_met_interpolate <- function(
   file_name,
   parameter           = NULL,
   members             = NA_character_,

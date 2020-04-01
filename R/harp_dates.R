@@ -203,6 +203,8 @@ str_datetime_to_unixtime <- function(str_datetime) {
       date_function <- lubridate::ymd_h},
     "12"  = {message("Date assumed to be YYYYMMDDHHmm")
       date_function <- lubridate::ymd_hm},
+    "14"  = {message("Date assumed to be YYYYMMDDHHmmss")
+      date_function <- lubridate::ymd_hms},
     date_function <- NA
   )
   if (!is.function(date_function)) stop("Unknown date-time string format")

@@ -114,6 +114,7 @@ parse_harp_parameter <- function(
   level_type <- switch(basename,
          "pmsl" = ,
          "mslp" = "msl",
+         "psfc" = ,
          "lsm"  = ,
          "pcp"  = ,
          "snow" = ,

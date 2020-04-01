@@ -18,7 +18,7 @@
 #   All transformations can include the logical keep_raw_data. If this is set to
 #   TRUE, the raw gridded data will be kept. If FALSE, or not set the raw gridded
 #   data will be discarded.
-# @param ... Arguments for Rgrib2::Gdec
+# @param opts Options for reading grib files. Usually set by grib_opts()
 #
 # @return A data frame with columns of metadata taken from the file and a list
 #   column of the gridded and / or transformed data.
@@ -41,12 +41,13 @@
 read_grib <- function(
   file_name,
   parameter,
-  meta                = TRUE,
+  lead_time           = NULL,
+  ens_member          = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
   show_progress       = FALSE,
-  ...
+  format_opts         = grib_opts()
 ) {
 
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
@@ -56,6 +57,8 @@ read_grib <- function(
       call. = FALSE
     )
   }
+
+  if (transformation == "none") transformation_opts[["keep_raw_data"]] <- TRUE
 
   parameter      <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info     <- lapply(parameter, get_grib_param_info)
@@ -81,30 +84,33 @@ read_grib <- function(
 
   grib_info <- Rgrib2::Gopen(file_name)
 
-  # filter_grib_info function defined at end of file
-  grib_info <- purrr::map2_dfr(parameter, param_info, filter_grib_info, grib_info)
+  grib_info[["fcdate"]]    <- suppressMessages(
+    str_datetime_to_unixtime(paste0(grib_info$dataDate, grib_info$dataTime))
+  )
+  grib_info[["validdate"]] <- suppressMessages(
+    str_datetime_to_unixtime(paste0(grib_info$validityDate, grib_info$validityTime))
+  )
+  grib_info[["leadtime"]]  <- (grib_info[["validdate"]] - grib_info[["fcdate"]]) / 3600
 
-  dots <- list(...)
-  if (is.null(dots$multi)) {
-    multi <- FALSE
-  } else {
-    multi <- dots$multi
+  # filter_grib_info function defined at end of file
+  grib_info <- purrr::map2_dfr(parameter, param_info, filter_grib_info, grib_info, lead_time)
+
+  if (nrow(grib_info) < 1) {
+    stop("None of the requested data could be read from grib file: ", file_name, call. = FALSE)
   }
 
-  if (
-    transformation == "interpolate" &&
-      (is.null(transformation_opts[["weights"]]) ||
-          attr(transformation_opts[["weights"]], "method") != transformation_opts[["method"]])
-  ) {
+  if (!is.null(transformation_opts[["keep_raw_data"]])) {
+    keep_raw_data <- transformation_opts[["keep_raw_data"]]
+  } else {
+    keep_raw_data <- FALSE
+  }
 
-    if (!is.null(transformation_opts[["keep_raw_data"]])) {
-      keep_raw_data <- transformation_opts[["keep_raw_data"]]
-    } else {
-      keep_raw_data <- FALSE
-    }
+  # For interpolating gridded data to points - compute weights if they aren't already passed.
 
-    # Assume grib message at position 1 has the same domain information as all messages
-    message("Computing interpolation weights.")
+  method_check <- attr(transformation_opts[["weights"]], "method") != transformation_opts[["method"]]
+
+  if (transformation == "interpolate" && (is.null(transformation_opts[["weights"]]) || method_check)) {
+
     transformation_opts <- initialise_interpolation(
       domain   = attr(Rgrib2::Gdec(file_name, 1), "domain"),
       stations = transformation_opts[["stations"]],
@@ -115,7 +121,36 @@ read_grib <- function(
     transformation_opts[["keep_raw_data"]] <- keep_raw_data
   }
 
-  grib_opts <- list(meta = meta, multi = multi)
+  # For regridding gridded data - compute weights if they aren't already passed.
+  if (transformation == "regrid" && is.null(transformation_opts[["weights"]])) {
+    message("Computing interpolation weights.")
+    # Assume grib message at position 1 has the same domain information as all messages
+    old_domain <- attr(Rgrib2::Gdec(file_name, 1), "domain")
+    new_domain <- try(meteogrid::as.geodomain(transformation_opts[["new_domain"]]))
+    if (inherits(new_domain, "try-error")) {
+      stop("'new_domain' in 'transformation_opts' must be a geofield or geodomain.", call. = FALSE)
+    }
+    transformation_opts[["weights"]] <- meteogrid::regrid.init(
+      olddomain = old_domain,
+      newdomain = new_domain,
+      method    = transformation_opts[["method"]]
+    )
+  }
+
+  # For xsection - compute interpolation weights
+  if (transformation == "xsection") {
+    message("Computing interpolation weights.")
+    # Assume grib message at position 1 has the same domain information as all messages
+    geofield_domain <- attr(Rgrib2::Gdec(file_name, 1), "domain")
+    if (is.null(transformation_opts[["a"]]) || is.null(transformation_opts[["b"]])) {
+      stop("End points of xsection, 'a' and 'b' must be specified.", call. = FALSE)
+    }
+    stopifnot(length(transformation_opts[["a"]]) == 2 && length(transformation_opts[["b"]] == 2))
+    transformation_opts[["weights"]] <- xsection_init(
+      geofield_domain, transformation_opts
+    )
+  }
+
 
   message("Reading data from ", file_name, ".")
 
@@ -124,7 +159,7 @@ read_grib <- function(
     read_and_transform_grib,
     file_name,
     grib_info,
-    grib_opts,
+    format_opts,
     transformation,
     transformation_opts,
     show_progress
@@ -148,7 +183,6 @@ read_grib <- function(
 # @param method Interpolation method (only necessary if the weights are not yet initialised)
 # @param use_mask If TRUE, use land/sea mask in interpolation
 # @param meta If TRUE, also read all meta data (domain, time properties).
-# @param ... Arguments for \code{Rgrib2::Gdec}
 #
 # @return A tibble
 # NOT exported. Used internally.
@@ -160,8 +194,7 @@ read_grib_interpolate <- function(file_name,
   init                = list(),
   method              = "closest",
   use_mask            = FALSE,
-  show_progress       = FALSE,
-  ...
+  show_progress       = FALSE
 ) {
   # FIXME: grib2 files can contain multiple ensemble members!
   #stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
@@ -191,8 +224,7 @@ read_grib_interpolate <- function(file_name,
       use_mask = use_mask,
       weights  = init$weights
     ),
-    show_progress = show_progress,
-    ...
+    show_progress = show_progress
   )
 
   list(
@@ -220,7 +252,7 @@ read_grib_interpolate <- function(file_name,
 
 # Function to get the grib information for parameters
 
-filter_grib_info <- function(parameter, param_info, grib_info) {
+filter_grib_info <- function(parameter, param_info, grib_info, lead_time) {
   if (grepl("[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
     grib_info <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
   } else {
@@ -241,11 +273,27 @@ filter_grib_info <- function(parameter, param_info, grib_info) {
         .data$level                  == param_info$level_number
       )
   }
+
+  if (nrow(grib_info) == 0) {
+    warning(
+      "Parameter \"", parameter[["fullname"]], "\" not found in grib file.",
+      call. = FALSE, immediate. = TRUE
+    )
+    return(grib_info)
+  }
+
   grib_info[["level_type"]] <- parameter[["level_type"]]
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
-  if (nrow(grib_info) == 0) {
-    warning("Parameter \"", parameter, "\" not found in grib file.", call. = FALSE, immediate. = TRUE)
+  if (!is.null(lead_time)) {
+    grib_info <- dplyr::filter(grib_info, .data[["leadtime"]] %in% lead_time)
+    if (nrow(grib_info) == 0) {
+      warning(
+        "'lead_time' [", paste(lead_time, collapse = ", "), "] not found in grib file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(grib_info)
+    }
   }
 
   grib_info
@@ -259,18 +307,10 @@ read_and_transform_grib <- function(
   x, file_name, grib_info, grib_opts, transformation = "none", opts = list(), show_progress
 ) {
 
-  fcdate    <- suppressMessages(
-    str_datetime_to_unixtime(paste0(grib_info$dataDate[x], grib_info$dataTime[x]))
-  )
-  validdate <- suppressMessages(
-    str_datetime_to_unixtime(paste0(grib_info$validityDate[x], grib_info$validityTime[x]))
-  )
-  leadtime  <- (validdate - fcdate) / 3600
-
   result <- tibble::tibble(
-    fcdate       = fcdate,
-    validdate    = validdate,
-    lead_time    = leadtime,
+    fcdate       = grib_info$fcdate[x],
+    validdate    = grib_info$validdate[x],
+    lead_time    = grib_info$leadtime[x],
     parameter    = grib_info$parameter[x],
     level_type   = grib_info$level_type[x],
     level        = grib_info$level[x],
@@ -286,9 +326,20 @@ read_and_transform_grib <- function(
   )
 
   if (transformation == "interpolate") {
-    result[["station_data"]] <- interpolate_geofield(result[["gridded_data"]], opts)
-    if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
-      result <- result[, which(names(result) != "gridded_data")]
+    result[["station_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
+  }
+
+  if (transformation == "regrid") {
+    result[["regridded_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
+  }
+
+  if (transformation == "xsection") {
+    result[["xsection_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
+  }
+
+  if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
+    result <- result[, which(names(result) != "gridded_data")]
+    if (transformation == "interpolate") {
       result <- tidyr::unnest(result, .data[["station_data"]])
     }
   }
