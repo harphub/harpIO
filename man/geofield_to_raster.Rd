@@ -2,15 +2,20 @@
 % Please edit documentation in R/geofield_methods.R
 \name{geofield_to_raster}
 \alias{geofield_to_raster}
+\alias{raster_to_geofield}
 \title{Convert a Geofield to a Raster}
 \usage{
 geofield_to_raster(x)
+
+raster_to_geofield(x)
 }
 \arguments{
-\item{x}{A geofield}
+\item{x}{A geofield for \code{geofield_to_raster}, or a raster for
+\code{raster_to_geofield}.}
 }
 \value{
-A raster
+A raster for \code{geofield_to_raster}, or a geofield for
+  \code{raster_to_geofield}.
 }
 \description{
 If you wish to work with the raster package, you can convert geofield objects
@@ -19,7 +24,7 @@ to raster using this function.
 \examples{
 if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
   geo <- read_grid(system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"), "T2m")
-  meteogrid::iview(geo)
+  meteogrid::iview(geo, legend = TRUE)
   ras <- geofield_to_raster(geo)
   if (require("raster")) {
     plot(ras)
