@@ -84,7 +84,7 @@ dimensional arrays.}
 \item{time_var}{The name of the time dimension.}
 
 \item{ref_time_var}{The name of the variable holding the forecast reference
-time. Set to NULL if it is to be derived from the first value in the time
+time. Set to NA if it is to be derived from the first value in the time
 dimension.}
 }
 \value{

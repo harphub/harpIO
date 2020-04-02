@@ -364,13 +364,13 @@ read_and_transform_netcdf <- function(
     }
 
     result <- tibble::tibble(
-      fcdate       = nc_info$fcdate[x],
-      validdate    = nc_info$validdate[x],
-      lead_time    = nc_info$leadtime[x],
-      parameter    = nc_info$parameter[x],
-      level_type   = nc_info$level_type[x],
-      level        = nc_info$level[x],
-      units        = nc_info$units[x],
+      fcdate       = ifelse(is.null(nc_info$fcdate[x]), NA_real_, nc_info$fcdate[x]),
+      validdate    = ifelse(is.null(nc_info$validdate[x]), NA_real_, nc_info$validdate[x]),
+      lead_time    = ifelse(is.null(nc_info$leadtime[x]), NA_real_, nc_info$leadtime[x]),
+      parameter    = ifelse(is.null(nc_info$parameter[x]), NA_character_, nc_info$parameter[x]),
+      level_type   = ifelse(is.null(nc_info$level_type[x]), NA_character_, nc_info$level_type[x]),
+      level        = ifelse(is.null(nc_info$level[x]), NA_real_, nc_info$level[x]),
+      units        = ifelse(is.null(nc_info$units[x]), NA_character_, nc_info$units[x]),
       gridded_data = list(
         meteogrid::as.geofield(
           orientate_data(

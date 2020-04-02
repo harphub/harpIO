@@ -21,7 +21,7 @@ get_domain_nc <- function(file, opts) {
   }
 
   if (is.null(proj4)) {
-    if (!is.element(proj4_var, names(nc_id[["var"]]))) {
+    if (proj4_var != 0 && !is.element(proj4_var, names(nc_id[["var"]]))) {
       stop(
         "Projection variable '", proj4_var, "' not found in netcdf file.\n",
         "Use netcdf_opts() to set.",
@@ -101,8 +101,8 @@ get_domain_nc <- function(file, opts) {
       NE <- c(projected_x[2], projected_y[2])
     } else {
       latlon_xy <- meteogrid::project(projected_x, projected_y, proj = proj4, inv = TRUE)
-      SW <- latlon_xy[1,]
-      NE <- latlon_xy[2,]
+      SW <- as.numeric(latlon_xy[1,])
+      NE <- as.numeric(latlon_xy[2,])
     }
 
   } else {
