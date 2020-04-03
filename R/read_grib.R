@@ -85,10 +85,10 @@ read_grib <- function(
   grib_info <- Rgrib2::Gopen(file_name)
 
   grib_info[["fcdate"]]    <- suppressMessages(
-    str_datetime_to_unixtime(paste0(grib_info$dataDate, grib_info$dataTime))
+    str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 2, flag = "0")))
   )
   grib_info[["validdate"]] <- suppressMessages(
-    str_datetime_to_unixtime(paste0(grib_info$validityDate, grib_info$validityTime))
+    str_datetime_to_unixtime(paste0(grib_info$validityDate, formatC(grib_info$validityTime, width = 2, flag = "0")))
   )
   grib_info[["leadtime"]]  <- (grib_info[["validdate"]] - grib_info[["fcdate"]]) / 3600
 
