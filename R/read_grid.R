@@ -6,9 +6,9 @@
 #'   hdf5... Whatever the value is, it is suposed to correspond to a function
 #'   "read_XXX" that can deal with the format. If not specified, the format can
 #'   often be guessed correctly from file extension or the first few bytes.
-#' @param data_only Logical. For compatibility with current version of
+#' @param data_frame Logical. For compatibility with current version of
 #'   harpSpatial, make sure only a geofield is returned rather than a data
-#'   frame.
+#'   frame when set to FALSE.
 #' @param ... All arguments passed to the specified reader function.
 #' @return A geofield or (possibly) a plain  matrix.
 #' @export
@@ -28,7 +28,7 @@
 #'     parameter = "tcc"
 #'   )
 #' }
-read_grid <- function(filename, parameter, file_format = NULL, data_only = TRUE, ...) {
+read_grid <- function(filename, parameter, file_format = NULL, data_frame = FALSE, ...) {
   if (is.null(file_format)) file_format <- guess_format(filename)
   if (is.na(file_format)) stop("Please provide explicit file format for ", filename, call. = FALSE)
   reader <- get(paste0("read_", file_format))
@@ -38,7 +38,13 @@ read_grid <- function(filename, parameter, file_format = NULL, data_only = TRUE,
   if (is.element("transformation", names(dots)) && dots[["transformation"]] == "regrid") {
     data_col <- "regridded_data"
   }
-  if (nrow(gridded_data) == 1 && data_only) gridded_data <- gridded_data[[data_col]][[1]]
+  if (!data_frame) {
+    if (nrow(gridded_data) == 1) {
+      gridded_data <- gridded_data[[data_col]][[1]]
+    } else {
+      gridded_data <- gridded_data[[data_col]]
+    }
+  }
   gridded_data
 }
 

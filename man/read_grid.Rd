@@ -5,7 +5,7 @@
 \alias{read_grid_interpolate}
 \title{Read gridded data in various formats.}
 \usage{
-read_grid(filename, parameter, file_format = NULL, data_only = TRUE, ...)
+read_grid(filename, parameter, file_format = NULL, data_frame = FALSE, ...)
 
 read_grid_interpolate(filename, parameter, file_format = NULL, ...)
 }
@@ -19,9 +19,9 @@ hdf5... Whatever the value is, it is suposed to correspond to a function
 "read_XXX" that can deal with the format. If not specified, the format can
 often be guessed correctly from file extension or the first few bytes.}
 
-\item{data_only}{Logical. For compatibility with current version of
+\item{data_frame}{Logical. For compatibility with current version of
 harpSpatial, make sure only a geofield is returned rather than a data
-frame.}
+frame when set to FALSE.}
 
 \item{...}{All arguments passed to the specified reader function.}
 }
