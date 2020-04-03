@@ -33,7 +33,12 @@ read_grid <- function(filename, parameter, file_format = NULL, data_only = TRUE,
   if (is.na(file_format)) stop("Please provide explicit file format for ", filename, call. = FALSE)
   reader <- get(paste0("read_", file_format))
   gridded_data <- reader(file_name = filename, parameter = parameter, ...)
-  if (nrow(gridded_data) == 1 && data_only) gridded_data <- gridded_data[["gridded_data"]][[1]]
+  data_col <- "gridded_data"
+  dots <- list(...)
+  if (is.element("transformation", names(dots)) && dots[["transformation"]] == "regrid") {
+    data_col <- "regridded_data"
+  }
+  if (nrow(gridded_data) == 1 && data_only) gridded_data <- gridded_data[[data_col]][[1]]
   gridded_data
 }
 

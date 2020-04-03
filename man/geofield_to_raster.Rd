@@ -22,13 +22,26 @@ If you wish to work with the raster package, you can convert geofield objects
 to raster using this function.
 }
 \examples{
-if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
-  geo <- read_grid(system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"), "T2m")
+if (
+  requireNamespace("Rgrib2", quietly = TRUE) &
+  requireNamespace("harpData", quietly = TRUE)
+) {
+  geo <- read_grid(
+    system.file(
+      "grib/HARMUK20171015T12Z+003.grib",
+      package = "harpData"
+    ),
+    "T2m"
+  )
+
   meteogrid::iview(geo, legend = TRUE)
   ras <- geofield_to_raster(geo)
   if (require("raster")) {
     plot(ras)
   }
+
+  geo1 <- raster_to_geofield(ras)
+  meteogrid::iview(geo1, legend = TRUE)
 }
 
 }
