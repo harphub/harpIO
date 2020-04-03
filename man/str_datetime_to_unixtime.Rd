@@ -2,9 +2,12 @@
 % Please edit documentation in R/harp_dates.R
 \name{str_datetime_to_unixtime}
 \alias{str_datetime_to_unixtime}
+\alias{str_datetime_to_datetime}
 \title{Convert a date-time string to unix time}
 \usage{
 str_datetime_to_unixtime(str_datetime)
+
+str_datetime_to_datetime(str_datetime)
 }
 \arguments{
 \item{str_datetime}{A date-time string - its format is guessed from the
@@ -19,7 +22,10 @@ This is a convenient wrapper for the YMD..2unix functions
 }
 \examples{
 str_datetime_to_unixtime("20170101")
-str_datetime_to_unixtime("2017010112")
+str_datetime_to_unixtime(2017010112)
 str_datetime_to_unixtime("201701011230")
 
+str_datetime_to_datetime("20170101")
+str_datetime_to_datetime(2017010112)
+str_datetime_to_datetime("201701011230")
 }

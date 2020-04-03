@@ -192,7 +192,7 @@ unixtime_to_str_datetime <- function(unixtime, str_function) {
 #'
 #' @examples
 #' str_datetime_to_unixtime("20170101")
-#' str_datetime_to_unixtime("2017010112")
+#' str_datetime_to_unixtime(2017010112)
 #' str_datetime_to_unixtime("201701011230")
 #'
 str_datetime_to_unixtime <- function(str_datetime) {
@@ -211,6 +211,21 @@ str_datetime_to_unixtime <- function(str_datetime) {
   date_function(str_datetime) %>%
     lubridate::as_datetime() %>%
     as.numeric()
+}
+
+#' @rdname str_datetime_to_unixtime
+#' @export
+#' @examples
+#' str_datetime_to_datetime("20170101")
+#' str_datetime_to_datetime(2017010112)
+#' str_datetime_to_datetime("201701011230")
+
+str_datetime_to_datetime <- function(str_datetime) {
+  unix2datetime(
+    str_datetime_to_unixtime(
+      str_datetime
+    )
+  )
 }
 
 #' Generate a sequence of dates
