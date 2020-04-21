@@ -114,10 +114,13 @@ read_fctable <- function(
 
   }
 
-  fcst_out <- dplyr::bind_rows(fcst_out) %>%
-    dplyr::mutate(
+  fcst_out <- dplyr::bind_rows(fcst_out)
+  if (nrow(fcst_out) > 0) {
+    fcst_out <- dplyr::mutate(
+      fcst_out,
       fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
     )
+  }
 
   # Make the forecast data the last columns
   fcst_cols <- union(
