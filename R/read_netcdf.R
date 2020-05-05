@@ -2,12 +2,12 @@ read_netcdf <- function(
   file_name,
   parameter,
   lead_time           = NULL,
-  ens_member          = NULL,
+  members             = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
-  show_progress       = FALSE,
-  format_opts         = netcdf_opts()
+  format_opts         = netcdf_opts(),
+  show_progress       = FALSE
 ) {
 
   if (!requireNamespace("ncdf4", quietly = TRUE)) {
@@ -15,6 +15,18 @@ read_netcdf <- function(
   }
 
   if (transformation == "none") transformation_opts[["keep_raw_data"]] <- TRUE
+
+  if (is.null(parameter)) {
+    stop("For NetCDF files, parameter = '<parameter>' must be passed.", call. = FALSE)
+  }
+
+  if (is.null(format_opts) | length(format_opts) < 1) {
+    warning(
+      "No 'format_opts' passed for NetCDF file. Using default netcdf_opts()",
+      call. = FALSE, immediate. = TRUE
+    )
+    format_opts <- netcdf_opts()
+  }
 
   # Convert parameter name to harp parameter and then to netcdf
   parameter  <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
@@ -53,7 +65,7 @@ read_netcdf <- function(
   param_info <- param_info[sapply(param_info, function(x) x[["nc_param"]] %in% nc_vars)]
 
   nc_dims        <- names(nc_id$dim)
-  requested_dims <- unique(na.omit(unlist(lapply(
+  requested_dims <- unique(stats::na.omit(unlist(lapply(
     param_info, function(x) x[["opts"]][c("x_dim", "y_dim", "z_var", "member_var", "time_var")]
   ))))
   missing_dims   <- setdiff(requested_dims, nc_dims)
@@ -73,10 +85,12 @@ read_netcdf <- function(
   # Do the same if ensemble members are requested.
 
   nc_info <- lapply(param_info, make_nc_info, time_info, nc_id, file_name)
-
+  if (all(sapply(nc_info, is.null))) {
+    stop("Cannot read from netcdf file: ", file_name, call. = FALSE)
+  }
   # Filter the lead times and ensemble members
 
-  nc_info <- lapply(nc_info, filter_nc, lead_time, ens_member)
+  nc_info <- lapply(nc_info, filter_nc, lead_time, members)
   nc_info <- nc_info[sapply(nc_info, function(x) nrow(x) > 0)]
   if (length(nc_info) < 1) {
     stop("None of the requested data could be read from netcdf file: ", file_name, call. = FALSE)
@@ -145,6 +159,11 @@ read_netcdf <- function(
 
   # Read and transform the data
 
+  first_only <- FALSE
+  if (!is.null(format_opts[["first_only"]]) && format_opts[["first_only"]]) {
+    first_only <- TRUE
+  }
+
   result <- purrr::map2_dfr(
     nc_info,
     param_info,
@@ -153,6 +172,7 @@ read_netcdf <- function(
     nc_domain,
     transformation,
     transformation_opts,
+    first_only,
     show_progress
   )
 
@@ -172,7 +192,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
   nc_param   <- param[["nc_param"]]
   harp_param <- param[["harp_param"]][["fullname"]]
   nc_dims    <- sort(sapply(nc_id[["var"]][[nc_param]][["dim"]], function(x) x[["name"]]))
-  opts_dims  <- sort(na.omit(unlist(
+  opts_dims  <- sort(stats::na.omit(unlist(
     param[["opts"]][c("x_dim", "y_dim", "z_var", "member_var", "time_var")], use.names = FALSE
   )))
 
@@ -195,7 +215,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
   if (!identical(nc_dims, opts_dims)) {
     warning(
-      "Not all requested dimensions for '", harp_param, "' found in ", file_name, ".\n",
+      "Requested dimensions do not match for '", harp_param, "' in ", file_name, ".\n",
       "Requested dimensions: (", paste(opts_dims, collapse = ","), ")\n",
       "Dimensions in file: (", paste(nc_dims, collapse = ", "),
       call. = FALSE, immediate. = TRUE
@@ -315,7 +335,7 @@ filter_nc <- function(nc_info, lead_times, members) {
 # Function to read and transform netcdf data
 
 read_and_transform_netcdf <- function(
-  nc_info, param_info, nc_id, nc_domain, transformation, opts, show_progress
+  nc_info, param_info, nc_id, nc_domain, transformation, opts, first_only, show_progress
 ) {
 
   func <- function(x, nc_id, nc_info, nc_opts, nc_domain, transformation = "none", opts = list(), show_progress) {
@@ -327,8 +347,8 @@ read_and_transform_netcdf <- function(
     )
     geofield_info[["time"]] <- list()
 
-    start <- rep(1, length(na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
-    count <- rep(-1, length(na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
+    start <- rep(1, length(stats::na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
+    count <- rep(-1, length(stats::na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
 
     if (is.element("level", colnames(nc_info))) {
       nc_levels                    <- ncdf4::ncvar_get(nc_id, nc_opts[["z_var"]])
@@ -387,17 +407,15 @@ read_and_transform_netcdf <- function(
       result[["member"]] <- nc_info[["member"]][x]
     }
 
-    if (transformation == "interpolate") {
-      result[["station_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-    }
+    col_name <- switch(
+      transformation,
+      "none"        = "gridded_data",
+      "interpolate" = "station_data",
+      "regrid"      = "regridded_data",
+      "xsection"    = "xsection_data"
+    )
 
-    if (transformation == "regrid") {
-      result[["regridded_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-    }
-
-    if (transformation == "xsection") {
-      result[["xsection_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-    }
+    result[[col_name]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
 
     if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
       result <- result[, which(names(result) != "gridded_data")]
@@ -411,6 +429,7 @@ read_and_transform_netcdf <- function(
     result
   }
 
+  if (first_only) nc_info <- nc_info[1, ]
   purrr::map_dfr(
     1:nrow(nc_info),
     func,

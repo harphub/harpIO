@@ -42,12 +42,12 @@ read_grib <- function(
   file_name,
   parameter,
   lead_time           = NULL,
-  ens_member          = NULL,
+  members             = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
-  show_progress       = FALSE,
-  format_opts         = grib_opts()
+  format_opts         = grib_opts(),
+  show_progress       = FALSE
 ) {
 
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
@@ -59,6 +59,14 @@ read_grib <- function(
   }
 
   if (transformation == "none") transformation_opts[["keep_raw_data"]] <- TRUE
+
+  if (is.null(parameter)) {
+    stop("For grib files, parameter = '<parameter>' must be passed.", call. = FALSE)
+  }
+
+  if (is.null(format_opts) || length(format_opts) < 1) {
+    format_opts <- grib_opts()
+  }
 
   parameter      <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info     <- lapply(parameter, get_grib_param_info)
@@ -82,7 +90,25 @@ read_grib <- function(
     stop("None of the requested parameters can be read from grib files.", call. = FALSE)
   }
 
-  grib_info <- Rgrib2::Gopen(file_name)
+  grib_info <- Rgrib2::Gopen(
+    file_name,
+    IntPar = c(
+      "editionNumber",
+      "dataDate",
+      "dataTime",
+      "validityDate",
+      "validityTime",
+      "Nx",
+      "Ny",
+      "table2Version",
+      "indicatorOfParameter",
+      "parameterCategory",
+      "parameterNumber",
+      "indicatorOfTypeOfLevel",
+      "level",
+      "perturbationNumber"
+    )
+  )
 
   grib_info[["fcdate"]]    <- suppressMessages(
     str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 4, flag = "0")))
@@ -91,9 +117,10 @@ read_grib <- function(
     str_datetime_to_unixtime(paste0(grib_info$validityDate, formatC(grib_info$validityTime, width = 4, flag = "0")))
   )
   grib_info[["leadtime"]]  <- (grib_info[["validdate"]] - grib_info[["fcdate"]]) / 3600
+  colnames(grib_info)[colnames(grib_info) == "perturbationNumber"] <- "member"
 
   # filter_grib_info function defined at end of file
-  grib_info <- purrr::map2_dfr(parameter, param_info, filter_grib_info, grib_info, lead_time)
+  grib_info <- purrr::map2_dfr(parameter, param_info, filter_grib_info, grib_info, lead_time, members)
 
   if (nrow(grib_info) < 1) {
     stop("None of the requested data could be read from grib file: ", file_name, call. = FALSE)
@@ -234,7 +261,7 @@ read_grib_interpolate <- function(file_name,
       .data$lat,
       .data$lon,
       .data$parameter,
-      forecast  = .data$value,
+      forecast  = .data$station_data,
       member    = members,
       lead_time = .data$lead_time,
       p         = dplyr::case_when(
@@ -252,27 +279,31 @@ read_grib_interpolate <- function(file_name,
 
 # Function to get the grib information for parameters
 
-filter_grib_info <- function(parameter, param_info, grib_info, lead_time) {
-  if (grepl("[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
-    grib_info <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
+filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
+  if (grepl("^[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
   } else {
-    grib_info <- grib_info %>%
+    grib_info_f <- grib_info %>%
       dplyr::filter(
         .data$shortName              == param_info$short_name,
         .data$indicatorOfTypeOfLevel == param_info$level_type[1],
       )
     if (param_info$level_number != -999) {
-      grib_info <- dplyr::filter(grib_info, .data$level == param_info$level_number)
+      grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
     }
   }
-  if (nrow(grib_info) < 1 && length(param_info$level_type) == 2) {
-    grib_info <- grib_info %>%
+  if (nrow(grib_info_f) < 1 && length(param_info$level_type) == 2) {
+    grib_info_f <- grib_info %>%
       dplyr::filter(
         .data$shortName              == param_info$short_name,
-        .data$indicatorOfTypeOfLevel == param_info$level_type[2],
-        .data$level                  == param_info$level_number
+        .data$indicatorOfTypeOfLevel == param_info$level_type[2]
       )
+    if (param_info$level_number != -999) {
+      grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
+    }
   }
+
+  grib_info <- grib_info_f
 
   if (nrow(grib_info) == 0) {
     warning(
@@ -296,6 +327,17 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time) {
     }
   }
 
+  if (!is.null(members)) {
+    grib_info <- dplyr::filter(grib_info, .data[["member"]] %in% members)
+    if (nrow(grib_info) == 0) {
+      warning(
+        "'members' [", paste(members, collapse = ", "), "] not found in grib file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(grib_info)
+    }
+  }
+
   grib_info
 
 }
@@ -304,38 +346,37 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time) {
 # This function should also include calls to interpolate, regrid and xsection so
 # that no more data is kept in memory than is necessary.
 read_and_transform_grib <- function(
-  x, file_name, grib_info, grib_opts, transformation = "none", opts = list(), show_progress
+  row_num, file_name, grib_info, grib_opts, transformation = "none", opts = list(), show_progress
 ) {
 
   result <- tibble::tibble(
-    fcdate       = grib_info$fcdate[x],
-    validdate    = grib_info$validdate[x],
-    lead_time    = grib_info$leadtime[x],
-    parameter    = grib_info$parameter[x],
-    level_type   = grib_info$level_type[x],
-    level        = grib_info$level[x],
-    units        = grib_info$units[x],
+    fcdate       = grib_info$fcdate[row_num],
+    validdate    = grib_info$validdate[row_num],
+    lead_time    = grib_info$leadtime[row_num],
+    parameter    = grib_info$parameter[row_num],
+    member       = grib_info$member[row_num],
+    level_type   = grib_info$level_type[row_num],
+    level        = grib_info$level[row_num],
+    units        = grib_info$units[row_num],
     gridded_data = list(
       Rgrib2::Gdec(
         file_name,
-        grib_info$position[x],
+        grib_info$position[row_num],
         get.meta  = grib_opts[["meta"]],
         multi     = grib_opts[["multi"]]
       )
     )
   )
 
-  if (transformation == "interpolate") {
-    result[["station_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-  }
+  col_name <- switch(
+    transformation,
+    "none"        = "gridded_data",
+    "interpolate" = "station_data",
+    "regrid"      = "regridded_data",
+    "xsection"    = "xsection_data"
+  )
 
-  if (transformation == "regrid") {
-    result[["regridded_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-  }
-
-  if (transformation == "xsection") {
-    result[["xsection_data"]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-  }
+  result[[col_name]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
 
   if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
     result <- result[, which(names(result) != "gridded_data")]

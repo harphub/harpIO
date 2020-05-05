@@ -50,6 +50,22 @@ YMDhm <- function(x) {
   )
 }
 
+#' Convert date type to YYYYMMDDHHmm string
+#'
+#' @param x A date object.
+#'
+#' @return A YYYYMMDDHHmm string
+#' @export
+#'
+#' @examples
+#' YMDhms(Sys.time())
+YMDhms <- function(x) {
+  paste0(
+    YMDhm(x),
+    formatC(lubridate::second(x), width = 2, flag = 0)
+  )
+}
+
 # Convert YYYYMMDD string to unix time
 #
 # @param x A YYYYMMDD string

@@ -6,12 +6,16 @@
 
 transform_geofield <- function(geofield, transformation, opts) {
 
+  if (transformation == "none") {
+    return(geofield)
+  }
+
   if (transformation == "interpolate") {
     fun <- function(x, opts) {
       stopifnot(meteogrid::is.geofield(x))
       res <- cbind(
         opts[["stations"]][c("SID", "lat", "lon")],
-        value = meteogrid::point.interp(x, weights = opts[["weights"]])
+        station_data = meteogrid::point.interp(x, weights = opts[["weights"]])
       )
     }
   }

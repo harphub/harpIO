@@ -16,7 +16,7 @@
 # Not exported - used internally
 
 initialise_interpolation <- function(filename=NULL, file_format=NULL,
-                                     parameter="topo",
+                                     parameter="sfc_geo",
                                      domain = NULL,
                                      stations=NULL,
                                      method="closest", use_mask=FALSE,
@@ -43,7 +43,7 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     ## if the file doesn't contain "topo" we'll get a warning,
     ## but still have domain info (well, for most formats at least).
     err <- try(pfield <- read_grid(filename,
-                                   "topo",
+                                   "sfc_geo",
                                    file_format)/9.80655, silent=TRUE)
     if (inherits(err, "try-error") && correct_t2m) warning("Error reading topography.", immediate.=TRUE)
     else {

@@ -166,6 +166,7 @@ read_point_obs <- function(
   }
 
   attr(obs, "bad_obs") <- obs_removed
+  colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
   obs
 }
 
@@ -198,7 +199,14 @@ read_obstable <- function(
 
     message("\nReading: ", in_file)
     if (.sqlite_table == "SYNOP") {
-      .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
+      obstable <- dplyr::tbl(obs_db, .sqlite_table)
+      if (!is.element(obs_param_name, colnames(obstable))) {
+        warning("'", obs_param_name, "' not found.", call. = FALSE, immediate. = TRUE)
+        .obs[[list_counter]] <- NULL
+        DBI::dbDisconnect(obs_db)
+        next()
+      }
+      .obs[[list_counter]] <- obstable %>%
         dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, !!obs_param_quo) %>%
         dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
       if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
@@ -209,8 +217,21 @@ read_obstable <- function(
         .obs_units <- NULL
       }
     } else {
-      .obs[[list_counter]] <- dplyr::tbl(obs_db, .sqlite_table) %>%
-        dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, .data$p, !!obs_param_quo) %>%
+      obstable <- dplyr::tbl(obs_db, .sqlite_table)
+      if (!is.element(obs_param_name, colnames(obstable))) {
+        warning("'", obs_param_name, "' not found.", call. = FALSE, immediate. = TRUE)
+        .obs[[list_counter]] <- NULL
+        DBI::dbDisconnect(obs_db)
+        next()
+      }
+      if (!is.element(.level_col, colnames(obstable))) {
+        warning("'", .level_col, "' column for vertical coordinate not found.", call. = FALSE, immediate. = TRUE)
+        .obs[[list_counter]] <- NULL
+        DBI::dbDisconnect(obs_db)
+        next()
+      }
+      .obs[[list_counter]] <- obstable %>%
+        dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, .data[[.level_col]], !!obs_param_quo) %>%
         dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
       if (.level != -999) {
         .obs[[list_counter]] <- dplyr::filter(.obs[[list_counter]], .data[[.level_col]] == .level)

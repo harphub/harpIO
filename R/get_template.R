@@ -22,7 +22,11 @@ get_template <- function(.template) {
     dplyr::pull(.data$template)
 
   if (length(template) < 1) {
-    template <- file.path("{file_path}", .template)
+    if (grepl("\\{file_path\\}", .template)) {
+      template <- .template
+    } else {
+      template <- file.path("{file_path}", .template)
+    }
   }
 
   template
@@ -85,9 +89,9 @@ file_templates <- function() {
 
     "fctable" , file.path(
       "{file_path}",
-      "{eps_model}",
+      "{fcst_model}",
       "{YYYY}", "{MM}",
-      "FCTABLE_{parameter}_{YYYY}{MM}_{HH}+{LDT3}.sqlite"
+      "FCTABLE_{parameter}_{YYYY}{MM}_{HH}.sqlite"
     ),
 
     "fctable_det" , file.path(
@@ -209,11 +213,17 @@ file_templates <- function() {
 
     "vfld" , file.path(
       "{file_path}",
+      "{fcst_model}",
+      "vfld{fcst_model}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
+    "vfld_eps" , file.path(
+      "{file_path}",
       "{sub_model}",
       "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
-    "vfld_eps" , file.path(
+    "vfld_multimodel" , file.path(
       "{file_path}",
       "{sub_model}",
       "vfld{sub_model}mbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
@@ -225,7 +235,19 @@ file_templates <- function() {
       "vfld{det_model}{YYYY}{MM}{DD}{HH}{LDT2}"
     ),
 
+    "vfld_noexp" , file.path(
+      "{file_path}",
+      "{fcst_model}",
+      "vfldmbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
     "vfld_eps_noexp" , file.path(
+      "{file_path}",
+      "{sub_model}",
+      "vfldmbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"
+    ),
+
+    "vfld_multimodel_noexp" , file.path(
       "{file_path}",
       "{sub_model}",
       "vfldmbr{MBR3}{YYYY}{MM}{DD}{HH}{LDT2}"

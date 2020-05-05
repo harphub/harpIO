@@ -4,7 +4,7 @@
 
 process_read_forecast_args <- function(
   fcst_model,
-  file_path     = ".",
+  file_path     = getwd(),
   file_format   = NULL,
   file_template = "vfld_det",
   members_in    = NULL,
@@ -133,6 +133,7 @@ process_read_forecast_args <- function(
             call. = FALSE
           )
         }
+        if (is.numeric(lags)) lags <- paste0(lags, "h")
 
         if (length(members_out) != length(members)) {
           stop(length(members_out), " members_out specified for '",

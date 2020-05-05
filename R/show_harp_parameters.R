@@ -14,7 +14,7 @@ show_harp_parameters <- function(cf_name = FALSE) {
 
   harp_params <- tibble::tribble(
     ~harp_parameter_name, ~description,
-    "AccPcp<X>h", "Accumulated precipitation over <X> hours, e.g. AccPcp12h",
+    "AccPcp12h" , "Accumulated precipitation over e.g. 12 hours",
     "CCtot"     , "Total cloud cover",
     "CClow"     , "Low level cloud cover",
     "CCmed"     , "Medium level cloud cover",
@@ -34,15 +34,14 @@ show_harp_parameters <- function(cf_name = FALSE) {
     "Tmax"      , "Maximum 2m temperature",
     "S10m"      , "10m wind speed",
     "Smax"      , "Maximum 10m wind speed - period depends on input data",
-    "vis"       , "Horizontal visibility",
-    "Z"         , "Height above sea level"
+    "vis"       , "Horizontal visibility"
   )
 
   if (cf_name) {
     harp_params <- dplyr::transmute(
       harp_params,
       .data$harp_parameter_name,
-      cf_name = get_netcdf_param_MET(.data$harp_parameter_name)
+      cf_name = sapply(lapply(.data$harp_parameter_name, get_netcdf_param_info), function(x) x[["nc_param"]])
     )
   }
 

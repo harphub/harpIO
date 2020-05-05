@@ -167,7 +167,7 @@ netcdf_opts <- function(
 
   )
 
-  all_pos <- sort(na.omit(c(
+  all_pos <- sort(stats::na.omit(c(
     x_pos      = x_pos,
     y_pos      = y_pos,
     z_pos      = z_pos,

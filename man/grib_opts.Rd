@@ -7,7 +7,7 @@
 grib_opts(meta = TRUE, multi = FALSE)
 }
 \arguments{
-\item{meta}{Logical. Weather to read metadata}
+\item{meta}{Logical. Whether to read metadata}
 
 \item{multi}{Logical. Whether there are multi field grib messages.}
 }

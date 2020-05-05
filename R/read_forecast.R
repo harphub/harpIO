@@ -1,0 +1,451 @@
+#' Read forecast data from multiple files
+#'
+#' \code{read_forecast} generates file names, based on the arguments given,
+#' reads data from them, and optionally performs a transformation on those data.
+#' By default the function returns nothing due to the large volumes of data that
+#' may be read from the files. Optionally, the read data can be returned to the
+#' calling environment, and / or written to files.
+#'
+#' @param start_date Date of the first forecast to be read in. Can be in
+#'   YYYYMMDD, YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be
+#'   numeric or charcter.
+#' @param end_date Date of the last forecast to be read in. Can be in YYYYMMDD,
+#'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+#'   charcter.
+#' @param fcst_model The name of the forecast model(s) to read. Can be expressed
+#'   as character vector if more than one model is wanted, or a named list of
+#'   character vectors for a mutlimodel ensemble.
+#' @param parameter The name of the forecast parameter(s) to read from the
+#'   files. Should either be harp parameter names (see
+#'   \code{\link{show_harp_parameters}}), or in the case of netcdf files can be
+#'   the name of the parameters in the files. If reading from vfld files, set to
+#'   NULL to read all parameters.
+#' @param lead_time The lead times to read in. If a numeric vector is passed,
+#'   the lead times are assumed to be in hours. Otherwise a character vector may
+#'   be passed with a letter after each value to denote the time units: d =
+#'   days, h = hours, m = minutes, s = seconds.
+#' @param members For ensemble forecasts, a numeric vector giving the member
+#'   numbers to read. If more than one forecast model is to be read in, the
+#'   members may be given as a single vector, in which case they are recycled
+#'   for each forecast model, or as a named list, with the forecast models (as
+#'   given in \code{fcst_model}) as the names. For multimodel ensembles this
+#'   would be a named list of named lists. If file names do not include the
+#'   ensemble member, i.e. all members are in the same file, setting
+#'   \code{members} to NULL will read all members from the files.
+#' @param members_out If the members are to renumbered on output, the new member
+#'   numbers are given in \code{members_out}. Should have the same structure as
+#'   \code{members}.
+#' @param lags A named list of members of an ensemble forecast model that are
+#'   lagged and the amount by which they are lagged. The list names are the
+#'   names of those forecast models, as given in \code{fcst_model} that have
+#'   lagged members, and the lags are given as vectors that are the same length
+#'   as the members vector. If the lags are numeric, it is assumed that they are
+#'   in hours, but the units may be specified with a letter after each value
+#'   where d = days, h = hours, m = minutes and s = seconds. \code{lags} is
+#'   primarily used to generate the correct file names for lagged members - for
+#'   example a lag of 1 hour will generate a file name with a date-time 1 hour
+#'   earlier than the date-time in the sequence \code{(start_data, end_date, by
+#'   = by)} and a lead time 1 hour longer.
+#' @param by The time between new forecasts. If numeric, it is assumed to be in
+#'   hours, but the time units may be given by a letter after the number where d
+#'   = days, h = hours, m = minutes and s = seconds. A sequence of forecasts
+#'   dates is generated from \code{start_date} to \code{end_date} every
+#'   \code{by}.
+#' @param vertical_coordinate For upper air data to be read the vertical
+#'   coordinate in the files must be given. By default, this is "pressure", but
+#'   may also be "height" or "model" for model levels. If reading from vfld
+#'   files, set to NA to only read surface parameters.
+#' @param file_path The parent path to all forecast data. All file names are
+#'   generated to be under the \code{file_path} directory. The default is the
+#'   current working directory.
+#' @param file_format The format of files to read. harpIO includes functions to
+#'   read 'vfld', 'netcdf', 'grib' and 'fa' format files. If set to NULL, an
+#'   attempt will be made to guess the format of the files. However, you may
+#'   write your own functions called read_<file_format> function and
+#'   \code{read_forecast} will attempt to use that instead. See the vignette on
+#'   writing read functions for more information.
+#' @param file_template A template for the file names. For available built in
+#'   templates see \code{\link{show_file_templates}}. If anything else is
+#'   passed, it is returned unmodified, or with substitutions made for dynamic
+#'   values. Available substitutions are {YYYY} for year, \{MM\} for 2 digit
+#'   month with leading zero, \{M\} for month with no leading zero, and
+#'   similarly \{DD\} or \{D\} for day, \{HH\} or \{H\} for hour, \{mm\} or
+#'   \{m\} for minute. Also \{LDTx\} for lead time and \{MBRx\} where x is the
+#'   length of the string including leading zeros. Note that the full path to
+#'   the file will always be file_path/template.
+#' @param file_format_opts A list of options specific to the file format. For
+#'   netcdf this can be generated by \code{\link{netcdf_opts}} and for grib by
+#'   \code{\link{grib_opts}}.
+#' @param transformation The transformation to apply to the data once read in.
+#'   "none" will return the data in its original form, "interpolate" will
+#'   interpolate to points at latitudes and longitudes supplied in
+#'   \code{transformation_opts}, "regrid" will regrid the data to a new domain
+#'   given in \code{transformation_opts}, and "xsection" will interpolate to a
+#'   vertical cross sectoin betweem two points given in
+#'   \code{transformation_opts}.
+#' @param transformation_opts Options for the transformation. For
+#'   \code{transformation = "interpolate"} these can be generated by
+#'   \code{\link{interpolate_opts}}, for \code{transformation = "regrid"} these
+#'   can be generated by \code{\link{regrid_opts}}, and \code{transformation =
+#'   "xsection"} these can be generated by \code{\link{xsection_opts}}.
+#' @param output_file_opts Options for output files. \code{read_forecast} can
+#'   output data \code{transformation = "interpolate"} as sqlite files. The
+#'   options for the sqlite files can be set with \code{\link{sqlite_opts}}.
+#'   Most inportantly, the path argument in \code{link{sqlite_opts}} must not be
+#'   NULL for data to be output to sqlite files.
+#' @param return_data By default \code{read_forecast} does not return any data,
+#'   since many GB of data could be read in. Set to TRUE to return the data read
+#'   in to the global environment.
+#' @param show_progress Some files may contain a lot of data. Set to TRUE to
+#'   show progress when reading these files.
+#'
+#' @return When \code{return_date = TRUE}, a harp_fcst object.
+#' @export
+#'
+#' @examples
+#' if (requireNamespace("harpData", quietly = TRUE)) {
+#'
+#'   # Read all parameters from vfld files for a deterministic model
+#'   read_forecast(
+#'     start_date  = 2019021700,
+#'     end_date    = 2019021718,
+#'     fcst_model  = "AROME_Arctic_prod",
+#'     file_path   = system.file("vfld", package = "harpData"),
+#'     return_data = TRUE
+#'   )
+#'
+#'   # Ensure height corrections to 2m temperature are done and keep the
+#'   # uncorrected data
+#'   read_forecast(
+#'     start_date          = 2019021700,
+#'     end_date            = 2019021718,
+#'     fcst_model          = "AROME_Arctic_prod",
+#'     file_path           = system.file("vfld", package = "harpData"),
+#'     transformation_opts = interpolate_opts(
+#'       correct_t2m    = TRUE,
+#'       keep_model_t2m = TRUE
+#'     ),
+#'     return_data = TRUE
+#'   )
+#'
+#'   # Read 10m wind speed from the MEPS_prod ensemble
+#'   read_forecast(
+#'     start_date    = 2019021700,
+#'     end_date      = 2019021718,
+#'     fcst_model    = "MEPS_prod",
+#'     parameter     = "S10m",
+#'     lead_time     = seq(0, 12, 3),
+#'     members       = seq(0, 10),
+#'     file_path     = system.file("vfld", package = "harpData"),
+#'     file_template = "vfld_eps",
+#'     return_data   = TRUE
+#'   )
+#'
+#'   # Read vertical profiles of temperature and dewpoint temperature
+#'   read_forecast(
+#'     start_date    = 2019021700,
+#'     end_date      = 2019021718,
+#'     fcst_model    = "MEPS_prod",
+#'     parameter     = c("T", "Td"),
+#'     lead_time     = seq(0, 12, 3),
+#'     members       = seq(0, 10),
+#'     file_path     = system.file("vfld", package = "harpData"),
+#'     file_template = "vfld_eps",
+#'     return_data   = TRUE
+#'   )
+#'
+#'   # Read ensemble data from MEPS_prod and lagged ensemble data from
+#'   # CMEPS_prod
+#'   read_forecast(
+#'     start_date    = 2019021700,
+#'     end_date      = 2019021718,
+#'     fcst_model    = c("MEPS_prod", "CMEPS_prod"),
+#'     parameter     = c("T", "Td"),
+#'     lead_time     = seq(0, 12, 3),
+#'     members       = list(
+#'       MEPS_prod = seq(0, 10),
+#'       CMEPS_prod = c(0, 1, 3, 4, 5, 6)
+#'     ),
+#'     lags          = list(CMEPS_prod = c(0, 0, 2, 2, 1, 1)),
+#'     file_path     = system.file("vfld", package = "harpData"),
+#'     file_template = "vfld_eps",
+#'     return_data   = TRUE
+#'   )
+#' }
+read_forecast <- function(
+  start_date,
+  end_date,
+  fcst_model,
+  parameter,
+  lead_time            = seq(0, 48, 3),
+  members              = NULL,
+  members_out          = members,
+  lags                 = NULL,
+  by                   = "6h",
+  vertical_coordinate  = c("pressure", "model", "height", NA),
+  file_path            = getwd(),
+  file_format          = NULL,
+  file_template        = "vfld",
+  file_format_opts     = NULL,
+  transformation       = c("none", "interpolate", "regrid", "xsection"),
+  transformation_opts  = NULL,
+  output_file_opts     = sqlite_opts(),
+  return_data          = FALSE,
+  show_progress        = FALSE
+){
+
+  vertical_coordinate <- match.arg(vertical_coordinate)
+  transformation      <- match.arg(transformation)
+
+  if(missing(parameter)) parameter <- NULL
+
+  # Get a data frame of arguments in preparation for file name generation
+
+  args_df <- process_read_forecast_args(
+    fcst_model,
+    file_path     = file_path,
+    file_format   = file_format,
+    file_template = file_template,
+    members_in    = members,
+    members_out   = members_out,
+    lags          = lags
+  )
+
+  # Set up transformation - if no clim_file is passed, transformation_opts are checked
+  # and nothing else is done.
+
+  if (transformation == "none") {
+    transformation_opts <- c(
+      transformation_opts[names(transformation_opts) != "keep_raw_data"],
+      list(keep_raw_data = TRUE)
+    )
+  } else {
+    transformation_opts <- setup_transformation(transformation, transformation_opts)
+  }
+
+  # Loop over forecast times
+  if (is.numeric(by)) {
+    by = paste0(by, "h")
+  }
+  fcst_dates <- seq_dates(start_date, end_date, by = by)
+
+  if (return_data) {
+    function_output <- list()
+    list_counter    <- 0
+  }
+
+  for (fcst_date in fcst_dates) {
+
+    if (return_data) list_counter <- list_counter + 1
+
+    # Generate the file names
+    files_df <- dplyr::group_by(
+      args_df,
+      .data[["fcst_model"]],
+      .data[["sub_model"]],
+      .data[["file_path"]],
+      .data[["file_template"]],
+      .data[["file_format"]]
+    ) %>%
+      tidyr::nest()
+    files_df <- purrr::map_dfr(
+      1:nrow(files_df),
+      ~ do.call(
+        generate_filenames,
+        c(
+          as.list(within(files_df[.x, ], rm("data"))),
+          list(
+            data           = within(files_df[.x, ][["data"]][[1]], rm("members_out")),
+            lead_time      = lead_time,
+            parameter      = parameter,
+            filenames_only = FALSE,
+            file_date      = fcst_date
+          )
+        )
+      )
+    )
+    files_df <- suppressMessages(dplyr::inner_join(files_df, args_df))
+
+    # Nest by file name and remove rows with missing files
+    data_df  <- tidyr::nest(dplyr::group_by(files_df, .data[["file_name"]]))
+
+    missing_files <- data_df[["file_name"]][!file.exists(data_df[["file_name"]])]
+    if (length(missing_files) > 0) {
+      warning(
+        "Files not found for ", fcst_date, ". Missing files:\n",
+        paste(missing_files, collapse = "\n"),
+        call.      = FALSE,
+        immediate. = TRUE
+      )
+    }
+
+    data_df <- dplyr::filter(data_df, !.data[["file_name"]] %in% missing_files)
+    if (nrow(data_df) < 1) {
+      warning("No files found for ", fcst_date, ".", call. = FALSE, immediate. = TRUE)
+      if (return_data) function_output[[list_counter]] <- NULL
+      next()
+    }
+
+    # If there was no clim_file and a transformation is to be done use the first file
+    # as the clim_file.
+
+    transformation_opts <- weights_from_fcst_file(
+      data_df[["file_name"]][1],
+      data_df[["data"]][[1]][["file_format"]][1],
+      file_format_opts,
+      transformation,
+      transformation_opts,
+      parameter
+    )
+
+    # Read the required data from the files
+    data_df <-dplyr::mutate(
+      data_df,
+      forecast_data = purrr::map2(
+        .data[["file_name"]],
+        .data[["data"]],
+        ~read_grid(
+          file_name           = .x,
+          parameter           = .y[["parameter"]],
+          file_format         = unique(.y[["file_format"]]),
+          file_format_opts    = file_format_opts,
+          vertical_coordinate = vertical_coordinate,
+          lead_time           = .y[["lead_time"]],
+          members             = .y[["members"]],
+          transformation      = transformation,
+          transformation_opts = transformation_opts,
+          show_progress       = show_progress,
+          data_frame          = TRUE,
+          readable_times      = FALSE
+        )
+      )
+    )
+
+    # Join the data to the metadata
+    not_lgl <- function(x) !is.logical(x)
+    data_df = purrr::map2_dfr(
+      data_df[["data"]],
+      data_df[["forecast_data"]],
+      ~ dplyr::inner_join(
+        dplyr::select_if(.x, not_lgl), .y,
+        by = intersect(colnames(dplyr::select_if(.x, not_lgl)), colnames(.y))
+      )
+    )
+
+    # Modify the members to mbrXXX format
+    data_df <- mbr_to_char(data_df, c("members", "members_out"))
+
+    # Do 2m temperature correction if data are station data.
+    if (
+      is.element("station_data", colnames(data_df)) &&
+        is.element("t2m", unique(tolower(data_df[["parameter"]])))
+    ) {
+      data_df <- correct_t2m(data_df, transformation_opts)
+      transformation_opts <- data_df[["opts"]]
+      data_df             <- data_df[["data_df"]]
+    }
+
+    # Add validdate column
+    data_df <- data_df[!grepl("file", colnames(data_df))]
+    if (!is.element("validdate", colnames(data_df))) {
+      data_df[["validdate"]] <- data_df[["fcdate"]] + data_df[["lead_time"]] * 3600
+    }
+    if (return_data) function_output[[list_counter]] <- data_df
+
+    # If a file path is given in output_file_opts then write out the data - only
+    # applies to data interpolated to stations.
+    if (
+      is.element("station_data", colnames(data_df)) &&
+        !is.null(output_file_opts) &&
+        !is.null(output_file_opts[["path"]])
+    ) {
+
+      # Ensure data frame contains data that were asked for, even if they were not found
+      data_df <- suppressMessages(dplyr::full_join(
+        data_df,
+        mbr_to_char(
+          args_df[!grepl("file", colnames(args_df))],
+          c("members", "members_out")
+        )
+      ))
+
+      write_forecast(data_df, output_file_opts)
+
+    }
+
+  } # End loop over fcst_dates
+
+  if (return_data) {
+
+    function_output <- dplyr::bind_rows(function_output) %>%
+      dplyr::select_if(function(x) !all(is.na(x)))
+
+    if (is.element("fcdate", colnames(function_output))) {
+      function_output[["fcdate"]]     <- unix2datetime(function_output[["fcdate"]])
+      function_output[["fcst_cycle"]] <- formatC(
+        lubridate::hour(function_output[["fcdate"]]), width = 2, flag = "0"
+      )
+    }
+
+    if (is.element("validdate", colnames(function_output))) {
+      function_output[["validdate"]] <- unix2datetime(function_output[["validdate"]])
+    }
+
+    function_output <- split(function_output, function_output[["fcst_model"]])
+    function_output <- lapply(function_output, spread_df)
+
+    structure(
+      function_output,
+      class = "harp_fcst"
+    )
+
+  } else {
+
+    message("return_data = FALSE - no data returned.")
+
+  }
+
+}
+
+mbr_to_char <- function(df, cols) {
+  for (col in cols) {
+    if (is.element(col, colnames(df))) {
+      df[[col]][!is.na(df[[col]])] <- paste0(
+        "mbr",
+        formatC(df[[col]][!is.na(df[[col]])], width = 3, flag = "0")
+      )
+    }
+  }
+  df
+}
+
+spread_df <- function(df) {
+
+  data_col <- grep("data$", colnames(df), value = TRUE)
+
+  if (is.element("members_out", colnames(df))) {
+
+    df[["members_out"]] <- paste(df[["sub_model"]], df[["members_out"]], sep = "_")
+    df[["members_out"]] <- gsub("_NA$", "_det", df[["members_out"]])
+    lag_rows            <- which(as.numeric(gsub("[[:alpha:]]", "", df[["lags"]])) != 0)
+
+    df[["members_out"]][lag_rows] <- paste(
+      df[["members_out"]][lag_rows], df[["lags"]][lag_rows], sep = "_"
+    )
+
+    df <- df[!colnames(df) %in% c("fcst_model", "sub_model", "members", "lags", "model_elevation")]
+    df <- tidyr::spread(df, key = .data[["members_out"]], value = .data[[data_col]])
+
+  } else {
+
+    df[["fcst_model"]] <- paste0(df[["fcst_model"]], "_det")
+    df                 <- df[!colnames(df) %in% c("lags", "model_elevation")]
+
+    df <- tidyr::spread(df, key = .data[["fcst_model"]], value = .data[[data_col]])
+
+  }
+
+  df
+
+}
+

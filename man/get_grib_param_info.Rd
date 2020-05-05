@@ -8,6 +8,9 @@ get_grib_param_info(param, vertical_coordinate = NA_character_)
 }
 \arguments{
 \item{param}{Parameter name (or harp_param object)}
+
+\item{vertical_coordinate}{The vertical coordinate for upper air data. May be
+"pressure", "model" or "height".}
 }
 \value{
 A list with \code{short_name}, \code{param_number},

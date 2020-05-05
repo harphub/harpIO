@@ -48,6 +48,9 @@ read_vfld_interpolate <- function(
 
   vertical_coordinate <- match.arg(vertical_coordinate)
 
+  if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
+  if (is.null(members)) members <- NA_character_
+
   empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
 
   if (file.exists(file_name)) {
@@ -65,7 +68,6 @@ read_vfld_interpolate <- function(
     )
   }
 
-  if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
 
   vfld_data <- read_vfile(file_name, members = members, lead_time = lead_time, v_type = "vfld")
 
@@ -208,5 +210,15 @@ read_vfld_interpolate <- function(
 
   list(fcst_data = tibble::as_tibble(vfld_data), units = tibble::as_tibble(param_units))
 
+}
+
+read_vfld <- function(...) {
+  res <- read_vfld_interpolate(...)
+  res[["units"]] <- dplyr::distinct(res[["units"]])
+  res <- suppressMessages(dplyr::left_join(res[["fcst_data"]], res[["units"]]))
+  names(res)[names(res) == "member"]   <- "members"
+  names(res)[names(res) == "forecast"] <- "station_data"
+  res[["members"]] <- as.numeric(gsub("[[:alpha:]]", "", res[["members"]]))
+  res
 }
 

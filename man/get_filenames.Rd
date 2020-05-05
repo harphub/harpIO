@@ -5,7 +5,7 @@
 \title{Get filename(s) for meteorological data}
 \usage{
 get_filenames(
-  file_path = "",
+  file_path = getwd(),
   file_date = Sys.Date(),
   start_date = NULL,
   end_date = NULL,
@@ -18,7 +18,8 @@ get_filenames(
   lead_time = seq(0, 48, 3),
   members = NA_character_,
   file_template = "fctable_eps",
-  filenames_only = TRUE
+  filenames_only = TRUE,
+  ...
 )
 }
 \arguments{
@@ -77,6 +78,8 @@ file_path/template.}
 
 \item{filenames_only}{Logical. Set to TRUE to return a vector of unique file
 names. Set to FALSE to return a detailed data frame.}
+
+\item{...}{Not used}
 }
 \value{
 If filenames_only is TRUE, a vector of unique file names. If

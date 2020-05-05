@@ -6,6 +6,8 @@
 #' must be supplied. The default is for pressure levels.
 #'
 #' @param param Parameter name (or harp_param object)
+#' @param vertical_coordinate The vertical coordinate for upper air data. May be
+#'   "pressure", "model" or "height".
 #' @return A list with \code{short_name}, \code{param_number},
 #'   \code{level_type}, \code{level_numbe.r}
 #' @export
@@ -114,9 +116,24 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_type   <-  103
       level_number <-  0
     },
-    "topo"     = ,
-    "terrain"  = ,
-    "altitude" = {
+    "terrain"    = ,
+    "elev"       = ,
+    "elevation"  = ,
+    "altitude"   = ,
+    "topo"       = ,
+    "topog"      = ,
+    "topography" = ,
+    "oro"        = ,
+    "orog"       = ,
+    "orography"  = {
+      short_name   <- "orog"
+      param_number <- 7
+      level_type   <- c(105, 1)
+      level_number <- -999
+    },
+    "sfc_geopotential" = ,
+    "sfc_geo"          = ,
+    "z0m"              = {
       short_name   <-  "z"
       param_number <-  6
       level_type   <-  c(105, 1)

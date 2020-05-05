@@ -35,7 +35,7 @@
 #'
 geofield_to_raster <- function(x) {
 
-  if (!requireNamespace("raster", quitely = TRUE)) {
+  if (!requireNamespace("raster", quietly = TRUE)) {
     stop("Please install the raster package to convert a geofield to a raster.", call. = FALSE)
   }
 
@@ -53,7 +53,7 @@ geofield_to_raster <- function(x) {
 
   raster_object <- raster::raster(t(unclass(x)[, ncol(x):1]))
   raster_object <- raster::setExtent(raster_object, raster_extent)
-  crs(raster_object) <- proj4_string
+  raster::crs(raster_object) <- proj4_string
 
   raster_object
 }
@@ -74,8 +74,8 @@ raster_to_geofield <- function(x) {
 
   raster_extent <- raster::extent(x)
 
-  dx           <- res(x)[1]
-  dy           <- res(x)[2]
+  dx           <- raster::res(x)[1]
+  dy           <- raster::res(x)[2]
   nx           <- dim(x)[2]
   ny           <- dim(x)[1]
   x0           <- raster_extent@xmin + dx / 2

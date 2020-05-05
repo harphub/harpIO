@@ -45,6 +45,7 @@
 #'   file_path/template.
 #' @param filenames_only Logical. Set to TRUE to return a vector of unique file
 #'   names. Set to FALSE to return a detailed data frame.
+#' @param ... Not used
 #' @return If filenames_only is TRUE, a vector of unique file names. If
 #'   filenames_only is FALSE, a tibble with columns eps_model, sub_model,
 #'   fcdate, file_name, lead_time and member.
@@ -70,7 +71,7 @@
 #' "{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 #'
 get_filenames <- function(
-  file_path      = "",
+  file_path      = getwd(),
   file_date      = Sys.Date(),
   start_date     = NULL,
   end_date       = NULL,
@@ -83,7 +84,8 @@ get_filenames <- function(
   lead_time      = seq(0, 48, 3),
   members        = NA_character_,
   file_template  = "fctable_eps",
-  filenames_only = TRUE
+  filenames_only = TRUE,
+  ...
 ) {
 
   add_zeros <- function(x) {
@@ -294,7 +296,13 @@ get_filenames <- function(
   if (stringr::str_detect(template, "\\{parameter\\}")) {
     if (is.null(parameter)) stop(paste0("parameter is in template, but not passed to the function\n", template))
     files <- files %>%
-      dplyr::mutate(parameter = parameter)
+      dplyr::mutate(parameter = list(parameter))
+
+    if (tidyr_new_interface()) {
+      files <- tidyr::unnest(files, tidyr::one_of("parameter"))
+    } else {
+      files <- tidyr::unnest(files)
+    }
   }
 
   files <- files %>%
