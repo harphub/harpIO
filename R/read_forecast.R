@@ -321,6 +321,12 @@ read_forecast <- function(
       )
     )
 
+    if (nrow(data_df) < 1) {
+      warning("No data found for ", fcst_date, ".", call. = FALSE, immediate. = TRUE)
+      if (return_data) function_output[[list_counter]] <- NULL
+      next()
+    }
+
     # Join the data to the metadata
     not_lgl <- function(x) !is.logical(x)
     data_df = purrr::map2_dfr(

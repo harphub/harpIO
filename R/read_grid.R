@@ -70,6 +70,7 @@ read_grid <- function(
   if (any(is.na(vertical_coordinate))) vertical_coordinate <- as.character(vertical_coordinate)
   vertical_coordinate <- match.arg(vertical_coordinate)
   transformation      <- match.arg(transformation)
+  transformation_opts <- check_opts(transformation, transformation_opts)
 
   file_format <- check_for_na(file_format)
 
@@ -134,7 +135,7 @@ read_grid <- function(
     )
 
     if (is.na(data_col)) {
-      message("For transformation = '", transformation, "' data must be returned as a data frame.")
+      #message("For transformation = '", transformation, "' data must be returned as a data frame.")
       return(gridded_data)
     }
 
@@ -209,3 +210,20 @@ check_for_na <- function(x) {
   }
   as.vector(x)
 }
+
+check_opts <- function(trans, trans_opts) {
+  if (length(trans_opts) < 1) {
+    if (trans == "none") {
+      return(trans_opts)
+    }
+    if (trans == "interpolate") {
+      message(
+        "transformation_opts not passed for transformation = 'interpolate'.\n",
+        "Setting to default interpolate_opts()."
+      )
+      return(interpolate_opts())
+    }
+    stop("transformation_opts must be passed for transformation = '", trans, "'.", call. = FALSE)
+  }
+}
+
