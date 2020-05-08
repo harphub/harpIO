@@ -176,6 +176,26 @@ read_netcdf <- function(
     show_progress
   )
 
+  if (is.null(lead_time)) {
+    result[["lead_time"]] = sapply(
+      paste0(result[["lead_time"]], "s"),
+      char_to_time,
+      "leadtime",
+      "h"
+    )
+  } else {
+    if (is.numeric(lead_time)) lead_time = paste0(lead_time, "h")
+    data_leads <- sapply(lead_time, char_to_time, "")
+    result[["lead_time"]] <- as.numeric(
+      gsub(
+        "[[:alpha:]]",
+        "",
+        as.character(
+          factor(result[["lead_time"]], levels = data_leads, labels = names(data_leads)))
+        )
+    )
+  }
+
   if (show_progress) cat("\n")
 
   result
@@ -265,7 +285,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
 ###
 
-# function to filter available netcdf data requested lead times and ensemble members
+# function to filter available netcdf data to requested lead times and ensemble members
 
 filter_nc <- function(nc_info, lead_times, members) {
 
