@@ -93,7 +93,7 @@
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#harpio" class="anchor"></a>harpIO <a href="#"><img src="reference/figures/harp_logo_dark.svg" align="right" height="131.5" style="margin-left:30px"></a>
 </h1></div>
-<p><strong>harpIO</strong> provides a set of read and write functions for harp plus the option to transform gridded data to point data, cross sections or other grids at read time. <strong>harpIO</strong> is able to read grib1, grib2, FA, NetCDF and vfld files from weather forecast / climate models; station observations from vobs files, radar / satellite observations from HDF5 files and in house databases at selected meteorological institutes. Some of these formats require support packages to be installed and you will be given advice on which packages to install when you attempt to read those data.</p>
+<p><strong>harpIO</strong> provides a set of read and write functions for harp plus the option to transform gridded data to point data, cross sections or other grids at read time. <strong>harpIO</strong> is able to read <em>grib1</em>, <em>grib2</em>, <em>FA</em>, <em>NetCDF</em> and <em>vfld</em> files from weather forecast / climate models; station observations from <em>vobs</em> files, radar / satellite observations from <em>HDF5</em> files and in the future from in-house databases at selected meteorological institutes. Some of these formats require support packages to be installed and you will be given advice on which packages to install when you attempt to read those data.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
@@ -112,23 +112,25 @@
 <p>Alternatively you can set environment variables</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="bu">export</span> <span class="va">PROJ_LIBS=</span>/path/to/proj/lib</a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">export</span> <span class="va">PROJ_INCLUDE=</span>/path/to/proj/include</a></code></pre></div>
-<p>If you include these environment variables in your .bashrc file, or equivalent you won’t need to worry about it when you wish to install an update to meteogrid.</p>
+<p>If you include these environment variables in your .bashrc file, or equivalent, you won’t need to worry about it when you wish to install an update to meteogrid.</p>
 <p>Or you can set compiler and linker options in the file $HOME/.R/Makevars</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="va">CPPFLAGS=</span>-I/path/to/proj/include</a>
 <a class="sourceLine" id="cb4-2" data-line-number="2"><span class="va">LDFLAGS=</span>-L/path/to/proj/lib <span class="ex">-Wl</span>,-rpath,/path/to/proj/lib</a></code></pre></div>
 <p>In this case you only have to set them once and not worry about it when you wish to install an update to meteogrid.</p>
+<p>When setting environment variables or creating a Makevars file, R must be restarted for the changes to take effect before running <code><a href="https://rdrr.io/pkg/remotes/man/install_github.html">remotes::install_github("andrew_MET/harpIO")</a></code>.</p>
 </div>
 </div>
 <div id="reading-transforming-and-writing-forecast-data" class="section level2">
 <h2 class="hasAnchor">
 <a href="#reading-transforming-and-writing-forecast-data" class="anchor"></a>Reading, transforming and writing forecast data</h2>
-<p>The main workhorse for <strong>harpIO</strong> is <code><a href="reference/read_forecast.html">read_forecast()</a></code>. This function can read multiple files from multiple sources of both gridded and point data. See the article <a href="articles/read_raw_forecast.html">Reading forcast model data</a> for more information.</p>
+<p>The main workhorse for <strong>harpIO</strong> is <code><a href="reference/read_forecast.html">read_forecast()</a></code>. This function can read multiple files from multiple sources of both gridded and point data. See the articles <a href="articles/read_raw_forecast.html">Reading forcast model data</a> and <a href="articles/file_options.html">Options for file formats</a> for more information.</p>
 <p>For gridded data you have the option to transform the data to point data, another grid, or a vertical cross section. This is done with the <code>transformation</code> and <code>transformation_opts</code> arguments. Interpolation to points is done by providing a data frame of latitiude and longitude locations, regridding is done by providing a definition of the grid to which to regrid (and if necessary reproject) the data, and a cross section is obtained by providing the latitude and longitude of the end points and reading 3 dimensional data. See the article <a href="articles/transformations.html">Transforming forecast model data</a> for more information.</p>
+<p>When data are interpolated to points it is possible to save the result to <a href="https://www.sqlite.org/">SQLite</a> files. These are portable database files that allow fast access to the data with the ability to select and filter what you wish to read. You can tell <code><a href="reference/read_forecast.html">read_forecast()</a></code> to output point data to SQLite files by setting the argument <code>output_file_opts = sqlite_opts(path = "/path/to/output")</code>. These data can then be read with <code><a href="reference/read_point_forecast.html">read_point_forecast()</a></code>. For gridded data there is generally no advantage to outputting to another format, so this option is only available if data are either point data to begin with, or <code>transformation = "interpolate"</code>.</p>
 </div>
-<div id="writing-forecast-data" class="section level2">
+<div id="reading-observation-data" class="section level2">
 <h2 class="hasAnchor">
-<a href="#writing-forecast-data" class="anchor"></a>Writing forecast data</h2>
-<p>When data are interpolated to points it is possible to save the result to <a href="https://www.sqlite.org/">SQLite</a> files. These are portable database files that allow fast access to the data with the ability to select and filter what you wish to read. You can tell <code><a href="reference/read_forecast.html">read_forecast()</a></code> to output point data to SQLite files by setting the argument <code>output_file_opts = sqlite_opts(path = "/path/to/output")</code>. For gridded data there is generally no advantage to outputting to another format, so this option is only available if data are either point data to begin with or <code>transformation = "interpolate"</code>.</p>
+<a href="#reading-observation-data" class="anchor"></a>Reading observation data</h2>
+<p>For point observations, <strong>harpIO</strong> can currently only read from <em>vobs</em> files, as produced by the <a href="hirlam.org">HIRLAM</a> consortium, and write them out to SQLite files using <code><a href="reference/read_obs_convert.html">read_obs_convert()</a></code> for faster access. The SQLite files can then be read with <code><a href="reference/read_point_obs.html">read_point_obs()</a></code>. For gridded observations, data can be read from <em>NetCDF</em>, <em>grib</em> and some <em>HDF5</em> files using <code><a href="reference/read_grid.html">read_grid()</a></code>. A new function, <code>read_obs()</code>, is currently under development to harmonise the reading and trasforming of observations in the same way that forecast data are handled.</p>
 </div>
 </div>
   </div>

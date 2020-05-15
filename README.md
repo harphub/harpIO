@@ -11,13 +11,13 @@
 
 **harpIO** provides a set of read and write functions for harp plus the
 option to transform gridded data to point data, cross sections or other
-grids at read time. **harpIO** is able to read grib1, grib2, FA, NetCDF
-and vfld files from weather forecast / climate models; station
-observations from vobs files, radar / satellite observations from HDF5
-files and in house databases at selected meteorological institutes. Some
-of these formats require support packages to be installed and you will
-be given advice on which packages to install when you attempt to read
-those data.
+grids at read time. **harpIO** is able to read *grib1*, *grib2*, *FA*,
+*NetCDF* and *vfld* files from weather forecast / climate models;
+station observations from *vobs* files, radar / satellite observations
+from *HDF5* files and in the future from in-house databases at selected
+meteorological institutes. Some of these formats require support
+packages to be installed and you will be given advice on which packages
+to install when you attempt to read those data.
 
 ## Installation
 
@@ -53,7 +53,7 @@ export PROJ_INCLUDE=/path/to/proj/include
 ```
 
 If you include these environment variables in your .bashrc file, or
-equivalent you won’t need to worry about it when you wish to install an
+equivalent, you won’t need to worry about it when you wish to install an
 update to meteogrid.
 
 Or you can set compiler and linker options in the file $HOME/.R/Makevars
@@ -101,3 +101,12 @@ available if data are either point data to begin with, or
 `transformation = "interpolate"`.
 
 ## Reading observation data
+
+For point observations, **harpIO** can currently only read from *vobs*
+files, as produced by the [HIRLAM](hirlam.org) consortium, and write
+them out to SQLite files using `read_obs_convert()` for faster access.
+The SQLite files can then be read with `read_point_obs()`. For gridded
+observations, data can be read from *NetCDF*, *grib* and some *HDF5*
+files using `read_grid()`. A new function, `read_obs()`, is currently
+under development to harmonise the reading and trasforming of
+observations in the same way that forecast data are handled.
