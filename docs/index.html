@@ -109,13 +109,26 @@
     <span class="kw">meteogrid</span> <span class="kw">=</span> <span class="st">"--with-proj-lib=/path/to/proj/lib --with-proj-include=/path/to/proj/include"</span>
   )
 )</pre></div>
+<p>Alternatively you can set environment variables</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="bu">export</span> <span class="va">PROJ_LIBS=</span>/path/to/proj/lib</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">export</span> <span class="va">PROJ_INCLUDE=</span>/path/to/proj/include</a></code></pre></div>
+<p>If you include these environment variables in your .bashrc file, or equivalent you won’t need to worry about it when you wish to install an update to meteogrid.</p>
+<p>Or you can set compiler and linker options in the file $HOME/.R/Makevars</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="va">CPPFLAGS=</span>-I/path/to/proj/include</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="va">LDFLAGS=</span>-L/path/to/proj/lib <span class="ex">-Wl</span>,-rpath,/path/to/proj/lib</a></code></pre></div>
+<p>In this case you only have to set them once and not worry about it when you wish to install an update to meteogrid.</p>
 </div>
 </div>
 <div id="reading-transforming-and-writing-forecast-data" class="section level2">
 <h2 class="hasAnchor">
 <a href="#reading-transforming-and-writing-forecast-data" class="anchor"></a>Reading, transforming and writing forecast data</h2>
 <p>The main workhorse for <strong>harpIO</strong> is <code><a href="reference/read_forecast.html">read_forecast()</a></code>. This function can read multiple files from multiple sources of both gridded and point data. See the article <a href="articles/read_raw_forecast.html">Reading forcast model data</a> for more information.</p>
-<p>For gridded data you have the option to transform the data to point data, another grid, or a vertical cross section. This is done with <code>transformation</code> and <code>transformation_opts</code> arguments. Interpolation to points is done by providing a data frame of latitiude and longitude locations, regridding is done by providing a definition of the grid to which to regrid (and if necessary reproject) the data, and a cross section is obtained by providing the latitude and longitude of the end points. See the article <a href="articles/transformations.html">Transforming forecast model data</a> for more information.</p>
+<p>For gridded data you have the option to transform the data to point data, another grid, or a vertical cross section. This is done with the <code>transformation</code> and <code>transformation_opts</code> arguments. Interpolation to points is done by providing a data frame of latitiude and longitude locations, regridding is done by providing a definition of the grid to which to regrid (and if necessary reproject) the data, and a cross section is obtained by providing the latitude and longitude of the end points and reading 3 dimensional data. See the article <a href="articles/transformations.html">Transforming forecast model data</a> for more information.</p>
+</div>
+<div id="writing-forecast-data" class="section level2">
+<h2 class="hasAnchor">
+<a href="#writing-forecast-data" class="anchor"></a>Writing forecast data</h2>
+<p>When data are interpolated to points it is possible to save the result to <a href="https://www.sqlite.org/">SQLite</a> files. These are portable database files that allow fast access to the data with the ability to select and filter what you wish to read. You can tell <code><a href="reference/read_forecast.html">read_forecast()</a></code> to output point data to SQLite files by setting the argument <code>output_file_opts = sqlite_opts(path = "/path/to/output")</code>. For gridded data there is generally no advantage to outputting to another format, so this option is only available if data are either point data to begin with or <code>transformation = "interpolate"</code>.</p>
 </div>
 </div>
   </div>

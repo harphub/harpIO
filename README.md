@@ -45,19 +45,59 @@ remotes::install_github(
 )
 ```
 
+Alternatively you can set environment variables
+
+``` bash
+export PROJ_LIBS=/path/to/proj/lib
+export PROJ_INCLUDE=/path/to/proj/include
+```
+
+If you include these environment variables in your .bashrc file, or
+equivalent you won’t need to worry about it when you wish to install an
+update to meteogrid.
+
+Or you can set compiler and linker options in the file $HOME/.R/Makevars
+
+``` bash
+CPPFLAGS=-I/path/to/proj/include
+LDFLAGS=-L/path/to/proj/lib -Wl,-rpath,/path/to/proj/lib
+```
+
+In this case you only have to set them once and not worry about it when
+you wish to install an update to meteogrid.
+
+When setting environment variables or creating a Makevars file, R must
+be restarted for the changes to take effect before running
+`remotes::install_github("andrew_MET/harpIO")`.
+
 ## Reading, transforming and writing forecast data
 
 The main workhorse for **harpIO** is `read_forecast()`. This function
 can read multiple files from multiple sources of both gridded and point
-data. See the article [Reading forcast model
-data](articles/read_raw_forecast.html) for more information.
+data. See the articles [Reading forcast model
+data](articles/read_raw_forecast.html) and [Options for file
+formats](articles/file_options.html) for more information.
 
 For gridded data you have the option to transform the data to point
-data, another grid, or a vertical cross section. This is done with
+data, another grid, or a vertical cross section. This is done with the
 `transformation` and `transformation_opts` arguments. Interpolation to
 points is done by providing a data frame of latitiude and longitude
 locations, regridding is done by providing a definition of the grid to
 which to regrid (and if necessary reproject) the data, and a cross
 section is obtained by providing the latitude and longitude of the end
-points. See the article [Transforming forecast model
-data](articles/transformations.html) for more information.
+points and reading 3 dimensional data. See the article [Transforming
+forecast model data](articles/transformations.html) for more
+information.
+
+When data are interpolated to points it is possible to save the result
+to [SQLite](https://www.sqlite.org/) files. These are portable database
+files that allow fast access to the data with the ability to select and
+filter what you wish to read. You can tell `read_forecast()` to output
+point data to SQLite files by setting the argument `output_file_opts =
+sqlite_opts(path = "/path/to/output")`. These data can then be read with
+`read_point_forecast()`. For gridded data there is generally no
+advantage to outputting to another format, so this option is only
+available if data are either point data to begin with, or
+`transformation = "interpolate"`.
+
+## Reading observation data
