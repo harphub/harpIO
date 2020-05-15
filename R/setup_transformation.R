@@ -4,6 +4,24 @@ setup_transformation <- function(trans, opts) {
     return(opts)
   }
 
+  if (is.null(opts)) {
+    if (trans == "interpolate") {
+      warning(
+        "'transformation_opts' not set for transformation = 'interpolate'. ",
+        "Using default interpolate_opts()",
+        call.      = FALSE,
+        immediate. = TRUE
+      )
+      opts <- interpolate_opts()
+    } else {
+      stop(
+        "'transformation_opts' must be set for transformation = '", trans, "'",
+        "using tranformation_opts = ", trans, "_opts(...).",
+        call. = FALSE
+      )
+    }
+  }
+
   opts_func <- get(paste0(trans, "_opts"))
   opts      <- do.call(opts_func, opts)
 

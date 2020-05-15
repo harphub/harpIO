@@ -96,6 +96,10 @@
 #' @param return_data By default \code{read_forecast} does not return any data,
 #'   since many GB of data could be read in. Set to TRUE to return the data read
 #'   in to the global environment.
+#' @param merge_lags Logical. Whether to merge the lagged members when
+#'   \code{return_data = TRUE} (the default). When \code{TRUE}, the forecast
+#'   time and lead time for the lagged members are adjusted to fit with the
+#'   unlagged members.
 #' @param show_progress Some files may contain a lot of data. Set to TRUE to
 #'   show progress when reading these files.
 #'
@@ -191,6 +195,7 @@ read_forecast <- function(
   transformation_opts  = NULL,
   output_file_opts     = sqlite_opts(),
   return_data          = FALSE,
+  merge_lags           = TRUE,
   show_progress        = FALSE
 ){
 
@@ -327,6 +332,22 @@ read_forecast <- function(
       next()
     }
 
+    # If ensemble members were found in the file but not asked for, ensure that the
+    # members column is removed from the metadata data frame
+
+    data_df[["data"]] <- mapply(
+      function(x, y) {
+        if (all(is.na(x[["members"]])) && is.element("members", colnames(y))) {
+          x[colnames(x) != "members"]
+        } else {
+          x
+        }
+      },
+      data_df[["data"]],
+      data_df[["forecast_data"]],
+      SIMPLIFY = FALSE
+    )
+
     # Join the data to the metadata
     not_lgl <- function(x) !is.logical(x)
     data_df = purrr::map2_dfr(
@@ -337,6 +358,15 @@ read_forecast <- function(
         by = intersect(colnames(dplyr::select_if(.x, not_lgl)), colnames(.y))
       )
     )
+
+    # If no members were specified but ensemble members were read,
+    # make the data frame consistent
+
+    member_rows <- which(!is.na(data_df[["members"]]) & is.na(data_df[["members_out"]]))
+    data_df[["members_out"]][member_rows] <- data_df[["members"]][member_rows]
+
+    member_rows <- which(!is.na(data_df[["members"]]) & is.na(data_df[["sub_model"]]))
+    data_df[["sub_model"]][member_rows] <- data_df[["fcst_model"]][member_rows]
 
     # Modify the members to mbrXXX format
     data_df <- mbr_to_char(data_df, c("members", "members_out"))
@@ -385,6 +415,28 @@ read_forecast <- function(
 
     function_output <- dplyr::bind_rows(function_output) %>%
       dplyr::select_if(function(x) !all(is.na(x)))
+
+    if (is.element("lags", colnames(function_output)) && merge_lags) {
+      function_output <- dplyr::group_by(function_output,
+        .data[["fcdate"]],
+        .data[["lead_time"]],
+        .data[["lags"]]
+      ) %>%
+        tidyr::nest()
+
+      lag_seconds <- sapply(function_output[["lags"]], char_to_time, "lags")
+      lag_units   <- gsub("[[:digit:]]", "", function_output[["lags"]])
+      if (is.element("fcdate", colnames(function_output))) {
+        function_output[["fcdate"]] <- function_output[["fcdate"]] + lag_seconds
+      }
+      if (is.element("lead_time", colnames(function_output))) {
+        function_output[["lead_time"]] <- function_output[["lead_time"]] -
+          lag_seconds / sapply(lag_units, units_multiplier)
+      }
+
+      function_output <- tidyr::unnest(function_output, .data[["data"]])
+
+    }
 
     if (is.element("fcdate", colnames(function_output))) {
       function_output[["fcdate"]]     <- unix2datetime(function_output[["fcdate"]])
@@ -436,7 +488,7 @@ spread_df <- function(df) {
     lag_rows            <- which(as.numeric(gsub("[[:alpha:]]", "", df[["lags"]])) != 0)
 
     df[["members_out"]][lag_rows] <- paste(
-      df[["members_out"]][lag_rows], df[["lags"]][lag_rows], sep = "_"
+      df[["members_out"]][lag_rows], df[["lags"]][lag_rows], sep = "_lag"
     )
 
     df <- df[!colnames(df) %in% c("fcst_model", "sub_model", "members", "lags", "model_elevation")]

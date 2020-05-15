@@ -225,5 +225,6 @@ check_opts <- function(trans, trans_opts) {
     }
     stop("transformation_opts must be passed for transformation = '", trans, "'.", call. = FALSE)
   }
+  trans_opts
 }
 

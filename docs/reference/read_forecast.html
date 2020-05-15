@@ -76,7 +76,7 @@ calling environment, and / or written to files." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9142</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9145</span>
       </span>
     </div>
 
@@ -99,7 +99,16 @@ calling environment, and / or written to files." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/read_raw_forecast.html">Reading forecast data</a>
+      <a href="../articles/file_options.html">Options for file formats</a>
+    </li>
+    <li>
+      <a href="../articles/read_raw_forecast.html">Reading forecast model data</a>
+    </li>
+    <li>
+      <a href="../articles/transformations.html">Transforming forecast model data</a>
+    </li>
+    <li>
+      <a href="../articles/write_forecast_data.html">Writing forecast model data</a>
     </li>
   </ul>
 </li>
@@ -156,6 +165,7 @@ calling environment, and / or written to files.</p>
   <span class='kw'>transformation_opts</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>output_file_opts</span> <span class='kw'>=</span> <span class='fu'><a href='sqlite_opts.html'>sqlite_opts</a></span>(),
   <span class='kw'>return_data</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>merge_lags</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>show_progress</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
 )</pre>
 
@@ -305,6 +315,13 @@ NULL for data to be output to sqlite files.</p></td>
       <td><p>By default <code>read_forecast</code> does not return any data,
 since many GB of data could be read in. Set to TRUE to return the data read
 in to the global environment.</p></td>
+    </tr>
+    <tr>
+      <th>merge_lags</th>
+      <td><p>Logical. Whether to merge the lagged members when
+<code>return_data = TRUE</code> (the default). When <code>TRUE</code>, the forecast
+time and lead time for the lagged members are adjusted to fit with the
+unlagged members.</p></td>
     </tr>
     <tr>
       <th>show_progress</th>

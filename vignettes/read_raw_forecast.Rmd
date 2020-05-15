@@ -1,5 +1,5 @@
 ---
-title: "Reading forecast data"
+title: "Reading forecast model data"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{read_raw_forecast}
@@ -9,7 +9,8 @@ vignette: >
 
 <style>
 body {
-text-align: justify}
+text-align: justify;
+}
 </style>
 
 ```{r, include = FALSE}
@@ -17,6 +18,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+options(tibble.print_max = 10)
+library(DT)
 ```
 
 One of the most important capabilities of harpIO is reading data from NWP and climate models. The original solution to this task was to have separate functions for different, but related tasks. `read_det_interpolate()` and `read_eps_interpolate()` to read data from multiple files for deterministic and ensemble forecasts respectively and to interpolate to point locations, and `read_grid()` to read gridded data from a single file. This solutions means the user having to learn several functions, each with their own arguments and output structures. There is also a lack of flexibility in, for example, reading from both deterministic and ensemble forecast files at the same time. 
@@ -34,12 +38,84 @@ remotes::install_github("andrew-MET/harpData")
 
 
 ## Deterministic forecasts
-The simplest application of `read_forecast()` is to read deterministic forecasts. We can take advantage of a number of default arguments to keep the number of arguments we have to pass to the function to minimum. 
+The simplest application of `read_forecast()` is to read deterministic forecasts. At a minimum, the start date, end date, a name for the forecast model (`fcst_model`) and the parameter to be read in are needed as arguments. The data we will use are grib files from the AROME-Arctic model that come with harpData. By default the function looks in the current working directory for the files that have the "vfld" template (see `show_file_templates()`). Therefore, we need to also pass the `file_path` and `file_template` arguments. Finally, the default behaviour of `read_forecast()` is to not return any data - this is because one of its main roles is to write the data to output files in another format and the volumes of data involved could easily become too large to hold in memory - so we should also set `return_data = TRUE`.
 
-
- 
 ```{r setup}
 library(harpIO)
 ```
+
+```{r aa_grib, message=FALSE}
+read_forecast(
+  2018071000, 
+  2018071000,
+  "AROME_Arctic",
+  "T2m",
+  file_path     = system.file("grib/AROME_Arctic", package = "harpData"),
+  file_template = "harmonie_grib_fp",
+  return_data   = TRUE
+)
+```
+
+The last column in the data frame, named AROME_Arctic_det is the forecast data, which are stored as geofield objects - these are simply 2d arrays with attributes that describe the projection, time and parameter information of the data. For all deterministic models the name of the column is the forecast model name with a suffix "_det". 
+
+## Ensemble forecasts
+Reading ensemble forecasts works in exactly the same way. harpData includes output from the AROME-Arctic ensemble model, AAEPS, for the same dates as before, but this time stored in a single netcdf file. Since the data are in a netcdf file, and netcdf files can use many different dimension names and variable names, `read_forecast()` needs some information about the structure of the netcdf file. This structure information is generated with the function `netcdf_opts()`, and since the data come from an EPS model produced by MET Norway we can use one of the built it options sets: `netcdf_opts(options_set = "met_norway_eps")`. All lead times and ensemble members are in the same file, so if you want to read all members from the file you don't have to pass the members as an argument.
+
+```{r aaeps_nc}
+read_forecast(
+  2018071000,
+  2018071000,
+  "AAEPS",
+  "T2m",
+  file_path        = system.file("netcdf/AAEPS", package = "harpData"),
+  file_template    = "fc{YYYY}{MM}{DD}{HH}.nc",
+  file_format_opts = netcdf_opts(options_set = "met_norway_eps"),
+  return_data      = TRUE
+)
+```
+
+You will see that there is a warning about missing lead times. This is because the default behaviour is to ask for lead times 0 - 48 hours, every three hours. The forecast data are in columns with the name of the forecast model with a suffix "_mbrXXX" where XXX is the member number. We could also ask for a limited set of lead times and ensemble members:
+
+```{r aaeps_nc_mem}
+read_forecast(
+  2018071000,
+  2018071000,
+  "AAEPS",
+  "T2m",
+  lead_time        = seq(0, 6, 3),
+  members          = c(0, 2, 4),
+  file_path        = system.file("netcdf/AAEPS", package = "harpData"),
+  file_template    = "fc{YYYY}{MM}{DD}{HH}.nc",
+  file_format_opts = netcdf_opts(options_set = "met_norway_eps"),
+  return_data      = TRUE
+)
+```
+
+## Lagged ensembles
+For lagged ensembles, data are available in harpData for the CMEPS model in `vfld` format. `vfld` files are text files with gridded data already interpolated to points. The CMEPS ensemble is quite complex with a number of members available each hour, but tied to a control member every three hours. harpData has members 0, 1, 3, 4, 5 and 6 where members 0 and 1 are run at hours 0, 3, 6, ..., 21; members 3 and 4 at hours 1, 4, 7, ..., 22; and members 5 and 6 at hours 2, 5, 8, ..., 23. This means that members 3 and 4 are two hours behind members 0 and 1, and members 5 and 6 are one hour behind members 0 and 1. The `lags` argument is used to pass the lagging information to `read_forecast` and the lags aer assumed to be in the same order as the `members` argument. Note also that the dates for CMEPS data are different to the ones that have been used before.
+
+```{r cmeps_vfld, message=FALSE}
+read_forecast(
+  2019021700, 
+  2019021718,
+  "CMEPS_prod",
+  "T2m",
+  lead_time     = seq(0, 12, 3),
+  members       = c(0, 1, 3, 4, 5, 6),
+  lags          = c(0, 0, 2, 2, 1, 1),
+  file_path     = system.file("vfld", package = "harpData"),
+  file_template = "vfld_eps",
+  return_data   = TRUE 
+)
+```
+
+You will see that a number of members have NA - this is beacues certain combinations of forecast time and lead time do not exist for those members. When data are in read in from SQLite files using `read_point_forecast()` this information is adjusted to take care of the lagged members. When working with point data, the most efficient workflow is to use `read_forecast()` to write the data to \code{SQLite} files and then read from the \code{SQLite} files. 
+
+### See also
+[Transforming forecast model data](transformations.html)
+
+[Writing forecast model data](write_forecast_data.html)
+
+[Options for file formats](file_options.html)
 
 

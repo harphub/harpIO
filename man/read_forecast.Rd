@@ -23,6 +23,7 @@ read_forecast(
   transformation_opts = NULL,
   output_file_opts = sqlite_opts(),
   return_data = FALSE,
+  merge_lags = TRUE,
   show_progress = FALSE
 )
 }
@@ -134,6 +135,11 @@ NULL for data to be output to sqlite files.}
 \item{return_data}{By default \code{read_forecast} does not return any data,
 since many GB of data could be read in. Set to TRUE to return the data read
 in to the global environment.}
+
+\item{merge_lags}{Logical. Whether to merge the lagged members when
+\code{return_data = TRUE} (the default). When \code{TRUE}, the forecast
+time and lead time for the lagged members are adjusted to fit with the
+unlagged members.}
 
 \item{show_progress}{Some files may contain a lot of data. Set to TRUE to
 show progress when reading these files.}

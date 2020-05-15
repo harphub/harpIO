@@ -164,6 +164,8 @@ read_netcdf <- function(
     first_only <- TRUE
   }
 
+  message("Reading data from ", file_name, ".")
+
   result <- purrr::map2_dfr(
     nc_info,
     param_info,
@@ -424,7 +426,7 @@ read_and_transform_netcdf <- function(
     )
 
     if (is.element("member", colnames(nc_info))) {
-      result[["member"]] <- nc_info[["member"]][x]
+      result[["members"]] <- nc_info[["member"]][x]
     }
 
     col_name <- switch(

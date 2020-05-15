@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9142</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9145</span>
       </span>
     </div>
 
@@ -56,7 +56,16 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/read_raw_forecast.html">Reading forecast data</a>
+      <a href="articles/file_options.html">Options for file formats</a>
+    </li>
+    <li>
+      <a href="articles/read_raw_forecast.html">Reading forecast model data</a>
+    </li>
+    <li>
+      <a href="articles/transformations.html">Transforming forecast model data</a>
+    </li>
+    <li>
+      <a href="articles/write_forecast_data.html">Writing forecast model data</a>
     </li>
   </ul>
 </li>
@@ -82,64 +91,31 @@
   <div class="contents col-md-9">
 <div id="harpio" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
-<a href="#harpio" class="anchor"></a>harpIO</h1></div>
-<p>harpIO provides a set of read and write functions for the harp ecosystem.</p>
-<p>The package is currently under development, but the aim is to provide functions to read grib1, grib2, FA, NetCDF and vfld files from weather forecast / climate models; station observations from vobs files, radar / satellite observations from HDF5 files and in house databases at selected meteorological institutes. Further functions will interpolate gridded forecast fields to weather station locations which will in turn be written to portable sqlite database files.</p>
+<a href="#harpio" class="anchor"></a>harpIO <a href="#"><img src="reference/figures/harp_logo_dark.svg" align="right" height="131.5" style="margin-left:30px"></a>
+</h1></div>
+<p><strong>harpIO</strong> provides a set of read and write functions for harp plus the option to transform gridded data to point data, cross sections or other grids at read time. <strong>harpIO</strong> is able to read grib1, grib2, FA, NetCDF and vfld files from weather forecast / climate models; station observations from vobs files, radar / satellite observations from HDF5 files and in house databases at selected meteorological institutes. Some of these formats require support packages to be installed and you will be given advice on which packages to install when you attempt to read those data.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation:</h2>
-<div class="sourceCode" id="cb1"><pre class="r"><span class="co">#&gt;install.packages("devtools")</span>
-<span class="kw pkg">devtools</span><span class="kw ns">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"andrew-MET/harpIO"</span>)</pre></div>
-<p>If you wish to read data from netcdf files and don’t already have the system libraries installed, you will need to install them:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">sudo</span> apt-get install libnetcdf-dev netcdf-bin libudunits2-dev</a></code></pre></div>
-<p>Additionally, for reading from grib and FA files, the R packages Rgrib2, Rfa and meteogrid are needed - these are not publically available, but are available on demand. For interpolating data from NetCDF files, the miIO package is needed, which can be obtained from MET Norway.</p>
-</div>
-<div id="examples" class="section level2">
-<h2 class="hasAnchor">
-<a href="#examples" class="anchor"></a>Examples</h2>
-<p>To run these examples, you should have access to vfld and vobs files - replace all paths with your own paths and <code>start_date</code>, <code>end_date</code> etc. to fit your data. Note also that to read vfld files from multiple forecast models (or experiments), the data are expected to be in their own directory for each forecast model underneath a common directory . i.e <code>/path/to/vfld/data/model1</code>, <code>/path/to/vfld/data/model2/</code> etc.</p>
-<p>To start, load the harpIO package and set up the paths and dates etc. Here we assume the forecast models are called model1, model2 and model3. To begin with a test will be done for two forecasts - one for 00 UTC on 30 May 2017, and then for the same time the next day.</p>
-<div class="sourceCode" id="cb3"><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">harpIO</span>)
-<span class="no">vfld_path</span>          <span class="kw">&lt;-</span> <span class="st">"/path/to/vfld/data"</span>
-<span class="no">first_forecast</span>     <span class="kw">&lt;-</span> <span class="fl">2017053000</span>
-<span class="no">last_forecast</span>      <span class="kw">&lt;-</span> <span class="fl">2017053100</span>
-<span class="no">forecast_models</span>    <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"model1"</span>, <span class="st">"model2"</span>, <span class="st">"model3"</span>)
-<span class="no">forecast_frequency</span> <span class="kw">&lt;-</span> <span class="st">"1d"</span></pre></div>
-<p>In this case, model1 has 5 members (0-4), and model2 and model3 have 8 members (0-7). We will ask for lead times 0 - 36 hours every 3 hours and use <code><a href="reference/read_eps_interpolate.html">read_eps_interpolate()</a></code> to read in the data setting <code>return_data = TRUE</code> so that we can inspect the data. We set <code>parameter = NULL</code> to read all parameters from the vfld files. Note that when more than one <code>eps_model</code> is asked for, the number of members must be specified for each model in a list, even if each model has the same number of members.</p>
-<p>To run this example on ecgate you can set <code>vfld_path &lt;- "/scratch/ms/no/fa1m/vfld"</code></p>
-<div class="sourceCode" id="cb4"><pre class="r"><span class="no">forecast_members</span>    <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="kw">model1</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">4</span>), <span class="kw">model2</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">7</span>), <span class="kw">model3</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">7</span>))
-<span class="no">forecast_lead_times</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">36</span>, <span class="fl">3</span>)
-
-<span class="no">forecast_data</span> <span class="kw">&lt;-</span> <span class="fu"><a href="reference/read_eps_interpolate.html">read_eps_interpolate</a></span>(
-  <span class="kw">start_date</span>  <span class="kw">=</span> <span class="no">first_forecast</span>,
-  <span class="kw">end_date</span>    <span class="kw">=</span> <span class="no">last_forecast</span>,
-  <span class="kw">eps_model</span>   <span class="kw">=</span> <span class="no">forecast_models</span>,
-  <span class="kw">parameter</span>   <span class="kw">=</span> <span class="kw">NULL</span>,
-  <span class="kw">lead_time</span>   <span class="kw">=</span> <span class="no">forecast_lead_times</span>,
-  <span class="kw">members_in</span>  <span class="kw">=</span> <span class="no">forecast_members</span>,
-  <span class="kw">by</span>          <span class="kw">=</span> <span class="no">forecast_frequency</span>,
-  <span class="kw">file_path</span>   <span class="kw">=</span> <span class="no">vfld_path</span>,
-  <span class="kw">return_data</span> <span class="kw">=</span> <span class="fl">TRUE</span>
+<a href="#installation" class="anchor"></a>Installation</h2>
+<div class="sourceCode" id="cb1"><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span>(<span class="st">"remotes"</span>)
+<span class="kw pkg">remotes</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span>(<span class="st">"andrew-MET/harpIO"</span>)</pre></div>
+<div id="system-libraries" class="section level3">
+<h3 class="hasAnchor">
+<a href="#system-libraries" class="anchor"></a>System libraries</h3>
+<p><strong>harpIO</strong> uses the <a href="https://github.com/adeckmyn/meteogrid">meteogrid</a> package for interpolation and the geogrid class for storing gridded data. This package makes use of the <a href="https://proj4.org">PROJ4</a> library for handling projections. If you have the PROJ libraries installed in a standard location (e.g. /usr/local) meteogrid will install without problems. However, if the PROJ libraries are in a non standard location, you need to tell the install function where they are:</p>
+<div class="sourceCode" id="cb2"><pre class="r"><span class="kw pkg">remotes</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span>(
+  <span class="st">"andrew-MET/harpIO"</span>,
+  <span class="kw">configure.args</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(
+    <span class="kw">meteogrid</span> <span class="kw">=</span> <span class="st">"--with-proj-lib=/path/to/proj/lib --with-proj-include=/path/to/proj/include"</span>
+  )
 )</pre></div>
-<p>The model data are interpolated to station locations that are supplied with harpIO, which can be seen in the variable <code>station_list</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="r"><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(<span class="no">forecast_data</span>, <span class="kw">n</span> <span class="kw">=</span> <span class="fl">10</span>)
-<span class="co">#&gt; # A tibble: 10 x 18</span>
-<span class="co">#&gt;    eps_model sub_model fcdate lead_time member members_out validdate   SID</span>
-<span class="co">#&gt;    &lt;chr&gt;     &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt; &lt;dbl&gt;</span>
-<span class="co">#&gt;  1 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1001</span>
-<span class="co">#&gt;  2 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1010</span>
-<span class="co">#&gt;  3 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1014</span>
-<span class="co">#&gt;  4 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1015</span>
-<span class="co">#&gt;  5 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1018</span>
-<span class="co">#&gt;  6 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1023</span>
-<span class="co">#&gt;  7 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1025</span>
-<span class="co">#&gt;  8 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1026</span>
-<span class="co">#&gt;  9 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1027</span>
-<span class="co">#&gt; 10 model1    model1    1.50e9         0 mbr000 mbr000         1.50e9  1033</span>
-<span class="co">#&gt; # ... with 10 more variables: lat &lt;dbl&gt;, lon &lt;dbl&gt;, model_elevation &lt;dbl&gt;,</span>
-<span class="co">#&gt; #   lat.temp &lt;dbl&gt;, lon.temp &lt;dbl&gt;, model_elevation.temp &lt;dbl&gt;,</span>
-<span class="co">#&gt; #   elev &lt;dbl&gt;, name &lt;chr&gt;, parameter &lt;chr&gt;, forecast &lt;dbl&gt;</span></pre></div>
-<p>To write out the data to sqlite files, set <code>sqlite_path = /path/to/output</code> where /path/to/output is the directory you want to which you want to write the sqlite files. It is also a good idea to set <code>return_data = FALSE</code> when reading a large amount of data, although this is the default behaviour.</p>
+</div>
+</div>
+<div id="reading-transforming-and-writing-forecast-data" class="section level2">
+<h2 class="hasAnchor">
+<a href="#reading-transforming-and-writing-forecast-data" class="anchor"></a>Reading, transforming and writing forecast data</h2>
+<p>The main workhorse for <strong>harpIO</strong> is <code><a href="reference/read_forecast.html">read_forecast()</a></code>. This function can read multiple files from multiple sources of both gridded and point data. See the article <a href="articles/read_raw_forecast.html">Reading forcast model data</a> for more information.</p>
+<p>For gridded data you have the option to transform the data to point data, another grid, or a vertical cross section. This is done with <code>transformation</code> and <code>transformation_opts</code> arguments. Interpolation to points is done by providing a data frame of latitiude and longitude locations, regridding is done by providing a definition of the grid to which to regrid (and if necessary reproject) the data, and a cross section is obtained by providing the latitude and longitude of the end points. See the article <a href="articles/transformations.html">Transforming forecast model data</a> for more information.</p>
 </div>
 </div>
   </div>
@@ -157,9 +133,8 @@
 <div class="license">
 <h2>License</h2>
 <ul class="list-unstyled">
-<li>
-<a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
-</li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small>Apache License (&gt;= 2.0)</small></li>
 </ul>
 </div>
 <div class="developers">
