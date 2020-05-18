@@ -349,6 +349,7 @@ read_det_interpolate <- function(
             lead_time           = y$lead_time,
             vertical_coordinate = vertical_coordinate,
             init                = init,
+            method              = interpolation_method,
             ...
           )
         )

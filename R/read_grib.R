@@ -153,7 +153,7 @@ read_grib <- function(
     message("Computing interpolation weights.")
     # Assume grib message at position 1 has the same domain information as all messages
     old_domain <- attr(Rgrib2::Gdec(file_name, 1), "domain")
-    new_domain <- try(meteogrid::as.geodomain(transformation_opts[["new_domain"]]))
+    new_domain <- try(meteogrid::as.geodomain(transformation_opts[["new_domain"]]), silent = TRUE)
     if (inherits(new_domain, "try-error")) {
       stop("'new_domain' in 'transformation_opts' must be a geofield or geodomain.", call. = FALSE)
     }

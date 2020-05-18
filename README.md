@@ -103,10 +103,11 @@ available if data are either point data to begin with, or
 ## Reading observation data
 
 For point observations, **harpIO** can currently only read from *vobs*
-files, as produced by the [HIRLAM](hirlam.org) consortium, and write
-them out to SQLite files using `read_obs_convert()` for faster access.
-The SQLite files can then be read with `read_point_obs()`. For gridded
-observations, data can be read from *NetCDF*, *grib* and some *HDF5*
-files using `read_grid()`. A new function, `read_obs()`, is currently
-under development to harmonise the reading and trasforming of
+files, as produced by the
+[HIRLAM](http://hirlam.org/index.php/hirlam-programme-53) consortium,
+and write them out to SQLite files using `read_obs_convert()` for faster
+access. The SQLite files can then be read with `read_point_obs()`. For
+gridded observations, data can be read from *NetCDF*, *grib* and some
+*HDF5* files using `read_grid()`. A new function, `read_obs()`, is
+currently under development to harmonise the reading and transforming of
 observations in the same way that forecast data are handled.

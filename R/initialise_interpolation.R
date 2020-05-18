@@ -77,7 +77,7 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     }
   } else if (!is.null(domain)) {
 #    print(str(domain))
-    message("Domain provided")
+#    message("Domain provided")
     init$domain <- meteogrid::as.geodomain(domain)
   }
 

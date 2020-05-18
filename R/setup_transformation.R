@@ -54,16 +54,17 @@ setup_transformation <- function(trans, opts) {
 }
 
 get_clim_grib <- function(opts, trans) {
-  if (is.null(opts[["clim_param"]])) {
+  if (is.null(opts[["clim_param"]]) || is.na(opts[["clim_param"]])) {
     #Assume first grib message in file has the required domain info
     opts[["domain"]] <- meteogrid::as.geodomain(Rgrib2::Gdec(opts[["clim_file"]], 1))
   } else {
     opts[["clim_field"]] <- try(
-      read_grid(
+      suppressWarnings(read_grid(
         opts[["clim_file"]],
         opts[["clim_param"]],
         file_format = opts[["clim_file_format"]]
-      )
+      )),
+      silent = TRUE
     )
     if (inherits(opts[["clim_field"]], "try-error")) {
       stop(
@@ -85,7 +86,7 @@ get_clim_netcdf <- function(opts, trans) {
     opts[["clim_file_opts"]] <- netcdf_opts()
   }
 
-  if (is.null(opts[["clim_param"]])) {
+  if (is.null(opts[["clim_param"]]) || is.na(opts[["clim_param"]])) {
     clim_domain <- try(get_domain_nc(opts[["clim_file"]], opts[["clim_file_opts"]]))
     if (inherits(clim_domain, "try-error")) {
       stop(
@@ -102,8 +103,8 @@ get_clim_netcdf <- function(opts, trans) {
       read_grid(
         opts[["clim_file"]],
         opts[["clim_param"]],
-        file_format = opts[["clim_file_format"]],
-        format_opts = opts[["clim_file_opts"]]
+        file_format      = opts[["clim_file_format"]],
+        file_format_opts = opts[["clim_file_opts"]]
       ),
       silent = TRUE
     )

@@ -30,7 +30,7 @@ weights_from_fcst_file <- function(
         call. = FALSE
       )
     } else {
-      trans_opts[["clim_param"]] <- NULL
+      trans_opts[["clim_param"]] <- NA
       trans_opts <- setup_transformation(trans, trans_opts)
     }
 
