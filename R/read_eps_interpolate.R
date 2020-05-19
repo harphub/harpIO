@@ -232,7 +232,7 @@ read_eps_interpolate <- function(
   by                   = "6h",
   file_path            = "",
   file_format          = "vfld",
-  file_template        = "vfld",
+  file_template        = "vfld_eps",
   stations             = NULL,
   correct_t2m          = TRUE,
   keep_model_t2m       = FALSE,
