@@ -307,7 +307,8 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
 
   if (nrow(grib_info) == 0) {
     warning(
-      "Parameter \"", parameter[["fullname"]], "\" not found in grib file.",
+      "Parameter \"", parameter[["fullname"]], "\" ",
+      "(", param_info[["short_name"]], ") not found in grib file.",
       call. = FALSE, immediate. = TRUE
     )
     return(grib_info)
@@ -354,7 +355,7 @@ read_and_transform_grib <- function(
     validdate    = grib_info$validdate[row_num],
     lead_time    = grib_info$leadtime[row_num],
     parameter    = grib_info$parameter[row_num],
-    member       = grib_info$member[row_num],
+    members      = grib_info$member[row_num],
     level_type   = grib_info$level_type[row_num],
     level        = grib_info$level[row_num],
     units        = grib_info$units[row_num],

@@ -23,10 +23,13 @@ weights_from_fcst_file <- function(
 
     if (is.element("t2m", tolower(parameter)) && trans_opts[["correct_t2m"]]) {
       stop (
-        "Cannot find '", trans_opts[["clim_param"]], "' in ",
+        "2m temperature height correction is selected, but ",
+        "cannot find '", trans_opts[["clim_param"]], "' in ",
         trans_opts[["clim_file"]], ".\n",
         "You probably need to set transformation_opts = ", trans,
-        "_opts(clim_file = '<clim_file>', clim_param = '<clim_param>').",
+        "_opts(clim_file = '<clim_file>', clim_param = '<clim_param>'), ",
+        "or switch off 2m temperature correction with transformation_opts = ",
+        "interpolate_opts(correct_t2m = FALSE).",
         call. = FALSE
       )
     } else {

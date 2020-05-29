@@ -39,7 +39,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "pcp"      = {
       short_name   <-  "tp"
       param_number <-  61
-      level_type   <-  105
+      level_type   <-  c(105, 1)
       level_number <-  0
     },
     "fog"      = {
@@ -113,7 +113,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "pmsl"     = {
       short_name   <-  "msl"
       param_number <-  1
-      level_type   <-  103
+      level_type   <-  c(103, 102)
       level_number <-  0
     },
     "terrain"    = ,

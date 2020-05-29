@@ -148,7 +148,7 @@ write_forecast <- function(df, opts) {
   if (tidyr_new_interface()) {
     df <- tidyr::nest(df, data = -tidyr::one_of("file_name"))
   } else {
-    df <- tidyr::nest(dplyr::group_by(df, .data[["filename"]]))
+    df <- tidyr::nest(dplyr::group_by(df, .data[["file_name"]]))
   }
 
 
