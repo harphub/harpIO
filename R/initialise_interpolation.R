@@ -45,8 +45,16 @@ initialise_interpolation <- function(filename=NULL, file_format=NULL,
     err <- try(pfield <- read_grid(filename,
                                    "sfc_geo",
                                    file_format)/9.80655, silent=TRUE)
-    if (inherits(err, "try-error") && correct_t2m) warning("Error reading topography.", immediate.=TRUE)
-    else {
+
+    if (inherits(err, "try-error")) {
+      err <- try(pfield <- read_grid(filename,
+                                     "oro",
+                                     file_format), silent=TRUE)
+    }
+
+    if (inherits(err, "try-error") && correct_t2m) {
+      warning("Error reading topography.", immediate.=TRUE)
+    } else {
       init$domain <- attr(pfield, "domain")
       ## TODO: check that this never fails?
       if (!any(is.na(pfield))) init$topo <- pfield
