@@ -132,15 +132,10 @@ write_forecast <- function(df, opts) {
   df[["fcdate"]]    <- as.integer(df[["fcdate"]])
   df[["validdate"]] <- as.integer(df[["validdate"]])
 
-  vertical_cols <- intersect(c("p", "ml", "z"), colnames(df))
-  if (length(vertical_cols) > 0) {
-    message("Adding '", paste(vertical_cols, collapse = "','"), "' to index_cols.")
-    opts[["index_cols"]] <- c(opts[["index_cols"]], vertical_cols)
-  }
-
   possible_cols <- c(
     "file_name", "fcdate", "validdate",  "leadtime", "SID", "lat", "lon",
-    "model_elevation", "p", "ml", "z", "member", "parameter", "units", "forecast"
+    "model_elevation", "p", "ml", "z", "member", "parameter", "units", "forecast",
+    "level_type", "level"
   )
 
   df <- df[intersect(colnames(df), possible_cols)]

@@ -22,6 +22,8 @@ write_fctable_to_sqlite <- function(
   remove_model_elev = FALSE
 ) {
 
+  data <- check_level(data)
+
   newfile <- FALSE
   if (!file.exists(filename)) {
     newfile <- TRUE
@@ -49,7 +51,7 @@ write_fctable_to_sqlite <- function(
 
   primary_key <- intersect(primary_key, column_names)
 
-  message("Writing to: ", filename, "\n")
+  message("Opening connection to: ", filename)
 
   sqlite_db <- dbopen(filename)
 
@@ -72,10 +74,48 @@ write_fctable_to_sqlite <- function(
 
   data <- dplyr::select_if(data, ~ !all(is.na(.))) %>%
     dplyr::filter(SID != -999, lat != -999, lon != -999)
+
   primary_key <- intersect(primary_key, colnames(data))
+
+  vertical_cols <- intersect(c("p", "ml", "z"), colnames(data))
+  vertical_cols <- setdiff(vertical_cols, primary_key)
+  if (length(vertical_cols) > 0) {
+    message("Adding '", paste(vertical_cols, collapse = "','"), "' to index_cols.")
+    primary_key <- c(primary_key, vertical_cols)
+  }
+
+
+  message("Writing data")
   if (nrow(data) > 0) {
     db_clean_and_write(sqlite_db, tablename, data, primary_key, index_constraint = "unique")
   }
   dbclose(sqlite_db)
+  message("\n")
 
+}
+
+check_level <- function(df) {
+  df_cols <- colnames(df)
+  if (is.element("level_type", df_cols) && is.element("level", df_cols)) {
+    level_type <- unique(df[["level_type"]])
+    if (length(level_type) != 1) {
+      stop(
+        "Cannot have more than 1 vertical coordinate in an output sqlite file. ",
+        "Perhaps you need {parameter} to be part of the file name template.",
+        call. = FALSE
+      )
+    }
+    if (!level_type %in% c("pressure", "model", "height")) {
+      stop ("Unknown vertical coordinate: ", level_type, call. = FALSE)
+    }
+    col_name <- switch(
+      level_type,
+      "pressure" = "p",
+      "model"    = "ml",
+      "height"   = "z"
+    )
+    df <- replace_colname(df, "level", col_name)
+    df <- df[!colnames(df) %in% c("level_type", "level")]
+  }
+  df
 }
