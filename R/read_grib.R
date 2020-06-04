@@ -280,6 +280,7 @@ read_grib_interpolate <- function(file_name,
 # Function to get the grib information for parameters
 
 filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
+  grib_info <- tibble::as_tibble(grib_info)
   if (grepl("^[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
     grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
   } else {
