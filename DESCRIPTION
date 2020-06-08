@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions for HARP
-Version: 0.0.0.9150
+Version: 0.0.0.9151
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
