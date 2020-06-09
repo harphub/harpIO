@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9145</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9151</span>
       </span>
     </div>
 
@@ -89,9 +89,9 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="harpio" class="section level1">
+<div id="harpio-" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
-<a href="#harpio" class="anchor"></a>harpIO <a href="#"><img src="reference/figures/harp_logo_dark.svg" align="right" height="131.5" style="margin-left:30px"></a>
+<a href="#harpio-" class="anchor"></a>harpIO <a href="#"><img src="reference/figures/harp_logo_dark.svg" align="right" height="131.5" style="margin-left:30px"></a>
 </h1></div>
 <p><strong>harpIO</strong> provides a set of read and write functions for harp plus the option to transform gridded data to point data, cross sections or other grids at read time. <strong>harpIO</strong> is able to read <em>grib1</em>, <em>grib2</em>, <em>FA</em>, <em>NetCDF</em> and <em>vfld</em> files from weather forecast / climate models; station observations from <em>vobs</em> files, radar / satellite observations from <em>HDF5</em> files and in the future from in-house databases at selected meteorological institutes. Some of these formats require support packages to be installed and you will be given advice on which packages to install when you attempt to read those data.</p>
 <div id="installation" class="section level2">
@@ -102,20 +102,23 @@
 <div id="system-libraries" class="section level3">
 <h3 class="hasAnchor">
 <a href="#system-libraries" class="anchor"></a>System libraries</h3>
-<p><strong>harpIO</strong> uses the <a href="https://github.com/adeckmyn/meteogrid">meteogrid</a> package for interpolation and the geogrid class for storing gridded data. This package makes use of the <a href="https://proj4.org">PROJ4</a> library for handling projections. If you have the PROJ libraries installed in a standard location (e.g. /usr/local) meteogrid will install without problems. However, if the PROJ libraries are in a non standard location, you need to tell the install function where they are:</p>
-<div class="sourceCode" id="cb2"><pre class="r"><span class="kw pkg">remotes</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span>(
+<p><strong>harpIO</strong> uses the <a href="https://github.com/adeckmyn/meteogrid">meteogrid</a> package for interpolation and the geogrid class for storing gridded data. This package makes use of the <a href="https://proj4.org">PROJ4</a> library for handling projections. If you do not have PROJ4 installed you can install with:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="fu">sudo</span> apt-get install libproj-dev</span></code></pre></div>
+<p>If you do not have sudo rights, speak to your system administrator.</p>
+<p>If you have the PROJ libraries installed in a standard location (e.g. /usr/local) meteogrid will install without problems. However, if the PROJ libraries are in a non standard location, you need to tell the install function where they are:</p>
+<div class="sourceCode" id="cb3"><pre class="r"><span class="kw pkg">remotes</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span>(
   <span class="st">"andrew-MET/harpIO"</span>,
   <span class="kw">configure.args</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(
     <span class="kw">meteogrid</span> <span class="kw">=</span> <span class="st">"--with-proj-lib=/path/to/proj/lib --with-proj-include=/path/to/proj/include"</span>
   )
 )</pre></div>
 <p>Alternatively you can set environment variables</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="bu">export</span> <span class="va">PROJ_LIBS=</span>/path/to/proj/lib</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="bu">export</span> <span class="va">PROJ_INCLUDE=</span>/path/to/proj/include</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1"></a><span class="bu">export</span> <span class="va">PROJ_LIBS=</span>/path/to/proj/lib</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="bu">export</span> <span class="va">PROJ_INCLUDE=</span>/path/to/proj/include</span></code></pre></div>
 <p>If you include these environment variables in your .bashrc file, or equivalent, you won’t need to worry about it when you wish to install an update to meteogrid.</p>
 <p>Or you can set compiler and linker options in the file $HOME/.R/Makevars</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="va">CPPFLAGS=</span>-I/path/to/proj/include</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="va">LDFLAGS=</span>-L/path/to/proj/lib <span class="ex">-Wl</span>,-rpath,/path/to/proj/lib</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1"></a><span class="va">CPPFLAGS=</span>-I/path/to/proj/include</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="va">LDFLAGS=</span>-L/path/to/proj/lib <span class="ex">-Wl</span>,-rpath,/path/to/proj/lib</span></code></pre></div>
 <p>In this case you only have to set them once and not worry about it when you wish to install an update to meteogrid.</p>
 <p>When setting environment variables or creating a Makevars file, R must be restarted for the changes to take effect before running <code><a href="https://rdrr.io/pkg/remotes/man/install_github.html">remotes::install_github("andrew_MET/harpIO")</a></code>.</p>
 </div>
@@ -130,7 +133,7 @@
 <div id="reading-observation-data" class="section level2">
 <h2 class="hasAnchor">
 <a href="#reading-observation-data" class="anchor"></a>Reading observation data</h2>
-<p>For point observations, <strong>harpIO</strong> can currently only read from <em>vobs</em> files, as produced by the <a href="hirlam.org">HIRLAM</a> consortium, and write them out to SQLite files using <code><a href="reference/read_obs_convert.html">read_obs_convert()</a></code> for faster access. The SQLite files can then be read with <code><a href="reference/read_point_obs.html">read_point_obs()</a></code>. For gridded observations, data can be read from <em>NetCDF</em>, <em>grib</em> and some <em>HDF5</em> files using <code><a href="reference/read_grid.html">read_grid()</a></code>. A new function, <code>read_obs()</code>, is currently under development to harmonise the reading and trasforming of observations in the same way that forecast data are handled.</p>
+<p>For point observations, <strong>harpIO</strong> can currently only read from <em>vobs</em> files, as produced by the <a href="http://hirlam.org/index.php/hirlam-programme-53">HIRLAM</a> consortium, and write them out to SQLite files using <code><a href="reference/read_obs_convert.html">read_obs_convert()</a></code> for faster access. The SQLite files can then be read with <code><a href="reference/read_point_obs.html">read_point_obs()</a></code>. For gridded observations, data can be read from <em>NetCDF</em>, <em>grib</em> and some <em>HDF5</em> files using <code><a href="reference/read_grid.html">read_grid()</a></code>. A new function, <code>read_obs()</code>, is currently under development to harmonise the reading and transforming of observations in the same way that forecast data are handled.</p>
 </div>
 </div>
   </div>
