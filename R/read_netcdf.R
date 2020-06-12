@@ -198,8 +198,6 @@ read_netcdf <- function(
     )
   }
 
-  if (show_progress) cat("\n")
-
   result
 }
 
@@ -446,12 +444,18 @@ read_and_transform_netcdf <- function(
       }
     }
 
-    if (show_progress) cat(".")
+    if (show_progress) pb$tick()
 
     result
   }
 
   if (first_only) nc_info <- nc_info[1, ]
+
+  if (show_progress) {
+    bar_info <- paste(param_info[["harp_param"]][["fullname"]], "[:bar] :percent eta: :eta")
+    pb       <- progress::progress_bar$new(format = bar_info, total = nrow(nc_info))
+  }
+
   purrr::map_dfr(
     1:nrow(nc_info),
     func,

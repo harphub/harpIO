@@ -4,7 +4,7 @@
 \alias{ens_mean_and_var}
 \title{Compute the ensemble mean and variance}
 \usage{
-ens_mean_and_var(.fcst, mean_name = "ens_mean", var_name = "ens_var")
+ens_mean_and_var(.fcst, mean_name = "ens_mean", var_name = "ens_var", ...)
 }
 \arguments{
 \item{.fcst}{A \code{harp_fcst} object, or a data frame containing columns

@@ -475,7 +475,9 @@ read_forecast <- function(
     add_spatial_class <- function(df) {
       df <- dplyr::ungroup(df)
       if (any(sapply(df, function(x) all(sapply(x, meteogrid::is.geofield))))) {
-        class(df) <- c("harp_spatial_fcst", class(df))
+        if (!inherits(df, "harp_spatial_fcst")) {
+          class(df) <- c("harp_spatial_fcst", class(df))
+        }
       }
       df
     }

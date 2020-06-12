@@ -18,6 +18,7 @@ read_grid(
   show_progress = FALSE,
   data_frame = FALSE,
   readable_times = TRUE,
+  spread_members = FALSE,
   ...
 )
 

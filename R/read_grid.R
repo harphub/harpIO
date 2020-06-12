@@ -62,6 +62,7 @@ read_grid <- function(
   show_progress       = FALSE,
   data_frame          = FALSE,
   readable_times      = TRUE,
+  spread_members      = FALSE,
   ...
 ) {
 
@@ -113,6 +114,14 @@ read_grid <- function(
     show_progress       = show_progress
   )
 
+  data_col <- switch(
+    transformation,
+    "none"     = "gridded_data",
+    "regrid"   = "regridded_data",
+    "xsection" = "xsection_data",
+    NA
+  )
+
   if (readable_times) {
 
     if (!is.null(gridded_data[["fcdate"]])) {
@@ -124,15 +133,25 @@ read_grid <- function(
 
   }
 
-  if (!data_frame) {
-
-    data_col <- switch(
-      transformation,
-      "none"     = "gridded_data",
-      "regrid"   = "regridded_data",
-      "xsection" = "xsection_data",
-      NA
+  if (spread_members && is.element("members", colnames(gridded_data))) {
+    gridded_data[["members"]] <- paste0(
+      "fcst_mbr",
+      formatC(gridded_data[["members"]], width = 3, flag = "0")
     )
+    gridded_data <- tidyr::spread(gridded_data, key = "members", value = data_col)
+  }
+
+  for (df_col in colnames(gridded_data)) {
+    if (all(sapply(gridded_data[[df_col]], meteogrid::is.geofield))) {
+      class(gridded_data[[df_col]]) <- c("geolist", class(gridded_data[[df_col]]))
+    }
+  }
+
+  if (any(sapply(gridded_data, function(x) inherits(x, "geolist")))) {
+    class(gridded_data) <- c("harp_spatial_fcst", class(gridded_data))
+  }
+
+  if (!data_frame) {
 
     if (is.na(data_col)) {
       #message("For transformation = '", transformation, "' data must be returned as a data frame.")
@@ -143,6 +162,7 @@ read_grid <- function(
       gridded_data <- gridded_data[[data_col]][[1]]
     } else {
       gridded_data <- gridded_data[[data_col]]
+      class(gridded_data) <- c("geolist", class(gridded_data))
     }
 
   }
