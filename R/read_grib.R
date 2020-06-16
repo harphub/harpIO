@@ -329,7 +329,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
     }
   }
 
-  if (!is.null(members)) {
+  if (!is.null(members) && !all(is.na(grib_info[["member"]]))) {
     grib_info <- dplyr::filter(grib_info, .data[["member"]] %in% members)
     if (nrow(grib_info) == 0) {
       warning(
