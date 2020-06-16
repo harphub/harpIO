@@ -22,9 +22,9 @@ as_geolist <- function(...) {
     x <- x[[1]]
   }
 
-  if (!all(sapply(x, meteogrid::is.geofield))) {
-    stop("All inputs must be geofields.")
-  }
+  # if (!all(sapply(x, meteogrid::is.geofield))) {
+  #   stop("All inputs must be geofields.")
+  # }
 
   structure(
     x,
