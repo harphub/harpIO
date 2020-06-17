@@ -348,6 +348,23 @@ read_forecast <- function(
       SIMPLIFY = FALSE
     )
 
+    # If ensemble members were asked for, but not found in the file data (i.e. just
+    # in the file name, ensure that the members column is removed from the forecast_data
+    # data frame)
+
+    data_df[["forecast_data"]] <- mapply(
+      function(x, y) {
+        if (all(is.na(x[["members"]])) && is.element("members", colnames(y))) {
+          x[colnames(x) != "members"]
+        } else {
+          x
+        }
+      },
+      data_df[["forecast_data"]],
+      data_df[["data"]],
+      SIMPLIFY = FALSE
+    )
+
     # Join the data to the metadata
     not_lgl <- function(x) !is.logical(x)
     data_df = purrr::map2_dfr(
