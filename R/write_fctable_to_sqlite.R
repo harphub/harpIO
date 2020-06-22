@@ -22,6 +22,8 @@ write_fctable_to_sqlite <- function(
   remove_model_elev = FALSE
 ) {
 
+  if (all(is.na(data[["forecast"]]))) return()
+
   data <- check_level(data)
 
   newfile <- FALSE

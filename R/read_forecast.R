@@ -326,6 +326,11 @@ read_forecast <- function(
       )
     )
 
+    if (nrow(data_df) > 0) {
+      transformation_opts <- attr(data_df[["forecast_data"]][[1]], "transformation_opts")
+      attr(data_df, "transformation_opts") <- NULL
+    }
+
     if (nrow(data_df) < 1) {
       warning("No data found for ", fcst_date, ".", call. = FALSE, immediate. = TRUE)
       if (return_data) function_output[[list_counter]] <- NULL

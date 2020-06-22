@@ -54,8 +54,15 @@ Math.geolist <- function(x, ...) {
 #' @export
 Ops.geolist <- function(e1, e2) {
   fun <- get(.Generic, envir = parent.frame(), mode = "function")
+  func <- function(.x, .y, .f) {
+    res <- .f(.x, .y)
+    if (!meteogrid::is.geofield(res)) {
+      res <- NA
+    }
+    res
+  }
   structure(
-    mapply(fun, e1, e2, SIMPLIFY = FALSE),
+    mapply(func, e1, e2, MoreArgs = list(.f = fun), SIMPLIFY = FALSE),
     class = class(e1)
   )
 }
@@ -145,4 +152,9 @@ std_dev.default <- function(x, na.rm = FALSE) {
 #' @export
 std_dev.geolist <- function(x, na.rm = FALSE) {
   sqrt(variance(x))
+}
+
+#' @export
+diff.geolist <- function(x, lag = 1) {
+  as_geolist(x - dplyr::lag(x, n = lag))
 }

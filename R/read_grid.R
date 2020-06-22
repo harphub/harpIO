@@ -90,6 +90,11 @@ read_grid <- function(
     stop("Please provide explicit file format for '", file_name, "'.", call. = FALSE)
   }
 
+  # Make sure default interpolate_opts are set for vfld files if none are passed
+  if (file_format == "vfld" && !is.element("correct_t2m", names(transformation_opts))) {
+    transformation_opts <- interpolate_opts(stations = get("station_list"))
+  }
+
   read_func <- try(get(paste0("read_", file_format)), silent = TRUE)
   if (inherits(read_func, "try-error")) {
     stop(
@@ -164,6 +169,10 @@ read_grid <- function(
       gridded_data <- gridded_data[[data_col]]
       class(gridded_data) <- c("geolist", class(gridded_data))
     }
+
+  } else {
+
+    attr(gridded_data, "transformation_opts") <- transformation_opts
 
   }
 
