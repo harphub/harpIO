@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9145</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9155</span>
       </span>
     </div>
 
@@ -70,7 +70,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/andrew-MET/harpIO/">
+  <a href="https://github.com/harphub/harpIO/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -91,7 +91,7 @@
       <h1 data-toc-skip>Reading forecast model data</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/andrew-MET/harpIO/blob/master/vignettes/read_raw_forecast.Rmd"><code>vignettes/read_raw_forecast.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/harphub/harpIO/blob/master/vignettes/read_raw_forecast.Rmd"><code>vignettes/read_raw_forecast.Rmd</code></a></small>
       <div class="hidden name"><code>read_raw_forecast.Rmd</code></div>
 
     </div>
@@ -110,7 +110,7 @@ text-align: justify;
 <h2 class="hasAnchor">
 <a href="#example-data" class="anchor"></a>Example data</h2>
 <p>For all of these examples we will use data provided in the harpData package, which, if you haven’t done so already, you can install with:</p>
-<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="kw pkg">remotes</span><span class="kw ns">::</span><span class="fu"><a href="https://rdrr.io/pkg/remotes/man/install_github.html">install_github</a></span>(<span class="st">"andrew-MET/harpData"</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="kw pkg">remotes</span><span class="kw ns">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span>(<span class="st">"harphub/harpData"</span>)</pre></body></html></div>
 </div>
 <div id="deterministic-forecasts" class="section level2">
 <h2 class="hasAnchor">
@@ -141,7 +141,7 @@ text-align: justify;
 <span class="co">#&gt;  9 2018-07-10 00:00:00        24 T2m       2018-07-11 00:00:00 height         2</span>
 <span class="co">#&gt; 10 2018-07-10 00:00:00        27 T2m       2018-07-11 03:00:00 height         2</span>
 <span class="co">#&gt; # … with 7 more rows, and 3 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,</span>
-<span class="co">#&gt; #   AROME_Arctic_det &lt;list&gt;</span></pre></body></html></div>
+<span class="co">#&gt; #   AROME_Arctic_det &lt;geolist&gt;</span></pre></body></html></div>
 <p>The last column in the data frame, named AROME_Arctic_det is the forecast data, which are stored as geofield objects - these are simply 2d arrays with attributes that describe the projection, time and parameter information of the data. For all deterministic models the name of the column is the forecast model name with a suffix "_det".</p>
 </div>
 <div id="ensemble-forecasts" class="section level2">
@@ -170,9 +170,9 @@ text-align: justify;
 <span class="co">#&gt; 3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2</span>
 <span class="co">#&gt; 4 2018-07-10 00:00:00         9 T2m       2018-07-10 09:00:00 height         2</span>
 <span class="co">#&gt; 5 2018-07-10 00:00:00        12 T2m       2018-07-10 12:00:00 height         2</span>
-<span class="co">#&gt; # … with 7 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;, AAEPS_mbr000 &lt;list&gt;,</span>
-<span class="co">#&gt; #   AAEPS_mbr001 &lt;list&gt;, AAEPS_mbr002 &lt;list&gt;, AAEPS_mbr003 &lt;list&gt;,</span>
-<span class="co">#&gt; #   AAEPS_mbr004 &lt;list&gt;</span></pre></body></html></div>
+<span class="co">#&gt; # … with 7 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,</span>
+<span class="co">#&gt; #   AAEPS_mbr000 &lt;geolist&gt;, AAEPS_mbr001 &lt;geolist&gt;, AAEPS_mbr002 &lt;geolist&gt;,</span>
+<span class="co">#&gt; #   AAEPS_mbr003 &lt;geolist&gt;, AAEPS_mbr004 &lt;geolist&gt;</span></pre></body></html></div>
 <p>You will see that there is a warning about missing lead times. This is because the default behaviour is to ask for lead times 0 - 48 hours, every three hours. The forecast data are in columns with the name of the forecast model with a suffix "_mbrXXX" where XXX is the member number. We could also ask for a limited set of lead times and ensemble members:</p>
 <div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
   <span class="fl">2018071000</span>,
@@ -194,8 +194,8 @@ text-align: justify;
 <span class="co">#&gt; 1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2</span>
 <span class="co">#&gt; 2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2</span>
 <span class="co">#&gt; 3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2</span>
-<span class="co">#&gt; # … with 5 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;, AAEPS_mbr000 &lt;list&gt;,</span>
-<span class="co">#&gt; #   AAEPS_mbr002 &lt;list&gt;, AAEPS_mbr004 &lt;list&gt;</span></pre></body></html></div>
+<span class="co">#&gt; # … with 5 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,</span>
+<span class="co">#&gt; #   AAEPS_mbr000 &lt;geolist&gt;, AAEPS_mbr002 &lt;geolist&gt;, AAEPS_mbr004 &lt;geolist&gt;</span></pre></body></html></div>
 </div>
 <div id="lagged-ensembles" class="section level2">
 <h2 class="hasAnchor">
@@ -214,7 +214,7 @@ text-align: justify;
   <span class="kw">return_data</span>   <span class="kw">=</span> <span class="fl">TRUE</span>
 )
 <span class="co">#&gt; ● CMEPS_prod</span>
-<span class="co">#&gt; # A tibble: 24,060 x 15</span>
+<span class="co">#&gt; # A tibble: 22,980 x 15</span>
 <span class="co">#&gt;    fcdate              lead_time parameter   SID   lat   lon units</span>
 <span class="co">#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
 <span class="co">#&gt;  1 2019-02-17 00:00:00         0 T2m        1001  70.9 -8.67 K    </span>
@@ -222,12 +222,12 @@ text-align: justify;
 <span class="co">#&gt;  3 2019-02-17 00:00:00         0 T2m        1014  69.2 17.9  K    </span>
 <span class="co">#&gt;  4 2019-02-17 00:00:00         0 T2m        1015  69.6 17.8  K    </span>
 <span class="co">#&gt;  5 2019-02-17 00:00:00         0 T2m        1018  69.2 16.0  K    </span>
-<span class="co">#&gt;  6 2019-02-17 00:00:00         0 T2m        1021  70.0 18.7  K    </span>
-<span class="co">#&gt;  7 2019-02-17 00:00:00         0 T2m        1022  70   18.7  K    </span>
-<span class="co">#&gt;  8 2019-02-17 00:00:00         0 T2m        1023  69.1 18.5  K    </span>
-<span class="co">#&gt;  9 2019-02-17 00:00:00         0 T2m        1025  69.7 18.9  K    </span>
-<span class="co">#&gt; 10 2019-02-17 00:00:00         0 T2m        1026  69.7 18.9  K    </span>
-<span class="co">#&gt; # … with 24,050 more rows, and 8 more variables: validdate &lt;dttm&gt;,</span>
+<span class="co">#&gt;  6 2019-02-17 00:00:00         0 T2m        1023  69.1 18.5  K    </span>
+<span class="co">#&gt;  7 2019-02-17 00:00:00         0 T2m        1025  69.7 18.9  K    </span>
+<span class="co">#&gt;  8 2019-02-17 00:00:00         0 T2m        1026  69.7 18.9  K    </span>
+<span class="co">#&gt;  9 2019-02-17 00:00:00         0 T2m        1027  69.7 18.9  K    </span>
+<span class="co">#&gt; 10 2019-02-17 00:00:00         0 T2m        1033  70.2 19.5  K    </span>
+<span class="co">#&gt; # … with 22,970 more rows, and 8 more variables: validdate &lt;dttm&gt;,</span>
 <span class="co">#&gt; #   fcst_cycle &lt;chr&gt;, CMEPS_prod_mbr000 &lt;dbl&gt;, CMEPS_prod_mbr001 &lt;dbl&gt;,</span>
 <span class="co">#&gt; #   CMEPS_prod_mbr003_lag2h &lt;dbl&gt;, CMEPS_prod_mbr004_lag2h &lt;dbl&gt;,</span>
 <span class="co">#&gt; #   CMEPS_prod_mbr005_lag1h &lt;dbl&gt;, CMEPS_prod_mbr006_lag1h &lt;dbl&gt;</span></pre></body></html></div>

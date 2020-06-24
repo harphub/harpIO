@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate a sequence of dates — seq_dates • harpIO</title>
+<title>Compute accumulation between forecast lead times — accumulate • harpIO</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,13 @@
 
 
 
-<meta property="og:title" content="Generate a sequence of dates — seq_dates" />
-<meta property="og:description" content="Generate a sequence of dates" />
+<meta property="og:title" content="Compute accumulation between forecast lead times — accumulate" />
+<meta property="og:description" content="For data with equally spaced lead times, the difference between, or
+accumulation of gridded fields between lead times is computed. The time over
+which to compute the accumulation must be set and is calculated from the lead
+times. If lead times are not equally spaced an attempt will be made to
+compute all accumulations for the desired accumulation time from the
+available lead times." />
 
 
 
@@ -129,45 +134,58 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generate a sequence of dates</h1>
-    <small class="dont-index">Source: <a href='https://github.com/harphub/harpIO/blob/master/R/harp_dates.R'><code>R/harp_dates.R</code></a></small>
-    <div class="hidden name"><code>seq_dates.Rd</code></div>
+    <h1>Compute accumulation between forecast lead times</h1>
+    <small class="dont-index">Source: <a href='https://github.com/harphub/harpIO/blob/master/R/accumulate.R'><code>R/accumulate.R</code></a></small>
+    <div class="hidden name"><code>accumulate.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Generate a sequence of dates</p>
+    <p>For data with equally spaced lead times, the difference between, or
+accumulation of gridded fields between lead times is computed. The time over
+which to compute the accumulation must be set and is calculated from the lead
+times. If lead times are not equally spaced an attempt will be made to
+compute all accumulations for the desired accumulation time from the
+available lead times.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>seq_dates</span>(<span class='no'>start_date</span>, <span class='no'>end_date</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"1h"</span>)</pre>
+    <pre class="usage"><span class='fu'>accumulate</span>(<span class='no'>.fcst</span>, <span class='no'>accum_time</span>, <span class='no'>...</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>start_date</th>
-      <td><p>Start date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.</p></td>
+      <th>.fcst</th>
+      <td><p>A harp_fcst list or a harp_spatial_fcst data frame.</p></td>
     </tr>
     <tr>
-      <th>end_date</th>
-      <td><p>End date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.</p></td>
+      <th>accum_time</th>
+      <td><p>The time over which to compute the accumulation. Must be in
+the same units as the lead_time column.</p></td>
     </tr>
     <tr>
-      <th>by</th>
-      <td><p>Increment of the sequence. Should be a string of a number followed
-by a letter, where the letter gives the units - may be d for days, h for
-hours or m for minutes. The default is '1h'.</p></td>
+      <th>...</th>
+      <td><p>Further arguments passed to or from methods.</p></td>
+    </tr>
+    <tr>
+      <th>.fcst_name</th>
+      <td><p>Not to be set by the user, but used for consistency between
+classes.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A sequence of date-times in YYYYMMDDhhmm format</p>
+    <p>An object of the same class as .fcst with the accumulations computed.
+  Rows for lead times for which it is not possible to compute the
+  accumulation are dropped.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'>seq_dates</span>(<span class='fl'>20170101</span>, <span class='fl'>20170131</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"1d"</span>)
-<span class='fu'>seq_dates</span>(<span class='fl'>201701010600</span>, <span class='fl'>201701051200</span>)</pre>
+    <p>This function would typically be used compute accumulations between lead
+times for model outputs that are accumulated from the model start time, such
+as precipitation and fluxes. However, <code>accumulate</code> could also be used
+to compute the change in any value between lead times, such a change in
+temperature or change in wind speed for example.</p>
+
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

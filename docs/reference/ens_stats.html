@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate a sequence of dates — seq_dates • harpIO</title>
+<title>Get ensemble statistics — ens_stats • harpIO</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Generate a sequence of dates — seq_dates" />
-<meta property="og:description" content="Generate a sequence of dates" />
+<meta property="og:title" content="Get ensemble statistics — ens_stats" />
+<meta property="og:description" content="Get ensemble statistics" />
 
 
 
@@ -129,45 +129,81 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generate a sequence of dates</h1>
-    <small class="dont-index">Source: <a href='https://github.com/harphub/harpIO/blob/master/R/harp_dates.R'><code>R/harp_dates.R</code></a></small>
-    <div class="hidden name"><code>seq_dates.Rd</code></div>
+    <h1>Get ensemble statistics</h1>
+    <small class="dont-index">Source: <a href='https://github.com/harphub/harpIO/blob/master/R/ens_stats.R'><code>R/ens_stats.R</code></a></small>
+    <div class="hidden name"><code>ens_stats.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Generate a sequence of dates</p>
+    <p>Get ensemble statistics</p>
     </div>
 
-    <pre class="usage"><span class='fu'>seq_dates</span>(<span class='no'>start_date</span>, <span class='no'>end_date</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"1h"</span>)</pre>
+    <pre class="usage"><span class='fu'>ens_stats</span>(
+  <span class='no'>.fcst</span>,
+  <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>spread</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>var</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>min</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>max</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>prob_thresh</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>prob_inequality</span> <span class='kw'>=</span> <span class='no'>`&gt;=`</span>,
+  <span class='kw'>nbh_radius</span> <span class='kw'>=</span> <span class='fl'>0</span>
+)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>start_date</th>
-      <td><p>Start date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.</p></td>
+      <th>.fcst</th>
+      <td><p>A harp_fcst list or a harp_point_fcst or harp_spatial_fcst data
+frame.</p></td>
     </tr>
     <tr>
-      <th>end_date</th>
-      <td><p>End date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.</p></td>
+      <th>mean</th>
+      <td><p>Logical. Set to TRUE (the default) to compute the ensemble mean.</p></td>
     </tr>
     <tr>
-      <th>by</th>
-      <td><p>Increment of the sequence. Should be a string of a number followed
-by a letter, where the letter gives the units - may be d for days, h for
-hours or m for minutes. The default is '1h'.</p></td>
+      <th>spread</th>
+      <td><p>Logical. Set to TRUE (the default) to compute the ensemble
+spread.</p></td>
+    </tr>
+    <tr>
+      <th>var</th>
+      <td><p>Logical. Set to TRUE to compute the ensemble variance.</p></td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td><p>Logical. Set to TRUE to compute the ensemble minimum.</p></td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td><p>Logical. Set to TRUE to compute the ensemble maximum.</p></td>
+    </tr>
+    <tr>
+      <th>prob_thresh</th>
+      <td><p>A numeric threshold for which to compute the probability.
+If a length 2 vector is passed, the probability for between those two
+values (inclusive) will be computed.</p></td>
+    </tr>
+    <tr>
+      <th>prob_inequality</th>
+      <td><p>The inequality to use in the calculation for the
+probability. Must be in back ticks. Can be any one of `&gt;=` (the default),
+`&gt;`, `&lt;=`, `&lt;`, `==`, or `!=`.</p></td>
+    </tr>
+    <tr>
+      <th>nbh_radius</th>
+      <td><p>For spatial data the radius of neighbourhoods for which to
+compute the probability in grid lengths. The neigbourhood will be a square
+with sides equal 2 * nbh_radius.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A sequence of date-times in YYYYMMDDhhmm format</p>
+    <p>An object of the same class as .fcst with new columns in the data
+  frame(s) for the computed values.</p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'>seq_dates</span>(<span class='fl'>20170101</span>, <span class='fl'>20170131</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"1d"</span>)
-<span class='fu'>seq_dates</span>(<span class='fl'>201701010600</span>, <span class='fl'>201701051200</span>)</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate a sequence of dates — seq_dates • harpIO</title>
+<title>Bind deterministic forecasts into a single data frame — bind_fcst • harpIO</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,10 @@
 
 
 
-<meta property="og:title" content="Generate a sequence of dates — seq_dates" />
-<meta property="og:description" content="Generate a sequence of dates" />
+<meta property="og:title" content="Bind deterministic forecasts into a single data frame — bind_fcst" />
+<meta property="og:description" content="Given a harp_fcst list, bind_fcst binds the data frames in the
+harp_fcst list into a single data frame for easy plotting. For ensemble
+forecasts, the member data are gathered into a single column." />
 
 
 
@@ -129,45 +131,32 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Generate a sequence of dates</h1>
-    <small class="dont-index">Source: <a href='https://github.com/harphub/harpIO/blob/master/R/harp_dates.R'><code>R/harp_dates.R</code></a></small>
-    <div class="hidden name"><code>seq_dates.Rd</code></div>
+    <h1>Bind deterministic forecasts into a single data frame</h1>
+    <small class="dont-index">Source: <a href='https://github.com/harphub/harpIO/blob/master/R/bind_fcst.R'><code>R/bind_fcst.R</code></a></small>
+    <div class="hidden name"><code>bind_fcst.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Generate a sequence of dates</p>
+    <p>Given a harp_fcst list, <code>bind_fcst</code> binds the data frames in the
+harp_fcst list into a single data frame for easy plotting. For ensemble
+forecasts, the member data are gathered into a single column.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>seq_dates</span>(<span class='no'>start_date</span>, <span class='no'>end_date</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"1h"</span>)</pre>
+    <pre class="usage"><span class='fu'>bind_fcst</span>(<span class='no'>.fcst</span>)</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>start_date</th>
-      <td><p>Start date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.</p></td>
-    </tr>
-    <tr>
-      <th>end_date</th>
-      <td><p>End date as YYYYMMDD, YYYYMMDDhh, or YYYYMMDDhhmm. Can be
-string or numeric.</p></td>
-    </tr>
-    <tr>
-      <th>by</th>
-      <td><p>Increment of the sequence. Should be a string of a number followed
-by a letter, where the letter gives the units - may be d for days, h for
-hours or m for minutes. The default is '1h'.</p></td>
+      <th>.fcst</th>
+      <td><p>A harp_fcst list</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A sequence of date-times in YYYYMMDDhhmm format</p>
+    <p>A data frame</p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'>seq_dates</span>(<span class='fl'>20170101</span>, <span class='fl'>20170131</span>, <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"1d"</span>)
-<span class='fu'>seq_dates</span>(<span class='fl'>201701010600</span>, <span class='fl'>201701051200</span>)</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

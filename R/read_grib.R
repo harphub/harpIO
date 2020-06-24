@@ -53,7 +53,7 @@ read_grib <- function(
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
     stop(
       "read_grib requires the Rgrib2 package. Install with the following command:\n",
-      "remotes::install_github(\"adeckmyn/Rgrib2\")",
+      "remotes::install_github(\"harphub/Rgrib2\")",
       call. = FALSE
     )
   }
@@ -229,7 +229,7 @@ read_grib_interpolate <- function(file_name,
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
     stop(
       "read_grib requires the Rgrib2 package. Install with the following command:\n",
-      "devtools::install_github(\"adeckmyn/Rgrib2\")",
+      "remotes::install_github(\"harphub/Rgrib2\")",
       call. = FALSE
     )
   }

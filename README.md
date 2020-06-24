@@ -23,12 +23,12 @@ to install when you attempt to read those data.
 
 ``` r
 install.packages("remotes")
-remotes::install_github("andrew-MET/harpIO")
+remotes::install_github("harphub/harpIO")
 ```
 
 ### System libraries
 
-**harpIO** uses the [meteogrid](https://github.com/adeckmyn/meteogrid)
+**harpIO** uses the [meteogrid](https://github.com/harphub/meteogrid)
 package for interpolation and the geogrid class for storing gridded
 data. This package makes use of the [PROJ4](https://proj4.org) library
 for handling projections. If you do not have PROJ4 installed you can
@@ -47,7 +47,7 @@ install function where they are:
 
 ``` r
 remotes::install_github(
-  "andrew-MET/harpIO",
+  "harphub/harpIO",
   configure.args = c(
     meteogrid = "--with-proj-lib=/path/to/proj/lib --with-proj-include=/path/to/proj/include"
   )
@@ -77,7 +77,7 @@ you wish to install an update to meteogrid.
 
 When setting environment variables or creating a Makevars file, R must
 be restarted for the changes to take effect before running
-`remotes::install_github("andrew_MET/harpIO")`.
+`remotes::install_github("harphub/harpIO")`.
 
 ## Reading, transforming and writing forecast data
 

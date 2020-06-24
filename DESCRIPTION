@@ -44,9 +44,9 @@ Suggests:
     knitr,
     rmarkdown
 Remotes:
-    andrew-MET/harpData,
-    adeckmyn/meteogrid,
-    adeckmyn/Rgrib2
-URL: https://github.com/andrew-MET/harpIO
-BugReports: https://github.com/andrew-MET/harpIO/issues
+    harphub/harpData,
+    harphub/meteogrid,
+    harphub/Rgrib2
+URL: https://github.com/harphub/harpIO
+BugReports: https://github.com/harphub/harpIO/issues
 VignetteBuilder: knitr
