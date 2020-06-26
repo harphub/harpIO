@@ -35,7 +35,7 @@ read_netcdf <- function(
   # Open the file and get the time and domain information
   nc_id     <- ncdf4::nc_open(file_name)
   time_info <- get_time_nc(nc_id, format_opts)
-  nc_domain <- get_domain_nc(nc_id, format_opts)
+  nc_domain <- get_domain_netcdf(nc_id, format_opts)
 
   # Check for variables in the file
   nc_vars        <- names(nc_id$var)
@@ -98,64 +98,11 @@ read_netcdf <- function(
 
   # Get weights for transformations
 
-  if (!is.null(transformation_opts[["keep_raw_data"]])) {
-    keep_raw_data <- transformation_opts[["keep_raw_data"]]
-  } else {
-    keep_raw_data <- FALSE
-  }
-
-  # For interpolating gridded data to points - compute weights if they aren't already passed.
-
-  method_check <- attr(transformation_opts[["weights"]], "method") != transformation_opts[["method"]]
-
-  if (transformation == "interpolate" && (is.null(transformation_opts[["weights"]]) || method_check)) {
-
-    if (is.null(transformation_opts[["method"]])) {
-      warning("Interpolation method not set. Using 'bilinear'.", call. = FALSE, immediate. = TRUE)
-      transformation_opts[["method"]] <- "bilinear"
-    }
-
-    if (is.null(transformation_opts[["use_mask"]])) transformation_opts[["use_mask"]] <- FALSE
-
-    transformation_opts <- initialise_interpolation(
-      domain   = nc_domain,
-      stations = transformation_opts[["stations"]],
-      method   = transformation_opts[["method"]],
-      use_mask = transformation_opts[["use_mask"]],
-      drop_NA  = TRUE
-    )
-    transformation_opts[["keep_raw_data"]] <- keep_raw_data
-  }
-
-  # For regridding gridded data - compute weights if they aren't already passed.
-  if (transformation == "regrid" && is.null(transformation_opts[["weights"]])) {
-    message("Computing interpolation weights.")
-    # Assume grib message at position 1 has the same domain information as all messages
-    old_domain <- nc_domain
-    new_domain <- try(meteogrid::as.geodomain(transformation_opts[["new_domain"]]), silent = TRUE)
-    if (inherits(new_domain, "try-error")) {
-      stop("'new_domain' in 'transformation_opts' must be a geofield or geodomain.", call. = FALSE)
-    }
-    transformation_opts[["weights"]] <- meteogrid::regrid.init(
-      olddomain = old_domain,
-      newdomain = new_domain,
-      method    = transformation_opts[["method"]]
-    )
-  }
-
-  # For xsection - compute interpolation weights
-  if (transformation == "xsection") {
-    message("Computing interpolation weights.")
-    # Assume grib message at position 1 has the same domain information as all messages
-    geofield_domain <- nc_domain
-    if (is.null(transformation_opts[["a"]]) || is.null(transformation_opts[["b"]])) {
-      stop("End points of xsection, 'a' and 'b' must be specified.", call. = FALSE)
-    }
-    stopifnot(length(transformation_opts[["a"]]) == 2 && length(transformation_opts[["b"]] == 2))
-    transformation_opts[["weights"]] <- xsection_init(
-      geofield_domain, transformation_opts
-    )
-  }
+  transformation_opts <- compute_transformation_weights(
+    nc_domain,
+    transformation,
+    transformation_opts
+  )
 
   # Read and transform the data
 
@@ -163,8 +110,6 @@ read_netcdf <- function(
   if (!is.null(format_opts[["first_only"]]) && format_opts[["first_only"]]) {
     first_only <- TRUE
   }
-
-  message("Reading data from ", file_name, ".")
 
   result <- purrr::map2_dfr(
     nc_info,
@@ -198,13 +143,16 @@ read_netcdf <- function(
     )
   }
 
+  attr(result, "transformation_opts") <- transformation_opts
+
   result
+
 }
 
 ###
 
 # function to check that the dimension names are correct for each parameter,
-# extract and filter the veritical levels from the file and extract the
+# extract and filter the vertical levels from the file and extract the
 # ensemble members for later filtering.
 
 make_nc_info <- function(param, info_df, nc_id, file_name) {
@@ -427,22 +375,7 @@ read_and_transform_netcdf <- function(
       result[["members"]] <- nc_info[["member"]][x]
     }
 
-    col_name <- switch(
-      transformation,
-      "none"        = "gridded_data",
-      "interpolate" = "station_data",
-      "regrid"      = "regridded_data",
-      "xsection"    = "xsection_data"
-    )
-
-    result[[col_name]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-
-    if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
-      result <- result[, which(names(result) != "gridded_data")]
-      if (transformation == "interpolate") {
-        result <- tidyr::unnest(result, .data[["station_data"]])
-      }
-    }
+    result <- transform_geofield(result, transformation, opts)
 
     if (show_progress) pb$tick()
 

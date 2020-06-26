@@ -58,8 +58,6 @@ read_grib <- function(
     )
   }
 
-  if (transformation == "none") transformation_opts[["keep_raw_data"]] <- TRUE
-
   if (is.null(parameter)) {
     stop("For grib files, parameter = '<parameter>' must be passed.", call. = FALSE)
   }
@@ -126,60 +124,55 @@ read_grib <- function(
     stop("None of the requested data could be read from grib file: ", file_name, call. = FALSE)
   }
 
-  if (!is.null(transformation_opts[["keep_raw_data"]])) {
-    keep_raw_data <- transformation_opts[["keep_raw_data"]]
+  if (transformation != "none") {
+    domain <- Rgrib2::Gdomain(Rgrib2::Ghandle(file_name))
   } else {
-    keep_raw_data <- FALSE
+    domain <- NULL
   }
 
-  # For interpolating gridded data to points - compute weights if they aren't already passed.
+  transformation_opts <- compute_transformation_weights(
+    domain,
+    transformation,
+    transformation_opts
+  )
 
-  method_check <- attr(transformation_opts[["weights"]], "method") != transformation_opts[["method"]]
+  # Function to read and transform data from grib file to be used in map_dfr below.
+  # This function should also include calls to interpolate, regrid and xsection so
+  # that no more data is kept in memory than is necessary.
+  read_and_transform_grib <- function(
+    row_num, file_name, grib_info, grib_opts, transformation = "none", opts = list(), show_progress
+  ) {
 
-  if (transformation == "interpolate" && (is.null(transformation_opts[["weights"]]) || method_check)) {
-
-    transformation_opts <- initialise_interpolation(
-      domain   = attr(Rgrib2::Gdec(file_name, 1), "domain"),
-      stations = transformation_opts[["stations"]],
-      method   = transformation_opts[["method"]],
-      use_mask = transformation_opts[["use_mask"]],
-      drop_NA  = TRUE
+    result <- tibble::tibble(
+      fcdate       = grib_info$fcdate[row_num],
+      validdate    = grib_info$validdate[row_num],
+      lead_time    = grib_info$leadtime[row_num],
+      parameter    = grib_info$parameter[row_num],
+      members      = grib_info$member[row_num],
+      level_type   = grib_info$level_type[row_num],
+      level        = grib_info$level[row_num],
+      units        = grib_info$units[row_num],
+      gridded_data = list(
+        Rgrib2::Gdec(
+          file_name,
+          grib_info$position[row_num],
+          get.meta  = grib_opts[["meta"]],
+          multi     = grib_opts[["multi"]]
+        )
+      )
     )
-    transformation_opts[["keep_raw_data"]] <- keep_raw_data
+
+    result <- transform_geofield(result, transformation, opts)
+
+    if (show_progress) pb$tick()
+
+    result
+
   }
 
-  # For regridding gridded data - compute weights if they aren't already passed.
-  if (transformation == "regrid" && is.null(transformation_opts[["weights"]])) {
-    message("Computing interpolation weights.")
-    # Assume grib message at position 1 has the same domain information as all messages
-    old_domain <- attr(Rgrib2::Gdec(file_name, 1), "domain")
-    new_domain <- try(meteogrid::as.geodomain(transformation_opts[["new_domain"]]), silent = TRUE)
-    if (inherits(new_domain, "try-error")) {
-      stop("'new_domain' in 'transformation_opts' must be a geofield or geodomain.", call. = FALSE)
-    }
-    transformation_opts[["weights"]] <- meteogrid::regrid.init(
-      olddomain = old_domain,
-      newdomain = new_domain,
-      method    = transformation_opts[["method"]]
-    )
+  if (show_progress) {
+    pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(grib_info))
   }
-
-  # For xsection - compute interpolation weights
-  if (transformation == "xsection") {
-    message("Computing interpolation weights.")
-    # Assume grib message at position 1 has the same domain information as all messages
-    geofield_domain <- attr(Rgrib2::Gdec(file_name, 1), "domain")
-    if (is.null(transformation_opts[["a"]]) || is.null(transformation_opts[["b"]])) {
-      stop("End points of xsection, 'a' and 'b' must be specified.", call. = FALSE)
-    }
-    stopifnot(length(transformation_opts[["a"]]) == 2 && length(transformation_opts[["b"]] == 2))
-    transformation_opts[["weights"]] <- xsection_init(
-      geofield_domain, transformation_opts
-    )
-  }
-
-
-  message("Reading data from ", file_name, ".")
 
   grib_data <- purrr::map_dfr(
     1:nrow(grib_info),
@@ -192,7 +185,7 @@ read_grib <- function(
     show_progress
   )
 
-  if (show_progress) cat("\n")
+  attr(grib_data, "transformation_opts") <- transformation_opts
 
   grib_data
 
@@ -344,51 +337,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
 
 }
 
-# Function to read and transform data from grib file to be used in map_dfr below.
-# This function should also include calls to interpolate, regrid and xsection so
-# that no more data is kept in memory than is necessary.
-read_and_transform_grib <- function(
-  row_num, file_name, grib_info, grib_opts, transformation = "none", opts = list(), show_progress
-) {
-
-  result <- tibble::tibble(
-    fcdate       = grib_info$fcdate[row_num],
-    validdate    = grib_info$validdate[row_num],
-    lead_time    = grib_info$leadtime[row_num],
-    parameter    = grib_info$parameter[row_num],
-    members      = grib_info$member[row_num],
-    level_type   = grib_info$level_type[row_num],
-    level        = grib_info$level[row_num],
-    units        = grib_info$units[row_num],
-    gridded_data = list(
-      Rgrib2::Gdec(
-        file_name,
-        grib_info$position[row_num],
-        get.meta  = grib_opts[["meta"]],
-        multi     = grib_opts[["multi"]]
-      )
-    )
-  )
-
-  col_name <- switch(
-    transformation,
-    "none"        = "gridded_data",
-    "interpolate" = "station_data",
-    "regrid"      = "regridded_data",
-    "xsection"    = "xsection_data"
-  )
-
-  result[[col_name]] <- transform_geofield(result[["gridded_data"]], transformation, opts)
-
-  if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
-    result <- result[, which(names(result) != "gridded_data")]
-    if (transformation == "interpolate") {
-      result <- tidyr::unnest(result, .data[["station_data"]])
-    }
-  }
-
-  if (show_progress) cat(".")
-
-  result
-
+get_domain_grib <- function(file_name, opts) {
+  Rgrib2::Gdomain(Rgrib2::Ghandle(file_name))
 }
+

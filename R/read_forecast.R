@@ -534,6 +534,9 @@ mbr_to_char <- function(df, cols) {
 spread_df <- function(df) {
 
   data_col <- grep("data$", colnames(df), value = TRUE)
+  if (length(data_col) > 1) {
+    return(df)
+  }
 
   if (is.element("members_out", colnames(df))) {
 

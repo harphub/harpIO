@@ -107,6 +107,8 @@ read_grid <- function(
   lead_time <- unique(check_for_na(lead_time))
   parameter <- unique(check_for_na(parameter))
 
+  message ("Reading ", file_name)
+
   gridded_data <- read_func(
     file_name           = file_name,
     parameter           = parameter,
@@ -118,6 +120,10 @@ read_grid <- function(
     format_opts         = file_format_opts,
     show_progress       = show_progress
   )
+
+  if (is.element("transformation_opts", names(attributes(gridded_data)))) {
+    transformation_opts <- attr(gridded_data, "transformation_opts")
+  }
 
   data_col <- switch(
     transformation,
@@ -167,7 +173,7 @@ read_grid <- function(
       gridded_data <- gridded_data[[data_col]][[1]]
     } else {
       gridded_data <- gridded_data[[data_col]]
-      class(gridded_data) <- c("geolist", class(gridded_data))
+      class(gridded_data) <- union("geolist", class(gridded_data))
     }
 
   } else {
@@ -243,6 +249,7 @@ check_for_na <- function(x) {
 check_opts <- function(trans, trans_opts) {
   if (length(trans_opts) < 1) {
     if (trans == "none") {
+      trans_opts[["keep_raw_data"]] <- TRUE
       return(trans_opts)
     }
     if (trans == "interpolate") {
