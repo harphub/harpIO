@@ -1,6 +1,11 @@
 # Function to create a geodomain from a netcdf file
 # Probably to just be used internally
-get_domain_nc <- function(file, opts) {
+get_domain_netcdf <- function(file_name, opts) {
+
+  if (is.null(opts)) {
+    message("Using default netcdf_opts()")
+    opts <- netcdf_opts()
+  }
 
   proj4_var <- opts[["proj4_var"]]
   proj4_att <- opts[["proj4_att"]]
@@ -12,11 +17,11 @@ get_domain_nc <- function(file, opts) {
   x_rev     <- opts[["x_rev"]]
   y_rev     <- opts[["y_rev"]]
 
-  if (inherits(file, "ncdf4")) {
-    nc_id      <- file
+  if (inherits(file_name, "ncdf4")) {
+    nc_id      <- file_name
     was_closed <- FALSE
   } else {
-    nc_id      <- ncdf4::nc_open(file)
+    nc_id      <- ncdf4::nc_open(file_name)
     was_closed <- TRUE
   }
 

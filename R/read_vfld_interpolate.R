@@ -53,9 +53,7 @@ read_vfld_interpolate <- function(
 
   empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
 
-  if (file.exists(file_name)) {
-    message("Reading: ", file_name)
-  } else {
+  if (!file.exists(file_name)) {
     warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
     return(
       list(

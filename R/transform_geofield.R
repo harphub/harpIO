@@ -4,10 +4,18 @@
 # either a geofield or a list of geofields.
 
 
-transform_geofield <- function(geofield, transformation, opts) {
+transform_geofield <- function(data, transformation, opts) {
+
+  col_name <- switch(
+    transformation,
+    "none"        = "gridded_data",
+    "interpolate" = "station_data",
+    "regrid"      = "regridded_data",
+    "xsection"    = "xsection_data"
+  )
 
   if (transformation == "none") {
-    return(geofield)
+    return(data)
   }
 
   if (transformation == "interpolate") {
@@ -41,10 +49,35 @@ transform_geofield <- function(geofield, transformation, opts) {
     }
   }
 
-  if (is.list(geofield)) {
-    lapply(geofield, fun, opts)
+  if (is.list(data)) {
+
+    if (is.data.frame(data)) {
+
+      if (!is.element("gridded_data", colnames(data))) {
+        stop("data frame must have a 'gridded_data' column to transform-")
+      }
+
+      data[[col_name]] <- lapply(data[["gridded_data"]], fun, opts)
+
+      if (is.null(opts[["keep_raw_data"]]) || !opts[["keep_raw_data"]]) {
+        data <- data[, which(colnames(data) != "gridded_data")]
+        if (transformation == "interpolate") {
+          data <- tidyr::unnest(data, .data[["station_data"]])
+        }
+      }
+
+      data
+
+    } else {
+
+      lapply(data, fun, opts)
+
+    }
+
   } else {
-    fun(geofield, opts)
+
+    fun(data, opts)
+
   }
 
 }
