@@ -80,8 +80,8 @@ read_vfile <- function(
       num_param       <- 16
       num_temp_levels <- scan(file_connection, nmax = 1, quiet = TRUE)
       params_synop    <- data.frame(
-        parameter        = v_default_names("synop"),
-        accum_hours      = rep(0, num_param),
+        parameter        = v_default_names("synop", v_type = v_type),
+        accum_hours      = 0,
         stringsAsFactors = FALSE
       )
 
@@ -89,7 +89,7 @@ read_vfile <- function(
 
     if (v_type == "vobs") {
       params_synop$parameter[params_synop$parameter == "PE"]   <- "PE12"
-      params_synop$accum_hours[params_synop$parameter == "PE"] <- 12
+      params_synop$accum_hours[params_synop$parameter == "PE12"] <- 12
     }
 
     params_synop <- dplyr::mutate(
@@ -105,7 +105,7 @@ read_vfile <- function(
       synop_columns <- c("SID", "lat", "lon", "elev", params_synop$parameter)
     }
 
-    synop_data <- read.table(
+    synop_data <- utils::read.table(
       file_connection,
       col.names = synop_columns,
       nrows     = num_synop
@@ -135,7 +135,7 @@ read_vfile <- function(
       temp_metadata   <- scan(file_connection, nmax = 2, quiet = TRUE)
       num_temp_levels <- temp_metadata[1]
       num_param       <- temp_metadata[2]
-      params_temp     <- read.table(
+      params_temp     <- utils::read.table(
         file_connection,
         col.names        = c("parameter", "accum_hours"),
         nrows            = num_param,
@@ -144,7 +144,7 @@ read_vfile <- function(
     } else {
       num_param   <- 8
       params_temp <- data.frame(
-        parameter        = v_default_names("temp"),
+        parameter        = v_default_names("temp", v_type = v_type),
         accum_hours      = rep(0, 8),
         stringsAsFactors = FALSE
       )
@@ -175,7 +175,7 @@ read_vfile <- function(
           model_elevation = rep(station_metadata[4], num_temp_levels)
         ) %>%
           dplyr::bind_cols(
-            read.table(
+            utils::read.table(
               file_connection,
               nrows = num_temp_levels,
               col.names = params_temp$parameter
@@ -214,9 +214,9 @@ read_vfile <- function(
 
 }
 
-v_default_names <- function(data_type) {
+v_default_names <- function(data_type, v_type) {
   if (data_type == "synop") {
-    c("FI",
+    res <- c("FI",
       "NN",
       "DD",
       "FF",
@@ -233,6 +233,10 @@ v_default_names <- function(data_type) {
       "GX",
       "WX"
     )
+    if (v_type == "vobs") {
+      res <- res[2:length(res)]
+    }
+    res
   } else if (data_type == "temp") {
     c("PP","FI","TT","RH","DD","FF","QQ","TD")
   } else {
