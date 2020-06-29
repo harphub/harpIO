@@ -118,14 +118,17 @@ read_grib <- function(
   colnames(grib_info)[colnames(grib_info) == "perturbationNumber"] <- "member"
 
   # filter_grib_info function defined at end of file
+  # For dplyr methods in filter_grib_info the new class has to be after
+  class(grib_info) <- rev(class(grib_info))
   grib_info <- purrr::map2_dfr(parameter, param_info, filter_grib_info, grib_info, lead_time, members)
+  class(grib_info) <- rev(class(grib_info))
 
   if (nrow(grib_info) < 1) {
     stop("None of the requested data could be read from grib file: ", file_name, call. = FALSE)
   }
 
   if (transformation != "none") {
-    domain <- Rgrib2::Gdomain(Rgrib2::Ghandle(file_name))
+    domain <- attr(grib_info, "domain")
   } else {
     domain <- NULL
   }
@@ -154,7 +157,7 @@ read_grib <- function(
       units        = grib_info$units[row_num],
       gridded_data = list(
         Rgrib2::Gdec(
-          file_name,
+          grib_info,
           grib_info$position[row_num],
           get.meta  = grib_opts[["meta"]],
           multi     = grib_opts[["multi"]]
@@ -273,7 +276,6 @@ read_grib_interpolate <- function(file_name,
 # Function to get the grib information for parameters
 
 filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
-  grib_info <- tibble::as_tibble(grib_info)
   if (grepl("^[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
     grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
   } else {
