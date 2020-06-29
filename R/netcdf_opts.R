@@ -40,14 +40,6 @@
 #'   order.
 #' @param y_rev Set to \code{TRUE} if data in the y direction are in reverse
 #'   order.
-#' @param x_pos The position of the x dimension in multi dimensional arrays.
-#' @param y_pos The position of the y dimension in multi dimensional arrays.
-#' @param z_pos The position of the z (vertical) dimension in multi dimensional
-#'   arrays.
-#' @param time_pos The position of the time dimension in multi dimensional
-#'   arrays.
-#' @param member_pos The position of the ensemble member dimension in multi
-#'   dimensional arrays.
 #' @param z_var The name of the z (vertical) dimension.
 #' @param member_var The name of the ensemble member dimension.
 #' @param time_var The name of the time dimension.
@@ -63,9 +55,6 @@
 #' netcdf_opts(options_set = "met_norway_eps")
 #' netcdf_opts(options_set = "met_norway_ifsens")
 #' netcdf_opts(
-#'   member_pos = 3,
-#'   z_pos      = 4,
-#'   time_pos   = 5,
 #'   member_var = "ensemble_member",
 #'   z_var      = "pressure"
 #' )
@@ -89,11 +78,6 @@ netcdf_opts <- function(
   lat_var      = "latitude",
   x_rev        = FALSE,
   y_rev        = FALSE,
-  x_pos        = 1,
-  y_pos        = 2,
-  z_pos        = NA,
-  time_pos     = 3,
-  member_pos   = NA,
   z_var        = NA,
   member_var   = NA,
   time_var     = "time",
@@ -105,17 +89,12 @@ netcdf_opts <- function(
   switch(
     options_set,
     "met_norway_eps" = {
-      member_pos   <- 3
-      z_pos        <- 4
-      time_pos     <- 5
       z_var        <- "height1"
       member_var   <- "ensemble_member"
       ref_time_var <- "forecast_reference_time"
     },
     "met_norway_det" = {
       z_var        <- "height1"
-      z_pos        <- 3
-      time_pos     <- 4
       ref_time_var <- "forecast_reference_time"
     },
     "met_norway_ifsens" = {
@@ -123,9 +102,6 @@ netcdf_opts <- function(
       x_dim        <- "longitude"
       y_dim        <- "latitude"
       y_rev        <- TRUE
-      member_pos   <- 3
-      z_pos        <- 4
-      time_pos     <- 5
       z_var        <- "surface"
       member_var   <- "ensemble_member"
       ref_time_var <- "forecast_reference_time"
@@ -135,8 +111,6 @@ netcdf_opts <- function(
       x_dim        <- "longitude"
       y_dim        <- "latitude"
       y_rev        <- TRUE
-      z_pos        <- 3
-      time_pos     <- 4
       z_var        <- "surface"
       ref_time_var <- "forecast_reference_time"
     },
@@ -167,19 +141,6 @@ netcdf_opts <- function(
 
   )
 
-  all_pos <- sort(stats::na.omit(c(
-    x_pos      = x_pos,
-    y_pos      = y_pos,
-    z_pos      = z_pos,
-    time_pos   = time_pos,
-    member_pos = member_pos
-  )))
-
-  if (!all(diff(all_pos) == 1) | min(all_pos) != 1) {
-    print(all_pos)
-    stop("Positions must be unique integers between 1 and the number of positions.", call. = FALSE)
-  }
-
   list(
     options_set  = options_set,
     proj4_var    = proj4_var,
@@ -191,11 +152,6 @@ netcdf_opts <- function(
     lat_var      = lat_var,
     x_rev        = x_rev,
     y_rev        = y_rev,
-    x_pos        = x_pos,
-    y_pos        = y_pos,
-    z_pos        = z_pos,
-    time_pos     = time_pos,
-    member_pos   = member_pos,
     z_var        = z_var,
     member_var   = member_var,
     time_var     = time_var,

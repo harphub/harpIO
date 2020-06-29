@@ -16,11 +16,6 @@ netcdf_opts(
   lat_var = "latitude",
   x_rev = FALSE,
   y_rev = FALSE,
-  x_pos = 1,
-  y_pos = 2,
-  z_pos = NA,
-  time_pos = 3,
-  member_pos = NA,
   z_var = NA,
   member_var = NA,
   time_var = "time",
@@ -64,19 +59,6 @@ order.}
 \item{y_rev}{Set to \code{TRUE} if data in the y direction are in reverse
 order.}
 
-\item{x_pos}{The position of the x dimension in multi dimensional arrays.}
-
-\item{y_pos}{The position of the y dimension in multi dimensional arrays.}
-
-\item{z_pos}{The position of the z (vertical) dimension in multi dimensional
-arrays.}
-
-\item{time_pos}{The position of the time dimension in multi dimensional
-arrays.}
-
-\item{member_pos}{The position of the ensemble member dimension in multi
-dimensional arrays.}
-
 \item{z_var}{The name of the z (vertical) dimension.}
 
 \item{member_var}{The name of the ensemble member dimension.}
@@ -111,9 +93,6 @@ netcdf_opts()
 netcdf_opts(options_set = "met_norway_eps")
 netcdf_opts(options_set = "met_norway_ifsens")
 netcdf_opts(
-  member_pos = 3,
-  z_pos      = 4,
-  time_pos   = 5,
   member_var = "ensemble_member",
   z_var      = "pressure"
 )

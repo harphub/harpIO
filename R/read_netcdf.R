@@ -308,6 +308,10 @@ read_and_transform_netcdf <- function(
 
   func <- function(x, nc_id, nc_info, nc_opts, nc_domain, transformation = "none", opts = list(), show_progress) {
 
+    nc_var_dims <- sapply(nc_id$var[[nc_info$nc_param[x]]]$dim, function(x) x$name)
+    x_pos       <- which(nc_var_dims == nc_opts[["x_dim"]])
+    y_pos       <- which(nc_var_dims == nc_opts[["y_dim"]])
+
     geofield_info <- list()
     geofield_info[["name"]] <- paste(
       nc_info[["parameter"]][x],
@@ -319,9 +323,14 @@ read_and_transform_netcdf <- function(
     count <- rep(-1, length(stats::na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
 
     if (is.element("level", colnames(nc_info))) {
-      nc_levels                    <- ncdf4::ncvar_get(nc_id, nc_opts[["z_var"]])
-      start[nc_opts[["z_pos"]]]    <- which(nc_levels == nc_info[["level"]][x])
-      count[nc_opts[["z_pos"]]]    <- 1
+      z_var <- nc_opts[["z_var"]]
+      if (grepl("height", nc_opts[["z_var"]])) {
+        z_var <- grep(gsub("[[:digit:]]", "", nc_opts[["z_var"]]), nc_var_dims, value = TRUE)
+      }
+      nc_levels                    <- ncdf4::ncvar_get(nc_id, z_var)
+      z_pos                        <- which(nc_var_dims == z_var)
+      start[z_pos]                 <- which(nc_levels == nc_info[["level"]][x])
+      count[z_pos]                 <- 1
       geofield_info[["level"]]     <- nc_info[["level"]][x]
       geofield_info[["leveltype"]] <- nc_info[["level_type"]][x]
     }
@@ -329,8 +338,9 @@ read_and_transform_netcdf <- function(
     if (is.element("member", colnames(nc_info))) {
       nc_members                     <- ncdf4::ncvar_get(nc_id, nc_opts[["member_var"]])
       nc_members                     <- as.numeric(gsub("[[:alpha:]]|[[:punct:]]", "", nc_members))
-      start[nc_opts[["member_pos"]]] <- which(nc_members == nc_info[["member"]][x])
-      count[nc_opts[["member_pos"]]] <- 1
+      member_pos                     <- which(nc_var_dims == nc_opts[["member_var"]])
+      start[member_pos]              <- which(nc_members == nc_info[["member"]][x])
+      count[member_pos]              <- 1
       geofield_info[["member"]]      <- nc_info[["member"]][x]
     }
 
@@ -338,13 +348,17 @@ read_and_transform_netcdf <- function(
 
     if (is.element("leadtime", colnames(nc_info))) {
       nc_times      <- ncdf4::ncvar_get(nc_id, nc_opts[["time_var"]])
-      start[nc_opts[["time_pos"]]] <- select_nc_time(
+      time_pos      <- which(nc_var_dims == nc_opts[["time_var"]])
+
+      start[time_pos] <- select_nc_time(
         nc_times,
         nc_info[["time_units"]][x],
         nc_info[["validdate"]][x],
         nc_info[["leadtime"]][x]
       )
-      count[nc_opts[["time_pos"]]] <- 1
+
+      count[time_pos] <- 1
+
       geofield_info[["time"]][["basedate"]] <- get_basedate(nc_times[1], nc_info[["time_units"]][x])
       geofield_info[["time"]][["start"]]    <- nc_info[["leadtime"]][x] / 3600
       geofield_info[["time"]][["end"]]      <- nc_info[["leadtime"]][x] / 3600
