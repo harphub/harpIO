@@ -95,7 +95,12 @@ interpolate_opts <- function(
   }
 
   if (correct_t2m && !is.element("elev", stations_cols)) {
-    stop("For 2m temperature height correction, 'stations' must contain an 'elev' column.")
+    warning(
+      "No 'elev' column found in stations, and correct_t2m = TRUE. Setting correct_t2m = FALSE",
+      call.      = FALSE,
+      immediate. = TRUE
+    )
+    correct_t2m <- FALSE
   }
 
   if (use_mask && !is.element("lsm", stations_cols)) {
