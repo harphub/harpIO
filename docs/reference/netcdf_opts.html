@@ -76,7 +76,7 @@ order of the dimensions." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9155</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9156</span>
       </span>
     </div>
 
@@ -158,11 +158,6 @@ order of the dimensions.</p>
   <span class='kw'>lat_var</span> <span class='kw'>=</span> <span class='st'>"latitude"</span>,
   <span class='kw'>x_rev</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>y_rev</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>x_pos</span> <span class='kw'>=</span> <span class='fl'>1</span>,
-  <span class='kw'>y_pos</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>z_pos</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
-  <span class='kw'>time_pos</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>member_pos</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
   <span class='kw'>z_var</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
   <span class='kw'>member_var</span> <span class='kw'>=</span> <span class='fl'>NA</span>,
   <span class='kw'>time_var</span> <span class='kw'>=</span> <span class='st'>"time"</span>,
@@ -229,29 +224,6 @@ order.</p></td>
 order.</p></td>
     </tr>
     <tr>
-      <th>x_pos</th>
-      <td><p>The position of the x dimension in multi dimensional arrays.</p></td>
-    </tr>
-    <tr>
-      <th>y_pos</th>
-      <td><p>The position of the y dimension in multi dimensional arrays.</p></td>
-    </tr>
-    <tr>
-      <th>z_pos</th>
-      <td><p>The position of the z (vertical) dimension in multi dimensional
-arrays.</p></td>
-    </tr>
-    <tr>
-      <th>time_pos</th>
-      <td><p>The position of the time dimension in multi dimensional
-arrays.</p></td>
-    </tr>
-    <tr>
-      <th>member_pos</th>
-      <td><p>The position of the ensemble member dimension in multi
-dimensional arrays.</p></td>
-    </tr>
-    <tr>
       <th>z_var</th>
       <td><p>The name of the z (vertical) dimension.</p></td>
     </tr>
@@ -288,9 +260,6 @@ data held at MET Norway and WRF output files.</p>
 <span class='fu'>netcdf_opts</span>(<span class='kw'>options_set</span> <span class='kw'>=</span> <span class='st'>"met_norway_eps"</span>)
 <span class='fu'>netcdf_opts</span>(<span class='kw'>options_set</span> <span class='kw'>=</span> <span class='st'>"met_norway_ifsens"</span>)
 <span class='fu'>netcdf_opts</span>(
-  <span class='kw'>member_pos</span> <span class='kw'>=</span> <span class='fl'>3</span>,
-  <span class='kw'>z_pos</span>      <span class='kw'>=</span> <span class='fl'>4</span>,
-  <span class='kw'>time_pos</span>   <span class='kw'>=</span> <span class='fl'>5</span>,
   <span class='kw'>member_var</span> <span class='kw'>=</span> <span class='st'>"ensemble_member"</span>,
   <span class='kw'>z_var</span>      <span class='kw'>=</span> <span class='st'>"pressure"</span>
 )</pre>

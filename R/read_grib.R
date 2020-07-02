@@ -62,6 +62,10 @@ read_grib <- function(
     stop("For grib files, parameter = '<parameter>' must be passed.", call. = FALSE)
   }
 
+  if (!is.null(format_opts) && length(intersect(names(format_opts), names(grib_opts()))) == 0) {
+    format_opts <- c(format_opts, grib_opts())
+  }
+
   if (is.null(format_opts) || length(format_opts) < 1) {
     format_opts <- grib_opts()
   }
@@ -108,6 +112,8 @@ read_grib <- function(
     )
   )
 
+  grib_index <- Rgrib2::Gindex(file_name)
+
   grib_info[["fcdate"]]    <- suppressMessages(
     str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 4, flag = "0")))
   )
@@ -143,7 +149,13 @@ read_grib <- function(
   # This function should also include calls to interpolate, regrid and xsection so
   # that no more data is kept in memory than is necessary.
   read_and_transform_grib <- function(
-    row_num, file_name, grib_info, grib_opts, transformation = "none", opts = list(), show_progress
+    row_num,
+    file_name,
+    grib_info,
+    format_opts,
+    transformation = "none",
+    opts           = list(),
+    show_progress  = FALSE
   ) {
 
     result <- tibble::tibble(
@@ -154,13 +166,13 @@ read_grib <- function(
       members      = grib_info$member[row_num],
       level_type   = grib_info$level_type[row_num],
       level        = grib_info$level[row_num],
-      units        = grib_info$units[row_num],
+      units        = grib_units_to_harp_units(grib_info$units[row_num]),
       gridded_data = list(
         Rgrib2::Gdec(
-          grib_info,
+          grib_index,
           grib_info$position[row_num],
-          get.meta  = grib_opts[["meta"]],
-          multi     = grib_opts[["multi"]]
+          get.meta  = format_opts[["meta"]],
+          multi     = format_opts[["multi"]]
         )
       )
     )
@@ -343,3 +355,11 @@ get_domain_grib <- function(file_name, opts) {
   Rgrib2::Gdomain(Rgrib2::Ghandle(file_name))
 }
 
+grib_units_to_harp_units <- function(x) {
+  switch(
+    x,
+    "m s**-1" = "m/s",
+    "(0 - 1)" = "fraction",
+    x
+  )
+}

@@ -7,6 +7,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<style>
+body {
+text-align: justify;
+}
+</style>
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -14,6 +20,150 @@ knitr::opts_chunk$set(
 )
 ```
 
+As discussed in the [Reading forecast model data](read_raw_forecast.html) guide, forecast model data can be read with the `read_forecast()` function. However, in many cases you may want to interpolate those data to point locations, such as weather stations; or transform the data to a different grid, maybe with a different projection; or to obtain a vertical cross section of the data. In harp, we call these operations transformations and they are done via the `transformation` argument to `read_forecast()`. Three transformations are possible: "interpolate", "regrid", and "xsection". Different options for these transformations are set via the `transformation_opts` argument.  
+
+
+## Example data
+For all of these examples we will use data provided in the harpData package, which, if you haven't done so already, you can install with:
+
+```{r eval = FALSE}
+remotes::install_github("harphub/harpData")
+```
+
+## Interpolate
+To interpolate forecast data to points, set `transformation = "interpolate"` in the call to `read_forecast()`. harp has a built in list of weather stations, `station_list`, that was taken from the list of all WMO SYNOP stations in 2018. The default is to interpolate to all of these stations that exist within the forecast model domain. In the below example, AROME_Arctic data are interpolated to stations within that domain.
+
+First attach the harpIO package (you could equally attach harp, which automatically attaches all harp packages)
 ```{r setup}
 library(harpIO)
 ```
+
+Then we are going to read in the AROME_Arctic data for 10m wind speed (S10m) adding `transformation = "interpolate"`
+```{r interp1, message = FALSE}
+read_forecast(
+  2018071000,
+  2018071000,
+  "AROME_Arctic",
+  "S10m",
+  transformation = "interpolate",
+  file_path      = system.file("grib/AROME_Arctic", package = "harpData"),
+  file_template  = "harmonie_grib_fp",
+  return_data    = TRUE
+)
+```
+
+You will see a warning and a couple of messages. The warning states that `read_forecast()` did not receive any options for the interpolation so it is using the default options with the default station list. Furthermore, you will see that interpolate weights are being derived from 'sfc_geo' - this is the default behaviour so that if corrections are to be made for 2m temperature for elevation differences between the model and reality. 
+
+### Interpolate options
+Options for interpolation are set using the `interpolate_opts()` function and passed to `read_forecast()` via the `transformation_opts` argument. You can see options are available and their defaults by running `interpolate_opts`
+```{r interp_opts}
+interpolate_opts()
+```
+
+We can use `interpolate_opts()` to set the points to which we want to interpolate, by setting stations as a data frame (if you do not use the default `station_list`, this would normally be read in from an external source rather than set manually). It is important that the data frame includes columns "SID", "lat", "lon" and, optionally, "elev", where "SID" a unique station ID and "elev" is the elevation of the station in meters. 
+```{r set_stations, message=FALSE}
+my_stations <- data.frame(
+  SID = c(1003, 1004, 1006),
+  lat = c(77.0000, 78.9167, 78.2506),
+  lon = c(15.5000, 11.9331, 22.8225)
+)
+my_options <- interpolate_opts(stations = my_stations)
+```
+
+You will see a warning that no "elev" column was found and `correct_t2m` is being set to FALSE. When interpolating 2m temperature an attempt is made to make a correction due to the difference in height between the model and reality using a simple lapse rate that can be changed from the default of 0.0065 K/m with the `lapse_rate` argument. If the station elevation is not available, this cannot be done. Furthermore, if the 2m correction is done, the uncorrected model temperature is discarded, but can be kept by setting `keep_model_2m = TRUE`. Finally, if the first forecast file does not contain surface geopotential, or model orography a "clim file" can be passed that does contain this information on the same grid as the forecast files. Additionally the parameter to read from the clim file can be set - this would normally by "sfc_geo" or "oro". 
+
+To demonstrate all of this, let's add an "elev" column (with fake data) to our small station list and read the 2m temperature while keeping the uncorrected model 2m temperature and manually setting a clim file. 
+```{r interp_with_opts, message=FALSE}
+my_stations$elev <- c(145, 233, 308)
+
+my_options <- interpolate_opts(
+  stations       = my_stations,
+  keep_model_t2m = TRUE,
+  clim_file      = system.file(
+    "grib/AROME_Arctic/2018/07/10/00/fc2018071000+048grib_fp", 
+    package = "harpData"
+  )
+)
+
+t2m <- read_forecast(
+  2018071000,
+  2018071000,
+  "AROME_Arctic",
+  "T2m",
+  transformation      = "interpolate",
+  transformation_opts = my_options,
+  file_path           = system.file("grib/AROME_Arctic", package = "harpData"),
+  file_template       = "harmonie_grib_fp",
+  return_data         = TRUE
+)
+```
+
+To show the effect of the correction to 2m temperature, we can just show the relevant columns using the `select` method from the dplyr package. 
+
+```{r show_t2m_correction, message=FALSE}
+library(dplyr)
+select(t2m$AROME_Arctic, SID, lead_time, parameter, AROME_Arctic_det)
+```
+
+As you will see the uncorrected temperatures are higher as we set artificially high elevations for the elevation in my_stations. 
+
+## Regrid
+Regridding is done in much the same way as interpolating to points, except you set `transformation = "regrid"` and the options are generated using `regrid_opts()`. Unlike for interpolation `transformation_opts` must be set other `read_forecast()` won't know what grid to which to regrid the data. The most important argument to `regrid_opts()` is `new_domain`. This defines the domain that to which the data will be regridded. It must be a "geofield" or "geodomain" object - all gridded data read in by `read_forecast()` or `read_grid()` are automatically coerced into geofields, or a geodomain can be defined using [meteogrid's](https://github.com/harphub/meteogrid) `Make.domain()` function. 
+
+We will demonstrate regridding by making a domain with 10km resolution based on the AROME_Arctic domain.
+```{r regrid1}
+library(meteogrid)
+
+my_domain <- Make.domain(
+  "lambert",
+  clonlat = c(15.57905, 78.21638),
+  nxny    = c(15, 15),
+  dxdy    = c(10000, 10000),
+  reflat  = 77.5,
+  reflon  = -25
+)
+
+my_options <- regrid_opts(new_domain = my_domain, keep_raw_data = TRUE)
+```
+
+In the above, `keep_raw_data = TRUE`, which means that both the original fields and the regridded fields are kept so that we can compare them. If `keep_raw_data` is not set, then the original data before regridding will be discarded. 
+
+```{r regrid2, message=FALSE}
+s10m <- read_forecast(
+  2018071000,
+  2018071000,
+  "AROME_Arctic",
+  "S10m",
+  transformation      = "regrid",
+  transformation_opts = my_options,
+  file_path           = system.file("grib/AROME_Arctic", package = "harpData"),
+  file_template       = "harmonie_grib_fp",
+  return_data         = TRUE
+)
+```
+
+We can now plot the two fields using `plot_field()` from the harpVis package. 
+```{r plot, fig.width=8, fig.height=8}
+library(harpVis)
+
+plot_field(
+  s10m, 
+  fcst_model = "AROME_Arctic", 
+  plot_col   = gridded_data, 
+  lead_time  = 0, 
+  breaks     = seq(0, 20, 2)
+)
+
+plot_field(
+  s10m, 
+  fcst_model = "AROME_Arctic", 
+  plot_col   = regridded_data, 
+  lead_time  = 0, 
+  breaks     = seq(0, 20, 2)
+)
+
+```
+
+## Xsection
+Coming Soon!!!
+
