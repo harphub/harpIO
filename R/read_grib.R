@@ -169,7 +169,7 @@ read_grib <- function(
       units        = grib_units_to_harp_units(grib_info$units[row_num]),
       gridded_data = list(
         Rgrib2::Gdec(
-          grib_index,
+          grib_info,
           grib_info$position[row_num],
           get.meta  = format_opts[["meta"]],
           multi     = format_opts[["multi"]]
