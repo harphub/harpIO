@@ -9,7 +9,7 @@ compute_transformation_weights <- function(domain, trans, trans_opts) {
   }
 
   if (!is.null(trans_opts[["domain"]])) {
-    if (!identical(domain, trans_opts[["domain"]])) {
+    if (isFALSE(all.equal(domain, trans_opts[["domain"]]))) {
       warning("Domain mismatch. Recomputing ", trans, " weights.", call. = FALSE, immediate. = TRUE)
       trans_opts[["weights"]] <- NULL
     }
