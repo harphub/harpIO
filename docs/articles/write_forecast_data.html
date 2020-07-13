@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9156</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9159</span>
       </span>
     </div>
 
@@ -98,7 +98,158 @@
 
     
     
+<p>When transforming gridded data to point data, it is useful to save the point data for future use so that access to the data is fast, and the gridded data files do not have to be read in again. Furthermore, if using vfld files, the IO overhead becomes very cumbersome for large data sets. In harp, it is possible to save point data to <a href="https://sqlite.org/">SQLite</a> format, which is a portable relational database format. This means that data can be selected and filtered before reading them into memory. In harp, these files are typically referred to as FCTABLE files as FCTABLE is part of the default file template.</p>
+<p>To save point data to SQLite format, simply add the <code>output_file_opts</code> argument to <code><a href="../reference/read_forecast.html">read_forecast()</a></code> and set the options using <code><a href="../reference/sqlite_opts.html">sqlite_opts()</a></code>. For most cases, the only option that needs to be set is the path to where you want to save the data. For the example, the data will be saved to <code><a href="https://rdrr.io/r/base/tempfile.html">tempdir()</a></code>, which creates a temporary directory under \tmp.</p>
 <div class="sourceCode" id="cb1"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">harpIO</span>)</pre></body></html></div>
+<div class="sourceCode" id="cb2"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
+  <span class="kw">start_date</span>       <span class="kw">=</span> <span class="fl">2019021700</span>,
+  <span class="kw">end_date</span>         <span class="kw">=</span> <span class="fl">2019021718</span>,
+  <span class="kw">fcst_model</span>       <span class="kw">=</span> <span class="st">"MEPS_prod"</span>,
+  <span class="kw">parameter</span>        <span class="kw">=</span> <span class="kw">NULL</span>,
+  <span class="kw">lead_time</span>        <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">12</span>, <span class="fl">3</span>),
+  <span class="kw">members</span>          <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">3</span>),
+  <span class="kw">file_path</span>        <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"vfld"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"harpData"</span>),
+  <span class="kw">file_template</span>    <span class="kw">=</span> <span class="st">"vfld_eps"</span>,
+  <span class="kw">output_file_opts</span> <span class="kw">=</span> <span class="fu"><a href="../reference/sqlite_opts.html">sqlite_opts</a></span>(<span class="kw">path</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span>(), <span class="st">"FCTABLE"</span>))
+)</pre></body></html></div>
+<p>Here, we have read in data from vfld files from the MEPS_prod ensemble model for members 0 - 3 and lead times 0 - 12 every three hours. For vfld files, setting <code>parameter = NULL</code> means that all parameters will be read and written from the vfld files (note this behaviour is only possible for vfld files). The data have been saved at tempdir()/FCTABLE, using the default file template, “fctable”, which is “{file_path}/{fcst_model}/{YYYY}/{MM}/FCTABLE_{parameter}<em>{YYYY}{MM}</em>{HH}.sqlite”, where {file_path} is the path set in <code><a href="../reference/sqlite_opts.html">sqlite_opts()</a></code>.</p>
+<p>You can see all the files that have been produced:</p>
+<div class="sourceCode" id="cb3"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">dir</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span>(), <span class="st">"FCTABLE"</span>, <span class="st">"MEPS_prod"</span>, <span class="st">"2019"</span>, <span class="st">"02"</span>))
+<span class="co">#&gt;   [1] "FCTABLE_Cbase_201902_00.sqlite" "FCTABLE_Cbase_201902_06.sqlite"</span>
+<span class="co">#&gt;   [3] "FCTABLE_Cbase_201902_12.sqlite" "FCTABLE_Cbase_201902_18.sqlite"</span>
+<span class="co">#&gt;   [5] "FCTABLE_CClow_201902_00.sqlite" "FCTABLE_CClow_201902_06.sqlite"</span>
+<span class="co">#&gt;   [7] "FCTABLE_CClow_201902_12.sqlite" "FCTABLE_CClow_201902_18.sqlite"</span>
+<span class="co">#&gt;   [9] "FCTABLE_CCtot_201902_00.sqlite" "FCTABLE_CCtot_201902_06.sqlite"</span>
+<span class="co">#&gt;  [11] "FCTABLE_CCtot_201902_12.sqlite" "FCTABLE_CCtot_201902_18.sqlite"</span>
+<span class="co">#&gt;  [13] "FCTABLE_D_201902_00.sqlite"     "FCTABLE_D_201902_06.sqlite"    </span>
+<span class="co">#&gt;  [15] "FCTABLE_D_201902_12.sqlite"     "FCTABLE_D_201902_18.sqlite"    </span>
+<span class="co">#&gt;  [17] "FCTABLE_D10m_201902_00.sqlite"  "FCTABLE_D10m_201902_06.sqlite" </span>
+<span class="co">#&gt;  [19] "FCTABLE_D10m_201902_12.sqlite"  "FCTABLE_D10m_201902_18.sqlite" </span>
+<span class="co">#&gt;  [21] "FCTABLE_DDP1_201902_00.sqlite"  "FCTABLE_DDP1_201902_06.sqlite" </span>
+<span class="co">#&gt;  [23] "FCTABLE_DDP1_201902_12.sqlite"  "FCTABLE_DDP1_201902_18.sqlite" </span>
+<span class="co">#&gt;  [25] "FCTABLE_DDP2_201902_00.sqlite"  "FCTABLE_DDP2_201902_06.sqlite" </span>
+<span class="co">#&gt;  [27] "FCTABLE_DDP2_201902_12.sqlite"  "FCTABLE_DDP2_201902_18.sqlite" </span>
+<span class="co">#&gt;  [29] "FCTABLE_FFP1_201902_00.sqlite"  "FCTABLE_FFP1_201902_06.sqlite" </span>
+<span class="co">#&gt;  [31] "FCTABLE_FFP1_201902_12.sqlite"  "FCTABLE_FFP1_201902_18.sqlite" </span>
+<span class="co">#&gt;  [33] "FCTABLE_FFP2_201902_00.sqlite"  "FCTABLE_FFP2_201902_06.sqlite" </span>
+<span class="co">#&gt;  [35] "FCTABLE_FFP2_201902_12.sqlite"  "FCTABLE_FFP2_201902_18.sqlite" </span>
+<span class="co">#&gt;  [37] "FCTABLE_Gmax_201902_00.sqlite"  "FCTABLE_Gmax_201902_06.sqlite" </span>
+<span class="co">#&gt;  [39] "FCTABLE_Gmax_201902_12.sqlite"  "FCTABLE_Gmax_201902_18.sqlite" </span>
+<span class="co">#&gt;  [41] "FCTABLE_N75_201902_00.sqlite"   "FCTABLE_N75_201902_06.sqlite"  </span>
+<span class="co">#&gt;  [43] "FCTABLE_N75_201902_12.sqlite"   "FCTABLE_N75_201902_18.sqlite"  </span>
+<span class="co">#&gt;  [45] "FCTABLE_Pcp_201902_00.sqlite"   "FCTABLE_Pcp_201902_06.sqlite"  </span>
+<span class="co">#&gt;  [47] "FCTABLE_Pcp_201902_12.sqlite"   "FCTABLE_Pcp_201902_18.sqlite"  </span>
+<span class="co">#&gt;  [49] "FCTABLE_Pmsl_201902_00.sqlite"  "FCTABLE_Pmsl_201902_06.sqlite" </span>
+<span class="co">#&gt;  [51] "FCTABLE_Pmsl_201902_12.sqlite"  "FCTABLE_Pmsl_201902_18.sqlite" </span>
+<span class="co">#&gt;  [53] "FCTABLE_Ps_201902_00.sqlite"    "FCTABLE_Ps_201902_06.sqlite"   </span>
+<span class="co">#&gt;  [55] "FCTABLE_Ps_201902_12.sqlite"    "FCTABLE_Ps_201902_18.sqlite"   </span>
+<span class="co">#&gt;  [57] "FCTABLE_Q_201902_00.sqlite"     "FCTABLE_Q_201902_06.sqlite"    </span>
+<span class="co">#&gt;  [59] "FCTABLE_Q_201902_12.sqlite"     "FCTABLE_Q_201902_18.sqlite"    </span>
+<span class="co">#&gt;  [61] "FCTABLE_Q2m_201902_00.sqlite"   "FCTABLE_Q2m_201902_06.sqlite"  </span>
+<span class="co">#&gt;  [63] "FCTABLE_Q2m_201902_12.sqlite"   "FCTABLE_Q2m_201902_18.sqlite"  </span>
+<span class="co">#&gt;  [65] "FCTABLE_QQP1_201902_00.sqlite"  "FCTABLE_QQP1_201902_06.sqlite" </span>
+<span class="co">#&gt;  [67] "FCTABLE_QQP1_201902_12.sqlite"  "FCTABLE_QQP1_201902_18.sqlite" </span>
+<span class="co">#&gt;  [69] "FCTABLE_QQP2_201902_00.sqlite"  "FCTABLE_QQP2_201902_06.sqlite" </span>
+<span class="co">#&gt;  [71] "FCTABLE_QQP2_201902_12.sqlite"  "FCTABLE_QQP2_201902_18.sqlite" </span>
+<span class="co">#&gt;  [73] "FCTABLE_RH_201902_00.sqlite"    "FCTABLE_RH_201902_06.sqlite"   </span>
+<span class="co">#&gt;  [75] "FCTABLE_RH_201902_12.sqlite"    "FCTABLE_RH_201902_18.sqlite"   </span>
+<span class="co">#&gt;  [77] "FCTABLE_RH2m_201902_00.sqlite"  "FCTABLE_RH2m_201902_06.sqlite" </span>
+<span class="co">#&gt;  [79] "FCTABLE_RH2m_201902_12.sqlite"  "FCTABLE_RH2m_201902_18.sqlite" </span>
+<span class="co">#&gt;  [81] "FCTABLE_RHP1_201902_00.sqlite"  "FCTABLE_RHP1_201902_06.sqlite" </span>
+<span class="co">#&gt;  [83] "FCTABLE_RHP1_201902_12.sqlite"  "FCTABLE_RHP1_201902_18.sqlite" </span>
+<span class="co">#&gt;  [85] "FCTABLE_RHP2_201902_00.sqlite"  "FCTABLE_RHP2_201902_06.sqlite" </span>
+<span class="co">#&gt;  [87] "FCTABLE_RHP2_201902_12.sqlite"  "FCTABLE_RHP2_201902_18.sqlite" </span>
+<span class="co">#&gt;  [89] "FCTABLE_S_201902_00.sqlite"     "FCTABLE_S_201902_06.sqlite"    </span>
+<span class="co">#&gt;  [91] "FCTABLE_S_201902_12.sqlite"     "FCTABLE_S_201902_18.sqlite"    </span>
+<span class="co">#&gt;  [93] "FCTABLE_S10m_201902_00.sqlite"  "FCTABLE_S10m_201902_06.sqlite" </span>
+<span class="co">#&gt;  [95] "FCTABLE_S10m_201902_12.sqlite"  "FCTABLE_S10m_201902_18.sqlite" </span>
+<span class="co">#&gt;  [97] "FCTABLE_T_201902_00.sqlite"     "FCTABLE_T_201902_06.sqlite"    </span>
+<span class="co">#&gt;  [99] "FCTABLE_T_201902_12.sqlite"     "FCTABLE_T_201902_18.sqlite"    </span>
+<span class="co">#&gt; [101] "FCTABLE_T2m_201902_00.sqlite"   "FCTABLE_T2m_201902_06.sqlite"  </span>
+<span class="co">#&gt; [103] "FCTABLE_T2m_201902_12.sqlite"   "FCTABLE_T2m_201902_18.sqlite"  </span>
+<span class="co">#&gt; [105] "FCTABLE_Td_201902_00.sqlite"    "FCTABLE_Td_201902_06.sqlite"   </span>
+<span class="co">#&gt; [107] "FCTABLE_Td_201902_12.sqlite"    "FCTABLE_Td_201902_18.sqlite"   </span>
+<span class="co">#&gt; [109] "FCTABLE_Td2m_201902_00.sqlite"  "FCTABLE_Td2m_201902_06.sqlite" </span>
+<span class="co">#&gt; [111] "FCTABLE_Td2m_201902_12.sqlite"  "FCTABLE_Td2m_201902_18.sqlite" </span>
+<span class="co">#&gt; [113] "FCTABLE_TDP1_201902_00.sqlite"  "FCTABLE_TDP1_201902_06.sqlite" </span>
+<span class="co">#&gt; [115] "FCTABLE_TDP1_201902_12.sqlite"  "FCTABLE_TDP1_201902_18.sqlite" </span>
+<span class="co">#&gt; [117] "FCTABLE_TDP2_201902_00.sqlite"  "FCTABLE_TDP2_201902_06.sqlite" </span>
+<span class="co">#&gt; [119] "FCTABLE_TDP2_201902_12.sqlite"  "FCTABLE_TDP2_201902_18.sqlite" </span>
+<span class="co">#&gt; [121] "FCTABLE_Tmax_201902_00.sqlite"  "FCTABLE_Tmax_201902_06.sqlite" </span>
+<span class="co">#&gt; [123] "FCTABLE_Tmax_201902_12.sqlite"  "FCTABLE_Tmax_201902_18.sqlite" </span>
+<span class="co">#&gt; [125] "FCTABLE_Tmin_201902_00.sqlite"  "FCTABLE_Tmin_201902_06.sqlite" </span>
+<span class="co">#&gt; [127] "FCTABLE_Tmin_201902_12.sqlite"  "FCTABLE_Tmin_201902_18.sqlite" </span>
+<span class="co">#&gt; [129] "FCTABLE_TNP1_201902_00.sqlite"  "FCTABLE_TNP1_201902_06.sqlite" </span>
+<span class="co">#&gt; [131] "FCTABLE_TNP1_201902_12.sqlite"  "FCTABLE_TNP1_201902_18.sqlite" </span>
+<span class="co">#&gt; [133] "FCTABLE_TNP2_201902_00.sqlite"  "FCTABLE_TNP2_201902_06.sqlite" </span>
+<span class="co">#&gt; [135] "FCTABLE_TNP2_201902_12.sqlite"  "FCTABLE_TNP2_201902_18.sqlite" </span>
+<span class="co">#&gt; [137] "FCTABLE_TTP1_201902_00.sqlite"  "FCTABLE_TTP1_201902_06.sqlite" </span>
+<span class="co">#&gt; [139] "FCTABLE_TTP1_201902_12.sqlite"  "FCTABLE_TTP1_201902_18.sqlite" </span>
+<span class="co">#&gt; [141] "FCTABLE_TTP2_201902_00.sqlite"  "FCTABLE_TTP2_201902_06.sqlite" </span>
+<span class="co">#&gt; [143] "FCTABLE_TTP2_201902_12.sqlite"  "FCTABLE_TTP2_201902_18.sqlite" </span>
+<span class="co">#&gt; [145] "FCTABLE_TXP1_201902_00.sqlite"  "FCTABLE_TXP1_201902_06.sqlite" </span>
+<span class="co">#&gt; [147] "FCTABLE_TXP1_201902_12.sqlite"  "FCTABLE_TXP1_201902_18.sqlite" </span>
+<span class="co">#&gt; [149] "FCTABLE_TXP2_201902_00.sqlite"  "FCTABLE_TXP2_201902_06.sqlite" </span>
+<span class="co">#&gt; [151] "FCTABLE_TXP2_201902_12.sqlite"  "FCTABLE_TXP2_201902_18.sqlite" </span>
+<span class="co">#&gt; [153] "FCTABLE_vis_201902_00.sqlite"   "FCTABLE_vis_201902_06.sqlite"  </span>
+<span class="co">#&gt; [155] "FCTABLE_vis_201902_12.sqlite"   "FCTABLE_vis_201902_18.sqlite"  </span>
+<span class="co">#&gt; [157] "FCTABLE_Z_201902_00.sqlite"     "FCTABLE_Z_201902_06.sqlite"    </span>
+<span class="co">#&gt; [159] "FCTABLE_Z_201902_12.sqlite"     "FCTABLE_Z_201902_18.sqlite"</span></pre></body></html></div>
+<p>With the default template, you get a directory for each forecast model and under that a directory for each year and then month. Each file contains the data for one parameter for one forecast cycle for each month.</p>
+<p>You can then read in those data again using <code><a href="../reference/read_point_forecast.html">read_point_forecast()</a></code>. Here you have to tell the function whether you are reading ensemble (“eps”) or deterministic (“det”) data.</p>
+<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="../reference/read_point_forecast.html">read_point_forecast</a></span>(
+  <span class="kw">start_date</span> <span class="kw">=</span> <span class="fl">2019021700</span>,
+  <span class="kw">end_date</span>   <span class="kw">=</span> <span class="fl">2019021718</span>,
+  <span class="kw">fcst_model</span> <span class="kw">=</span> <span class="st">"MEPS_prod"</span>,
+  <span class="kw">fcst_type</span>  <span class="kw">=</span> <span class="st">"eps"</span>,
+  <span class="kw">parameter</span>  <span class="kw">=</span> <span class="st">"T2m"</span>,
+  <span class="kw">lead_time</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">12</span>, <span class="fl">3</span>),
+  <span class="kw">file_path</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span>(), <span class="st">"FCTABLE"</span>)
+)
+<span class="co">#&gt; ● MEPS_prod</span>
+<span class="co">#&gt; # A tibble: 22,980 x 13</span>
+<span class="co">#&gt;    fcdate fcst_cycle leadtime model_elevation     p parameter   SID units</span>
+<span class="co">#&gt;     &lt;int&gt; &lt;chr&gt;         &lt;int&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;</span>
+<span class="co">#&gt;  1 1.55e9 00                0            36.4    NA T2m        1001 K    </span>
+<span class="co">#&gt;  2 1.55e9 00                0             4.1    NA T2m        1010 K    </span>
+<span class="co">#&gt;  3 1.55e9 00                0            29.1    NA T2m        1014 K    </span>
+<span class="co">#&gt;  4 1.55e9 00                0             2.6    NA T2m        1015 K    </span>
+<span class="co">#&gt;  5 1.55e9 00                0           152.     NA T2m        1018 K    </span>
+<span class="co">#&gt;  6 1.55e9 00                0            69.1    NA T2m        1023 K    </span>
+<span class="co">#&gt;  7 1.55e9 00                0             8.1    NA T2m        1025 K    </span>
+<span class="co">#&gt;  8 1.55e9 00                0             5.2    NA T2m        1026 K    </span>
+<span class="co">#&gt;  9 1.55e9 00                0             5.2    NA T2m        1027 K    </span>
+<span class="co">#&gt; 10 1.55e9 00                0            28.5    NA T2m        1033 K    </span>
+<span class="co">#&gt; # … with 22,970 more rows, and 5 more variables: validdate &lt;int&gt;,</span>
+<span class="co">#&gt; #   MEPS_prod_mbr000 &lt;dbl&gt;, MEPS_prod_mbr001 &lt;dbl&gt;, MEPS_prod_mbr002 &lt;dbl&gt;,</span>
+<span class="co">#&gt; #   MEPS_prod_mbr003 &lt;dbl&gt;</span></pre></body></html></div>
+<p>By default, all members that are found are read in, but you call also select which members you want with the <code>members</code> argument:</p>
+<div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="fu"><a href="../reference/read_point_forecast.html">read_point_forecast</a></span>(
+  <span class="kw">start_date</span> <span class="kw">=</span> <span class="fl">2019021700</span>,
+  <span class="kw">end_date</span>   <span class="kw">=</span> <span class="fl">2019021718</span>,
+  <span class="kw">fcst_model</span> <span class="kw">=</span> <span class="st">"MEPS_prod"</span>,
+  <span class="kw">fcst_type</span>  <span class="kw">=</span> <span class="st">"eps"</span>,
+  <span class="kw">parameter</span>  <span class="kw">=</span> <span class="st">"T2m"</span>,
+  <span class="kw">lead_time</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">12</span>, <span class="fl">3</span>),
+  <span class="kw">members</span>    <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0</span>, <span class="fl">2</span>),
+  <span class="kw">file_path</span>  <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempdir</a></span>(), <span class="st">"FCTABLE"</span>)
+)
+<span class="co">#&gt; ● MEPS_prod</span>
+<span class="co">#&gt; # A tibble: 22,980 x 10</span>
+<span class="co">#&gt;    fcdate fcst_cycle leadtime model_elevation parameter   SID units validdate</span>
+<span class="co">#&gt;     &lt;int&gt; &lt;chr&gt;         &lt;int&gt;           &lt;dbl&gt; &lt;chr&gt;     &lt;int&gt; &lt;chr&gt;     &lt;int&gt;</span>
+<span class="co">#&gt;  1 1.55e9 00                0            36.4 T2m        1001 K        1.55e9</span>
+<span class="co">#&gt;  2 1.55e9 00                0             4.1 T2m        1010 K        1.55e9</span>
+<span class="co">#&gt;  3 1.55e9 00                0            29.1 T2m        1014 K        1.55e9</span>
+<span class="co">#&gt;  4 1.55e9 00                0             2.6 T2m        1015 K        1.55e9</span>
+<span class="co">#&gt;  5 1.55e9 00                0           152.  T2m        1018 K        1.55e9</span>
+<span class="co">#&gt;  6 1.55e9 00                0            69.1 T2m        1023 K        1.55e9</span>
+<span class="co">#&gt;  7 1.55e9 00                0             8.1 T2m        1025 K        1.55e9</span>
+<span class="co">#&gt;  8 1.55e9 00                0             5.2 T2m        1026 K        1.55e9</span>
+<span class="co">#&gt;  9 1.55e9 00                0             5.2 T2m        1027 K        1.55e9</span>
+<span class="co">#&gt; 10 1.55e9 00                0            28.5 T2m        1033 K        1.55e9</span>
+<span class="co">#&gt; # … with 22,970 more rows, and 2 more variables: MEPS_prod_mbr000 &lt;dbl&gt;,</span>
+<span class="co">#&gt; #   MEPS_prod_mbr002 &lt;dbl&gt;</span></pre></body></html></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
