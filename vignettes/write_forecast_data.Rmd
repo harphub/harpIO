@@ -14,6 +14,62 @@ knitr::opts_chunk$set(
 )
 ```
 
+When transforming gridded data to point data, it is useful to save the point data for future use so that access to the data is fast, and the gridded data files do not have to be read in again. Furthermore, if using vfld files, the IO overhead becomes very cumbersome for large data sets. In harp, it is possible to save point data to [SQLite](https://sqlite.org/) format, which is a portable relational database format. This means that data can be selected and filtered before reading them into memory. In harp, these files are typically referred to as FCTABLE files as FCTABLE is part of the default file template. 
+
+To save point data to SQLite format, simply add the `output_file_opts` argument to `read_forecast()` and set the options using `sqlite_opts()`. For most cases, the only option that needs to be set is the path to where you want to save the data. For the example, the data will be saved to `tempdir()`, which creates a temporary directory under \\tmp. 
+
 ```{r setup}
 library(harpIO)
 ```
+
+```{r read_and_write, message=FALSE, warning=FALSE}
+read_forecast(
+  start_date       = 2019021700,
+  end_date         = 2019021718,
+  fcst_model       = "MEPS_prod",
+  parameter        = NULL,
+  lead_time        = seq(0, 12, 3),
+  members          = seq(0, 3),
+  file_path        = system.file("vfld", package = "harpData"),
+  file_template    = "vfld_eps",
+  output_file_opts = sqlite_opts(path = file.path(tempdir(), "FCTABLE"))
+)
+```
+
+Here, we have read in data from vfld files from the MEPS_prod ensemble model for members 0 - 3 and lead times 0 - 12 every three hours. For vfld files, setting `parameter = NULL` means that all parameters will be read and written from the vfld files (note this behaviour is only possible for vfld files). The data have been saved at tempdir()/FCTABLE, using the default file template, "fctable", which is  "{file_path}/{fcst_model}/{YYYY}/{MM}/FCTABLE_{parameter}_{YYYY}{MM}_{HH}.sqlite", where {file_path} is the path set in `sqlite_opts()`. 
+
+You can see all the files that have been produced:
+```{r see_files}
+dir(file.path(tempdir(), "FCTABLE", "MEPS_prod", "2019", "02"))
+```
+
+With the default template, you get a directory for each forecast model and under that a directory for each year and then month. Each file contains the data for one parameter for one forecast cycle for each month. 
+
+You can then read in those data again using `read_point_forecast()`. Here you have to tell the function whether you are reading ensemble ("eps") or deterministic ("det") data. 
+```{r read_point_forecast, message=FALSE, warning=FALSE}
+read_point_forecast(
+  start_date = 2019021700,
+  end_date   = 2019021718,
+  fcst_model = "MEPS_prod", 
+  fcst_type  = "eps",
+  parameter  = "T2m",
+  lead_time  = seq(0, 12, 3),
+  file_path  = file.path(tempdir(), "FCTABLE")
+)
+```
+
+By default, all members that are found are read in, but you call also select which members you want with the `members` argument:
+
+```{r select_members, message=FALSE, warning=FALSE}
+read_point_forecast(
+  start_date = 2019021700,
+  end_date   = 2019021718,
+  fcst_model = "MEPS_prod", 
+  fcst_type  = "eps",
+  parameter  = "T2m",
+  lead_time  = seq(0, 12, 3),
+  members    = c(0, 2),
+  file_path  = file.path(tempdir(), "FCTABLE")
+)
+```
+

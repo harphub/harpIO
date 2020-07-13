@@ -193,7 +193,7 @@ read_point_forecast <- function(
   merge_lags          = TRUE,
   by                  = "6h",
   file_path           = ".",
-  file_template       = NULL,
+  file_template       = "fctable",
   drop_any_na         = TRUE,
   stations            = NULL,
   members             = NULL,
@@ -320,14 +320,14 @@ read_point_forecast <- function(
 
   file_names <- purrr::pmap(
     as.list(lag_table),
-    ~ get_filenames(
+    ~ generate_filenames(
       file_path     = file_path,
       start_date    = start_date,
       end_date      = end_date,
       by            = by,
       lags          = ..2,
       parameter     = param_name,
-      eps_model     = gsub("_unshifted", "", ..1),
+      fcst_model    = gsub("_unshifted", "", ..1),
       lead_time     = lead_time,
       file_template = ..3
     )
@@ -469,14 +469,14 @@ read_point_forecast <- function(
           lead_time_accum[unread_leads],
           lag_table$file_template[unread_leads]
         ),
-        ~ get_filenames(
+        ~ generate_filenames(
           file_path     = file_path,
           start_date    = start_date,
           end_date      = end_date,
           by            = by,
           lags          = .y,
           parameter     = param_name,
-          eps_model     = gsub("_unshifted", "", .x),
+          fcst_model    = gsub("_unshifted", "", .x),
           lead_time     = ..3 - readr::parse_number(.y),
           file_template = ..4
         )
