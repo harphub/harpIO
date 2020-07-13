@@ -112,7 +112,11 @@ read_grib <- function(
     )
   )
 
-  grib_index <- Rgrib2::Gindex(file_name)
+  if (packageVersion("Rgrib2") >= "1.3.4.9001") {
+    grib_file <- Rgrib2::Gindex(file_name)
+  } else {
+    grib_file <- file_name
+  }
 
   grib_info[["fcdate"]]    <- suppressMessages(
     str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 4, flag = "0")))
@@ -169,7 +173,7 @@ read_grib <- function(
       units        = grib_units_to_harp_units(grib_info$units[row_num]),
       gridded_data = list(
         Rgrib2::Gdec(
-          grib_index,
+          file_name,
           grib_info$position[row_num],
           get.meta  = format_opts[["meta"]],
           multi     = format_opts[["multi"]]
@@ -192,7 +196,7 @@ read_grib <- function(
   grib_data <- purrr::map_dfr(
     1:nrow(grib_info),
     read_and_transform_grib,
-    file_name,
+    grib_file,
     grib_info,
     format_opts,
     transformation,
