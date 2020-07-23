@@ -79,7 +79,7 @@ write_fctable_to_sqlite <- function(
 
   primary_key <- intersect(primary_key, colnames(data))
 
-  vertical_cols <- intersect(c("p", "ml", "z"), colnames(data))
+  vertical_cols <- intersect(c("p", "ml", "z", "level"), colnames(data))
   vertical_cols <- setdiff(vertical_cols, primary_key)
   if (length(vertical_cols) > 0) {
     message("Adding '", paste(vertical_cols, collapse = "','"), "' to index_cols.")
@@ -108,13 +108,21 @@ check_level <- function(df) {
       )
     }
     if (!level_type %in% c("pressure", "model", "height")) {
-      stop ("Unknown vertical coordinate: ", level_type, call. = FALSE)
+      if (length(unique(df[[level_type]])) < 2) {
+        return(df[!colnames(df) %in% c("level_type", "level")])
+      }
+      warning(
+        "Unknown vertical coordinate: ", level_type, "\n",
+        "Setting column name to 'level'.",
+        call. = FALSE
+      )
     }
     col_name <- switch(
       level_type,
       "pressure" = "p",
       "model"    = "ml",
-      "height"   = "z"
+      "height"   = "z",
+      "unknown"  = "level"
     )
     df <- replace_colname(df, "level", col_name)
     df <- df[!colnames(df) %in% c("level_type", "level")]
