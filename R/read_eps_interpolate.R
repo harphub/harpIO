@@ -491,7 +491,7 @@ read_eps_interpolate <- function(
   if (!is.null(clim_file)) {
     message("Initialising interpolation.")
     init <- initialise_interpolation(
-      filename    = clim_file,
+      file_name    = clim_file,
       file_format = clim_format,
       correct_t2m = correct_t2m,
       method      = interpolation_method,
@@ -600,7 +600,7 @@ read_eps_interpolate <- function(
       ff <- which(file.exists(data_files$file_name))[1]
       message("Initialising interpolation from forecast file.")
       init <- initialise_interpolation(
-        filename    = data_files$file_name[ff],
+        file_name    = data_files$file_name[ff],
         file_format = file_format,
         parameter   = parameter,
         correct_t2m = correct_t2m,

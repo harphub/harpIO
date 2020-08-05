@@ -261,7 +261,7 @@ read_det_interpolate <- function(
   if (!is.null(clim_file)) {
     message("Initialising interpolation.")
     init <- initialise_interpolation(
-      filename    = clim_file,
+      file_name    = clim_file,
       file_format = clim_format,
       correct_t2m = correct_t2m,
       method      = interpolation_method,
@@ -313,7 +313,7 @@ read_det_interpolate <- function(
       if (any(ff)) {
         message("Initialising interpolation from forecast file.")
         init <- initialise_interpolation(
-          filename    = data_files$file_name[which(ff)[1]],
+          file_name    = data_files$file_name[which(ff)[1]],
           file_format = file_format,
           correct_t2m = correct_t2m,
           method      = interpolation_method,
