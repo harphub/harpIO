@@ -11,20 +11,20 @@
 ### ODIM data also might be in .../quality1/data, but for now we don't consider that.
 
 ### TO DO: optional: return more meta data like product type etc. ?
-# @param filename The hdf5 file name.
+# @param file_name The hdf5 file name.
 # @param data The location of the data
 # @param meta If TRUE, also read all meta data (domain, time properties).
 # @param ... Ignored
 # @return A geofield object (if meta is TRUE) or a plain matrix.
 # NOT exported. Used internally.
-read_hdf5 <- function(filename, data="dataset1/data1/data", meta=TRUE, ...) {
+read_hdf5 <- function(file_name, data="dataset1/data1/data", meta=TRUE, ...) {
   if (!requireNamespace("hdf5r", quietly=TRUE)) {
     stop("The hdf5r package is not installed!", "Please install from CRAN.")
   }
   # open hdf5 file
-  fName <- path.expand(filename)
+  fName <- path.expand(file_name)
   if (is.na(fName) || !file.exists(fName)) {
-    stop("File", filename, "missing or file not found.")
+    stop("File", file_name, "missing or file not found.")
   }
   if (!hdf5r::is.h5file(fName)) stop("Not a HDF5 file.")
   ff <- hdf5r::H5File$new(fName, "r")

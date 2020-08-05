@@ -9,7 +9,9 @@ compute_transformation_weights <- function(domain, trans, trans_opts) {
   }
 
   if (!is.null(trans_opts[["domain"]])) {
-    if (isFALSE(all.equal(domain, trans_opts[["domain"]]))) {
+    # if (isFALSE(all.equal(domain, trans_opts[["domain"]]))) {
+    # AD: this should be done with an improved "compare.gedomain"
+    if (!meteogrid::compare.geodomain(domain, trans_opts[["domain"]])) {
       warning("Domain mismatch. Recomputing ", trans, " weights.", call. = FALSE, immediate. = TRUE)
       trans_opts[["weights"]] <- NULL
     }
