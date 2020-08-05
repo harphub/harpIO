@@ -23,13 +23,15 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     param <- parse_harp_parameter(param, vertical_coordinate = vertical_coordinate)
   }
 
-  levtype <- switch(param$level_type,
-                    "height"   = 105,
-                    "msl"      = 102,
-                    "surf"     = 1,
-                    "pressure" = 100,
-                    "model"    = 109,
-                    NULL)
+  levtype <- switch(
+    param$level_type,
+    "height"   = 105,
+    "msl"      = 102,
+    "surf"     = 1,
+    "pressure" = 100,
+    "model"    = 109,
+    param$level_type
+  )
   level <- param$level
   if (tolower(param$basename) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
     stop("Level must be supplied for ", param$fullname)
@@ -115,6 +117,12 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       param_number <-  1
       level_type   <-  c(103, 102)
       level_number <-  0
+    },
+    "ps" = {
+      short_name   <- "pres"
+      param_number <- 1
+      level_type   <- c(105, 1)
+      level_number <- 0
     },
     "terrain"    = ,
     "elev"       = ,
@@ -220,10 +228,10 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_number <-  10
     },
     {
-      short_name   <- NA
+      short_name   <- tolower(param$basename)
       param_number <- NA
-      level_type   <- NA
-      level_number <- NA
+      level_type   <- levtype
+      level_number <- level
     }
   )
 

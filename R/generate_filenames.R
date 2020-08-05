@@ -154,6 +154,12 @@ generate_filenames <- function(
       arg <- list(arg)
     }
 
+    unnest_col <- TRUE
+    if (inherits(arg, "harp_parameter")) {
+      arg <- list(arg)
+      unnest_col <- FALSE
+    }
+
     if (is.data.frame(arg)) {
       # Check for duplicate columns
       output_cols <- union(output_cols, names(arg))
@@ -169,12 +175,14 @@ generate_filenames <- function(
     }
     file_names_df[[names(args)[i]]] <- arg
 
-    if (tidyr_new_interface()) {
-      file_names_df <- tidyr::unnest(
-        file_names_df, tidyselect::all_of(names(args)[i])
-      )
-    } else {
-      file_names_df <- tidyr::unnest(file_names_df)
+    if (unnest_col) {
+      if (tidyr_new_interface()) {
+        file_names_df <- tidyr::unnest(
+          file_names_df, tidyselect::all_of(names(args)[i])
+        )
+      } else {
+        file_names_df <- tidyr::unnest(file_names_df)
+      }
     }
 
   }

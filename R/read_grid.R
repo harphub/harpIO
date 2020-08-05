@@ -105,7 +105,12 @@ read_grid <- function(
 
   members   <- unique(check_for_na(members))
   lead_time <- unique(check_for_na(lead_time))
-  parameter <- unique(check_for_na(parameter))
+  if (is.list(parameter) && length(parameter) == 1) {
+    parameter <- parameter[[1]]
+  }
+  if (!inherits(parameter, "harp_parameter")) {
+    parameter <- unique(check_for_na(parameter))
+  }
 
   message ("Reading ", file_name)
 
