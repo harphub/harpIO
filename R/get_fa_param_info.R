@@ -18,7 +18,8 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
   ### FA names are very inconsistent ("_" vs "." separators...)
   ### so we have to do some hard-coding
   hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m",
-                        "g10m", "pmsl", "td2m", "topo", "lsm",
+                        "g10m", "pmsl", "td2m",
+                        "sfc_geo", "lsm",
                         "cape", "cien", "tmin", "tmax")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
@@ -36,14 +37,14 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
                      "pmsl" = "MSLPRESSURE     ",
                      "g10m" = c("CLSU.RAF.MOD.XFU", "CLSV.RAF.MOD.XFU"),
                      "td2m" = c("CLSHUMI.RELATIVE", "CLSTEMPERATURE  "),
-                     "topo" = "SURFGEOPOTENTIEL",
+                     "sfc_geo" = "SURFGEOPOTENTIEL",
                      "lsm"  = "SURFIND.TERREMER",
                      "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
                      "cien" = "SURFCIEN.POS.F00",
                      "tmin" = "CLSMINI.TEMPERAT", 
                      "tmax" = "CLSMAXI.TEMPERAT", 
                      stop("unknown parameter ", param$fullname))
-  } else if (param$level_type %in% c("hybrid", "pressure", "height") ) {
+  } else if (param$level_type %in% c("model", "pressure", "height") ) {
     if (param$level_type != "pressure") plev <- param$level
     else if (param$level < 1000) plev <- param$level * 100
     else plev <- param$level * 100 - 100000
@@ -92,7 +93,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
       "rain" = if (fa_type=="alaro") c("SURFPREC.EAU.GEC", "SURFPREC.EAU.CON")
                else "SURFACCPLUIE",
       #
-      "topo" = "SPECSURFGEOPOTEN",
+#      "sfc_geo" = "SPECSURFGEOPOTEN",
       # accumulated radiation fields:
       "lwrad" = "SURFRAYT THER DE",  # thermal
       "swrad" = "SURFRAYT SOLA DE", # direct + diffuse solar
