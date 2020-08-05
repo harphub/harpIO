@@ -15,7 +15,7 @@ read_point_forecast(
   merge_lags = TRUE,
   by = "6h",
   file_path = ".",
-  file_template = NULL,
+  file_template = "fctable",
   drop_any_na = TRUE,
   stations = NULL,
   members = NULL,

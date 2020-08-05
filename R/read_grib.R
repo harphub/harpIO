@@ -70,6 +70,10 @@ read_grib <- function(
     format_opts <- grib_opts()
   }
 
+  if (is.list(parameter) && inherits(parameter, "harp_parameter")) {
+    parameter <- list(parameter)
+  }
+
   parameter      <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info     <- lapply(parameter, get_grib_param_info)
   unknown_params <- which(sapply(param_info, function(x) is.na(x$short_name)))
@@ -109,7 +113,8 @@ read_grib <- function(
       "indicatorOfTypeOfLevel",
       "level",
       "perturbationNumber"
-    )
+    ),
+    multi = format_opts[["multi"]]
   )
 
   if (packageVersion("Rgrib2") >= "1.3.4.9001") {
@@ -292,7 +297,7 @@ read_grib_interpolate <- function(file_name,
 # Function to get the grib information for parameters
 
 filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
-  if (grepl("^[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
     grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
   } else {
     grib_info_f <- grib_info %>%

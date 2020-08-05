@@ -372,6 +372,21 @@ read_forecast <- function(
 
     # Join the data to the metadata
     not_lgl <- function(x) !is.logical(x)
+
+    # If parameter was supplied as a harp_parameter we need to join on the basename
+    data_df[["data"]] <- lapply(
+      data_df[["data"]],
+      function(x) {
+        if (is.element("parameter", colnames(x))) {
+          x[["parameter"]] <- sapply(
+            x[["parameter"]],
+            function(y) ifelse(inherits(y, "harp_parameter"), y[["basename"]], y)
+          )
+        }
+        x
+      }
+    )
+
     data_df = purrr::map2_dfr(
       data_df[["data"]],
       data_df[["forecast_data"]],

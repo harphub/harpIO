@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions and data wrangling for harp
-Version: 0.0.0.9161
+Version: 0.0.0.9162
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -42,7 +42,9 @@ Suggests:
     harpData,
     raster,
     knitr,
-    rmarkdown
+    rmarkdown,
+    maps,
+    DT
 Remotes:
     harphub/harpData,
     harphub/meteogrid,
