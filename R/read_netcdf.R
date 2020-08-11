@@ -90,7 +90,7 @@ read_netcdf <- function(
   }
   # Filter the lead times and ensemble members
 
-  nc_info <- lapply(nc_info, filter_nc, lead_time, members)
+  nc_info <- mapply(filter_nc, nc_info, param_info, MoreArgs = list(lead_time, members), SIMPLIFY = FALSE)
   nc_info <- nc_info[sapply(nc_info, function(x) nrow(x) > 0)]
   if (length(nc_info) < 1) {
     stop("None of the requested data could be read from netcdf file: ", file_name, call. = FALSE)
@@ -235,7 +235,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
 # function to filter available netcdf data to requested lead times and ensemble members
 
-filter_nc <- function(nc_info, lead_times, members) {
+filter_nc <- function(nc_info, param_info, lead_times, members) {
 
   parameter <- unique(nc_info[["parameter"]])
 
@@ -288,6 +288,31 @@ filter_nc <- function(nc_info, lead_times, members) {
     if (nrow(nc_info) < 1) {
       warning(
         "None of the requested ensemble members were found for '", parameter, "' in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(nc_info)
+    }
+  }
+
+  if (!is.null(param_info[["level"]]) && !is.na(param_info[["level"]]) && param_info[["level"]] != -999) {
+    if (is.element("level", colnames(nc_info))) {
+      missing_levels <- which(!param_info[["level"]] %in% nc_info[["level"]])
+      if (length(missing_members) > 0) {
+        warning(
+          "Levels: ", paste(members, collapse = ","), " for '", parameter, "' not found in file.",
+          call. = FALSE, immediate. = TRUE
+        )
+      }
+      nc_info <- dplyr::filter(nc_info, .data[["level"]] %in% param_info[["level"]])
+    } else {
+      warning(
+        "Vertical levels were requested for '", parameter, "' but there is no vertical level information.",
+        call. = FALSE, immediate. = TRUE
+      )
+    }
+    if (nrow(nc_info) < 1) {
+      warning(
+        "None of the requested vertical levels were found for '", parameter, "' in file.",
         call. = FALSE, immediate. = TRUE
       )
       return(nc_info)
