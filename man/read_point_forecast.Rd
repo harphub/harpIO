@@ -21,7 +21,8 @@ read_point_forecast(
   members = NULL,
   accumulate = TRUE,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
-  get_lat_and_lon = FALSE
+  get_lat_and_lon = FALSE,
+  force_param_name = FALSE
 )
 }
 \arguments{
@@ -62,11 +63,10 @@ fastest varying time dimension in the desired file names.}
 
 \item{file_template}{The template for the file names of the files to be read
 from. This would normally be one of the "fctable_*" templates that can be
-seen in \link{show_file_templates}. Can be a single string, a
-character vector or list of the same length as \code{fcst_model}. If not
-named, the order of templates is assumed to be the same as in
-\code{fcst_model}. If named, the names must match the entries in
-\code{fcst_model}.}
+seen in \link{show_file_templates}. Can be a single string, a character
+vector or list of the same length as \code{fcst_model}. If not named, the
+order of templates is assumed to be the same as in \code{fcst_model}. If
+named, the names must match the entries in \code{fcst_model}.}
 
 \item{drop_any_na}{Set to TRUE (the default) to remove all cases where there
 is at least one missing value. This ensures that when you come to analyse a
@@ -99,6 +99,12 @@ height above ground /sea level.}
 
 \item{get_lat_and_lon}{Logical indicating whether to also extract the
 latitude and longitude of the point forecasts from the sqlite files.}
+
+\item{force_param_name}{Logical. Default is FALSE. Force the parameter name
+in the file template. For upper air data it is assumed that vertical
+profiles of the data are in the files so the vertical level information is
+removed when constructing the file name. If you want the full parameter
+name to be used in the file name set to TRUE.}
 }
 \value{
 A list with an element for each forecast model, or in the case of a

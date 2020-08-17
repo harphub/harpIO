@@ -38,11 +38,10 @@
 #' @param file_path The path to the data.
 #' @param file_template The template for the file names of the files to be read
 #'   from. This would normally be one of the "fctable_*" templates that can be
-#'   seen in \link{show_file_templates}. Can be a single string, a
-#'   character vector or list of the same length as \code{fcst_model}. If not
-#'   named, the order of templates is assumed to be the same as in
-#'   \code{fcst_model}. If named, the names must match the entries in
-#'   \code{fcst_model}.
+#'   seen in \link{show_file_templates}. Can be a single string, a character
+#'   vector or list of the same length as \code{fcst_model}. If not named, the
+#'   order of templates is assumed to be the same as in \code{fcst_model}. If
+#'   named, the names must match the entries in \code{fcst_model}.
 #' @param drop_any_na Set to TRUE (the default) to remove all cases where there
 #'   is at least one missing value. This ensures that when you come to analyse a
 #'   forecast, only those forecasts with a full set of ensmeble members / data
@@ -69,6 +68,11 @@
 #'   height above ground /sea level.
 #' @param get_lat_and_lon Logical indicating whether to also extract the
 #'   latitude and longitude of the point forecasts from the sqlite files.
+#' @param force_param_name Logical. Default is FALSE. Force the parameter name
+#'   in the file template. For upper air data it is assumed that vertical
+#'   profiles of the data are in the files so the vertical level information is
+#'   removed when constructing the file name. If you want the full parameter
+#'   name to be used in the file name set to TRUE.
 #' @return A list with an element for each forecast model, or in the case of a
 #'   multi model ensemble, another list with an element for each sub model. The
 #'   list elements each contain a data frame with columns for station ID (SID),
@@ -199,7 +203,8 @@ read_point_forecast <- function(
   members             = NULL,
   accumulate          = TRUE,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
-  get_lat_and_lon     = FALSE
+  get_lat_and_lon     = FALSE,
+  force_param_name    = FALSE
 ) {
 
   switch(tolower(fcst_type),
@@ -243,7 +248,7 @@ read_point_forecast <- function(
     param_name <- parameter$basename
     lead_time  <- lead_time[lead_time >= parse_accum(parameter)]
   }
-  if (is_temp(parameter)) {
+  if (is_temp(parameter) && !force_param_name) {
     param_name <- parameter$basename
   }
 
