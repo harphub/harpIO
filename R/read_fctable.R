@@ -98,6 +98,7 @@ read_fctable <- function(
     if (!get_latlon) {
       wanted_cols <- colnames(fcst)[!colnames(fcst) %in% c("lat", "lon")]
       fcst        <- dplyr::select_at(fcst, wanted_cols)
+      meta_cols   <- setdiff(meta_cols, c("lat", "lon"))
     }
 
 
