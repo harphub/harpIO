@@ -10,7 +10,11 @@ write_obstable_to_sqlite <- function(
   journal_mode = "delete"
 ) {
 
-  obs_data <- dplyr::filter(obs_data, !is.na(.data$SID))
+  obs_data <- dplyr::filter(obs_data, !is.na(.data[["SID"]]))
+
+  if (table_name == "TEMP" && is.element("p", colnames(obs_data))) {
+    obs_data <- dplyr::filter(obs_data, !is.na(.data[["p"]]))
+  }
 
   if (nrow(obs_data) == 0) return()
 
