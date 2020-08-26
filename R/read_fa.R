@@ -65,7 +65,7 @@ read_fa <- function(file_name,
                 validdate=as.numeric(attr(fafile, "time")$validdate),
                 leadtime=attr(fafile, "time")$leadtime)
 
-  prm_list <- lapply(1:length(parameter), 
+  prm_list <- lapply(1:length(parameter),
                      function(i) c(blist, prm_info[[i]], fa_info[[i]]))
   # prepare the transformation:
   if (transformation != "none") {
@@ -114,7 +114,7 @@ read_fa <- function(file_name,
     result
 
   }
-  
+
   if (show_progress) {
     pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(fa_info))
   }
