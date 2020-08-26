@@ -41,8 +41,8 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
                      "lsm"  = "SURFIND.TERREMER",
                      "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
                      "cien" = "SURFCIEN.POS.F00",
-                     "tmin" = "CLSMINI.TEMPERAT", 
-                     "tmax" = "CLSMAXI.TEMPERAT", 
+                     "tmin" = "CLSMINI.TEMPERAT",
+                     "tmax" = "CLSMAXI.TEMPERAT",
                      stop("unknown parameter ", param$fullname))
   } else if (param$level_type %in% c("model", "pressure", "height") ) {
     if (param$level_type != "pressure") plev <- param$level
