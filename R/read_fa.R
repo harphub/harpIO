@@ -4,10 +4,28 @@
 #        It may also be a \code{FAfile} object.
 # @param parameter The parameter to read. Standard HARP names are used, but full FA field names will also
 #        work.
-# @param meta If TRUE, also read all meta data (domain, time properties).
-# @param fa_type The kind of model file: "arome", "alaro", "surfex"...
-# @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components
-# @param ... Ignored
+# @param lead_time Mostly ignored. FA files contain only 1 lead time. But added to the output.
+# @param members Does not influence data, but may be added a a column to output. As a FA file can only contain 1 model,
+#        this must be NULL or a single integer value, not a vector.
+# @param vertical_coordinate For extracting 3D data
+# @param transformation The transformation to apply to the gridded data. Can be
+#   "none", "interpolate", "regrid", or "xsection".
+# @param transformation_opts = Options for the the transformation. Depends on the
+#   transformation. For interpolation this should include:
+#     - method: the interpolation method to use. See meteogrid.
+#     - use_mask: Logical. Whether to use a land-sea mask in the interpolation.
+#     - stations: a dataframe of stations with columns SID, lat, lon and possibly elev
+#     or
+#     - weights: the interpolation weights if they have already been calculated.
+#     Note that when weights are included all other options are ignored. If stations
+#     are not given, the harpIO default station list is used.
+#   All transformations can include the logical keep_raw_data. If this is set to
+#   TRUE, the raw gridded data will be kept. If FALSE, or not set the raw gridded
+#   data will be discarded.
+
+# @param format_opts Extra options for reading FA files. See fa_opts() for details.
+# @param show_progress Verbosity. Ignored.
+#' @param ... Ignored
 # @return A data frame with columns of metadata taken from the file and a list
 #   column of the gridded and / or transformed data.
 #
@@ -36,9 +54,14 @@ read_fa <- function(file_name,
     stop("For fa files, parameter = '<parameter>' must be passed.", call. = FALSE)
   }
 
+  if (!is.null(members) && length(members) > 1) stop("FA files can not contain multiple members.")
+
   # make sure the format options are complete
   format_opts <- do.call(fa_opts, format_opts)
 
+  # TODO: check whether running FAopen is really optimal
+  #       FAdec(filename, ...) may be faster unless we are decoding several fields at once (e.g. 3D)
+  #       but we may want to have date information before decoding
   if (inherits(file_name, "FAfile")) {
     # "file_name" may in fact already be a FAfile object
     fafile <- file_name
@@ -54,20 +77,29 @@ read_fa <- function(file_name,
   }
 
   # make a list of all parameters
-  fa_info <- lapply(parameter, get_fa_param_info,
-                    fa_type=format_opts$fa_type,
-                    fa_vector=format_opts$fa_vector,
+  # NOTE: if the parameter is already in "harp_parameter" format (i.e. a list), wrap it into a list
+  #       otherwise the lapply() will give weird results.
+  if (inherits(parameter, "harp_parameter"))  {
+    prm_info <- list(parameter)
+  } else {
+    prm_info <- lapply(parameter, parse_harp_parameter)
+  }
+  fa_info <- lapply(prm_info, get_fa_param_info,
+                    fa_type     = format_opts$fa_type,
+                    fa_vector   = format_opts$fa_vector,
                     rotate_wind = format_opts$rotate_wind)
-  prm_info <- lapply(parameter, parse_harp_parameter)
   # a temporary hack. not very pretty.
-  # we "need" fcdate & validdate  in unixdate, leadtime in hours
-  blist <- list(fcdate=as.numeric(attr(fafile, "time")$basedate),
-                validdate=as.numeric(attr(fafile, "time")$validdate),
-                leadtime=attr(fafile, "time")$leadtime)
+  # we need to add fcdate & validdate  in unixdate, leadtime in hours
+  # and while we're at it, we also add "members" (which is NULL or a single integer)
+  blist <- list(fcdate    = as.numeric(attr(fafile, "time")$basedate),
+                validdate = as.numeric(attr(fafile, "time")$validdate),
+                leadtime  = attr(fafile, "time")$leadtime,
+                member = members)
 
-  prm_list <- lapply(1:length(parameter),
+  prm_list <- lapply(1:length(prm_info),
                      function(i) c(blist, prm_info[[i]], fa_info[[i]]))
-  # prepare the transformation:
+
+  # prepare the transformation (interpolation, regrid...):
   if (transformation != "none") {
     domain <- attr(fafile, "domain")
   } else {
@@ -86,8 +118,7 @@ read_fa <- function(file_name,
   # fa_info is a data.frame where every row represents a field to be decoded
   # row_num selects a single row
   read_and_transform_fa <- function(
-    row_num, fafile, prm_list, fa_opts, transformation = "none", opts = list(), show_progress
-  ) {
+    row_num, fafile, prm_list, fa_opts, transformation = "none", opts = list(), show_progress = FALSE) {
     gdat <- try(do.call(Rfa::FAdec, c(list(fafile, prm_list[[row_num]]$fa_name), fa_opts)),
                 silent = TRUE)
     # NOTE: in case of failure (field not available) we may want NA entries
@@ -100,7 +131,7 @@ read_fa <- function(file_name,
       validdate    = prm_list[[row_num]]$validdate,
       lead_time    = prm_list[[row_num]]$leadtime,
       parameter    = prm_list[[row_num]]$fullname,
-#      members      = prm_list[[row_num]]$member,
+#      members      = prm_list[[row_num]]$member, # FIXME: should the default be NA or 0 ???
       level_type   = prm_list[[row_num]]$level_type,
       level        = prm_list[[row_num]]$level,
       units        = prm_list[[row_num]]$units,
@@ -137,8 +168,15 @@ read_fa <- function(file_name,
 
 }
 
-fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE) {
-  list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind)
+# Set options for FA decoding
+# @param fa_type The kind of model file: "arome", "alaro", "surfex"... Mainly important for precipitation fields.
+# @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components U & V
+# @param rotate_wind TRUE means wind U,V (along axes of the grid) should be rotated to actual N.
+# @param meta If TRUE, the time and grid details are also decoded. This is slower.
+# @param ... Any non-standard options that don't have default values.
+# @result Returns a list of options. Either the defaults or any modification.
+fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE, ...) {
+  list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind, ...)
 }
 
 # ALARO doesn't write Tdew, so we calculate it from RH and T
