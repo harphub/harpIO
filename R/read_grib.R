@@ -62,6 +62,11 @@ read_grib <- function(
     stop("For grib files, parameter = '<parameter>' must be passed.", call. = FALSE)
   }
 
+  # FIXME: if there is partial overlap, keep the "unchanged" part of grib_opts() ?
+  #        then it all fits on 1 line
+  # format_opts <- c(format_opts, grib_opts()[setdiff(names(grib_opts()), names(format_opts))] 
+  #        OR: always expect format_opts to be complete, don't add grib_opts()
+  #        then just have format_opts=grib_opts() in the function header
   if (!is.null(format_opts) && length(intersect(names(format_opts), names(grib_opts()))) == 0) {
     format_opts <- c(format_opts, grib_opts())
   }
@@ -88,7 +93,7 @@ read_grib <- function(
       )
     )
   }
-
+  # parameter  <- parameter[-unknown_params] # shorter
   parameter  <- parameter[setdiff(seq_along(parameter), unknown_params)]
   param_info <- param_info[setdiff(seq_along(parameter), unknown_params)]
 
@@ -108,9 +113,11 @@ read_grib <- function(
       "Ny",
       "table2Version",
       "indicatorOfParameter",
+      "indicatorOfTypeOfLevel",
       "parameterCategory",
       "parameterNumber",
-      "indicatorOfTypeOfLevel",
+      "typeOfFirstFixedSurface",
+#      "typeOfSecondFixedSurface",
       "level",
       "perturbationNumber"
     ),
@@ -295,25 +302,38 @@ read_grib_interpolate <- function(file_name,
 #####
 
 # Function to get the grib information for parameters
+# FIXME: for edition=2, use  "typeOfFirstFixedSurface"
 
 filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
-  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
-    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
-  } else {
-    grib_info_f <- grib_info %>%
-      dplyr::filter(
-        .data$shortName              == param_info$short_name,
-        .data$indicatorOfTypeOfLevel == param_info$level_type[1],
-      )
+#  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+#    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
+#  } else {
+#    grib_info$level_type <- ifelse(grib_info$editionNumber==1, 
+#                                   grib_info$indicatorOfTypeOfLevel,
+#                                   grib_info$typeOfFirstFixedSurface)
+    for (i in seq_along(param_info$short_name)) {
+      for(j in seq_along(param_info$level_type)) {
+        grib_info_f <- grib_info %>% dplyr::filter(
+              .data$shortName  == param_info$short_name[i],
+              (.data$editionNumber == 1 && .data$indicatorOfTypeOfLevel  == param_info$level_type[j]) ||
+              (.data$editionNumber == 2 && .data$typeOfFirstFixedSurface  == param_info$level_type_2[j]))
+        if (nrow(grib_info_f) >= 1) break;
+      }
+      if (nrow(grib_info_f) >= 1) break;
+    }
+
     if (param_info$level_number != -999) {
       grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
     }
-  }
-  if (nrow(grib_info_f) < 1 && length(param_info$level_type) == 2) {
+#  }
+  # Some parameters may be encoded in two different ways, so we may need a second try
+  #  e.g. precip can be on "surface" or "0m above ground")
+  # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
+    if (nrow(grib_info_f) < 1 && length(param_info$level_type) == 2) {
     grib_info_f <- grib_info %>%
       dplyr::filter(
         .data$shortName              == param_info$short_name,
-        .data$indicatorOfTypeOfLevel == param_info$level_type[2]
+        .data$level_type             == param_info$level_type[2]
       )
     if (param_info$level_number != -999) {
       grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
