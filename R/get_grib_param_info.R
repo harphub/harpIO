@@ -22,7 +22,9 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   if (!inherits(param, "harp_parameter")) {
     param <- parse_harp_parameter(param, vertical_coordinate = vertical_coordinate)
   }
-
+  # NOTE: the parameter number is NEVER used, only kept for the time being
+  #       it would not work for grib-2 in any case
+  # levtype is DIFFERENT in grib2!
   levtype <- switch(
     param$level_type,
     "height"   = 105,
@@ -32,6 +34,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "model"    = 109,
     param$level_type
   )
+
   level <- param$level
   if (tolower(param$basename) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
     stop("Level must be supplied for ", param$fullname)
@@ -41,7 +44,6 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "pcp"      = {
       short_name   <-  "tp"
       param_number <-  61
-      level_type   <-  c(105, 1)
       level_number <-  0
     },
     "fog"      = {
@@ -153,8 +155,12 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_type   <-  levtype
       level_number <-  level
     },
+    # FIXME: ECMWF uses "10si" for 10m wind speed
+    #   so "ws" may not work for some parameter tables!
+    #   grib2 needs 10si
     "s"     = {
-      short_name   <-  "ws"
+#      short_name   <-  "ws"
+      short_name   <-  if (levtype==105 && level==10) c("ws", "10si") else "ws"
       param_number <-  32
       level_type   <-  levtype
       level_number <-  level
@@ -234,11 +240,22 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_number <- level
     }
   )
-
+  
+  # for GRIB2, we need different level_type values!
+  # Or should we use the name of these types?
+  level_type_2 <- vapply(level_type, FUN.VAL=1, 
+                         FUN=function (x) switch(as.character(x),
+                                                 "1"  = 1,
+                                                 "105"  = 103,
+                                                 "102"  = 101,
+                                                 "109"  = 105,
+                                                 "100"  = 100,
+                                                 NA))
   list(
-    short_name   = short_name,
-    param_number = param_number,
-    level_type   = level_type,
-    level_number = level_number
+    short_name   = short_name,    # shortName
+#    param_number = param_number,  # indicatorOfParameter or parameterNumber
+    level_type   = level_type,    # indicatorOfTypeOfLevel (grib1),
+    level_type_2 = level_type_2,  # typeOfFirstFixedSurface
+    level_number = level_number   # level
   )
 }

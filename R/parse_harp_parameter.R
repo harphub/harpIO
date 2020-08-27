@@ -110,7 +110,7 @@ parse_harp_parameter <- function(
     level <- NA
     level_type <- "unknown"
   }
-
+  # AD: probably not useful at all:
   level_type <- switch(basename,
          "pmsl" = ,
          "mslp" = "msl",
@@ -123,7 +123,7 @@ parse_harp_parameter <- function(
          level_type)
 
 #TODO
-# special levels like msl, surface, cloud, soil...
+# special levels like msl, surface, cloud, soil... Do we need them?
 # allow level indicators longer than 1 char!
 # but often, this is so format-dependent, you can just leave it NULL
 
