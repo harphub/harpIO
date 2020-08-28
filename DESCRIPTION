@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions and data wrangling for harp
-Version: 0.0.0.9165
+Version: 0.0.0.9166
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -13,7 +13,7 @@ Depends:
 License: Apache License (>= 2.0)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Imports: 
     DBI (>= 0.5),
     dplyr,
@@ -44,7 +44,8 @@ Suggests:
     knitr,
     rmarkdown,
     maps,
-    DT
+    DT,
+    roxygen2
 Remotes:
     harphub/harpData,
     harphub/meteogrid,

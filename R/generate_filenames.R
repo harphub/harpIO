@@ -332,7 +332,7 @@ split_time <- function(x, var) {
     time_unit[nchar(time_unit) < 1] <- "h"
     time_value <- sub("[[:alpha:]]+", "", x)
   }
-  bad_units <- which(!time_unit %in% c("d", "h", "m", "s"))
+  bad_units <- which(!time_unit %in% c("d", "h", "m", "s", "NA", "NAs", "nas"))
   if (length(bad_units) > 0) {
     stop(
       "Unrecognized time unit: '",
