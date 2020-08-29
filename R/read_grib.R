@@ -67,13 +67,14 @@ read_grib <- function(
   # format_opts <- c(format_opts, grib_opts()[setdiff(names(grib_opts()), names(format_opts))] 
   #        OR: always expect format_opts to be complete, don't add grib_opts()
   #        then just have format_opts=grib_opts() in the function header
-  if (!is.null(format_opts) && length(intersect(names(format_opts), names(grib_opts()))) == 0) {
-    format_opts <- c(format_opts, grib_opts())
-  }
+#  if (!is.null(format_opts) && length(intersect(names(format_opts), names(grib_opts()))) == 0) {
+#    format_opts <- c(format_opts, grib_opts())
+#  }
 
-  if (is.null(format_opts) || length(format_opts) < 1) {
-    format_opts <- grib_opts()
-  }
+#  if (is.null(format_opts) || length(format_opts) < 1) {
+#    format_opts <- grib_opts()
+#  }
+  format_opts <- do.call(grib_opts, format_opts)
 
   if (is.list(parameter) && inherits(parameter, "harp_parameter")) {
     parameter <- list(parameter)
@@ -92,10 +93,9 @@ read_grib <- function(
         call.      = FALSE
       )
     )
+    parameter  <- parameter[-unknown_params]
+    param_info  <- param_info[-unknown_params]
   }
-  # parameter  <- parameter[-unknown_params] # shorter
-  parameter  <- parameter[setdiff(seq_along(parameter), unknown_params)]
-  param_info <- param_info[setdiff(seq_along(parameter), unknown_params)]
 
   if (length(parameter) < 1) {
     stop("None of the requested parameters can be read from grib files.", call. = FALSE)
@@ -113,11 +113,9 @@ read_grib <- function(
       "Ny",
       "table2Version",
       "indicatorOfParameter",
-      "indicatorOfTypeOfLevel",
       "parameterCategory",
       "parameterNumber",
-      "typeOfFirstFixedSurface",
-#      "typeOfSecondFixedSurface",
+      "levelType",
       "level",
       "perturbationNumber"
     ),
@@ -222,123 +220,38 @@ read_grib <- function(
 
 }
 
-# Read a field from a grib file & interpolate
-#
-# @param file_name The grib file name.
-# @param parameter The parameter to read. Standard HARP names are used.
-# @param lead_time lead time
-# @param members ens members
-# @param vertical_coordinate The vertical coordinate for upper air parameters
-# @param init Initialisation for interpolation. A list that contains
-#    station locations and (possibly) pre-calculated interpolation weights etc.
-# @param method Interpolation method (only necessary if the weights are not yet initialised)
-# @param use_mask If TRUE, use land/sea mask in interpolation
-# @param meta If TRUE, also read all meta data (domain, time properties).
-#
-# @return A tibble
-# NOT exported. Used internally.
-read_grib_interpolate <- function(file_name,
-  parameter,
-  lead_time           = NA_real_,
-  members             = NA_character_,
-  vertical_coordinate = NA_character_,
-  init                = list(),
-  method              = "closest",
-  use_mask            = FALSE,
-  show_progress       = FALSE
-) {
-  # FIXME: grib2 files can contain multiple ensemble members!
-  #stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
-
-  if (!requireNamespace("Rgrib2", quietly = TRUE)) {
-    stop(
-      "read_grib requires the Rgrib2 package. Install with the following command:\n",
-      "remotes::install_github(\"harphub/Rgrib2\")",
-      call. = FALSE
-    )
-  }
-
-  if (!file.exists(file_name)) {
-    warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
-    empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
-    return(empty_data)
-  }
-
-  fcst_data <- read_grib(
-    file_name,
-    parameter,
-    vertical_coordinate = vertical_coordinate,
-    transformation      = "interpolate",
-    transformation_opts = list(
-      stations = init$stations,
-      method   = method,
-      use_mask = use_mask,
-      weights  = init$weights
-    ),
-    show_progress = show_progress
-  )
-
-  list(
-    fcst_data = dplyr::transmute(
-      fcst_data,
-      .data$SID,
-      .data$lat,
-      .data$lon,
-      .data$parameter,
-      forecast  = .data$station_data,
-      member    = members,
-      lead_time = .data$lead_time,
-      p         = dplyr::case_when(
-        .data$level_type == "pressure" ~ .data$level,
-        TRUE                     ~ NA_integer_,
-      )
-    ),
-    units = dplyr::distinct(dplyr::select(fcst_data, .data$parameter, .data$units))
-  )
-
-}
-
-
 #####
 
 # Function to get the grib information for parameters
-# FIXME: for edition=2, use  "typeOfFirstFixedSurface"
-
 filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
 #  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
 #    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
 #  } else {
-#    grib_info$level_type <- ifelse(grib_info$editionNumber==1, 
-#                                   grib_info$indicatorOfTypeOfLevel,
-#                                   grib_info$typeOfFirstFixedSurface)
-    for (i in seq_along(param_info$short_name)) {
-      for(j in seq_along(param_info$level_type)) {
-        grib_info_f <- grib_info %>% dplyr::filter(
-              .data$shortName  == param_info$short_name[i],
-              (.data$editionNumber == 1 && .data$indicatorOfTypeOfLevel  == param_info$level_type[j]) ||
-              (.data$editionNumber == 2 && .data$typeOfFirstFixedSurface  == param_info$level_type_2[j]))
-        if (nrow(grib_info_f) >= 1) break;
-      }
-      if (nrow(grib_info_f) >= 1) break;
-    }
-
-    if (param_info$level_number != -999) {
-      grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
-    }
-#  }
   # Some parameters may be encoded in two different ways, so we may need a second try
   #  e.g. precip can be on "surface" or "0m above ground")
   # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
-    if (nrow(grib_info_f) < 1 && length(param_info$level_type) == 2) {
-    grib_info_f <- grib_info %>%
-      dplyr::filter(
-        .data$shortName              == param_info$short_name,
-        .data$level_type             == param_info$level_type[2]
-      )
-    if (param_info$level_number != -999) {
+  # TODO: for "unknown" shortNames we could try to use parameter number?
+  #       that would be useful when we need a local "grib_override"
+    for (i in seq_along(param_info$short_name)) {
+      for(j in seq_along(param_info$level_type)) {
+        if (is.na(param_info$level_type[j])) {
+          grib_info_f <- grib_info %>% dplyr::filter(
+              .data$shortName  == param_info$short_name[i])
+        } else {
+          grib_info_f <- grib_info %>% dplyr::filter(
+              .data$shortName  == param_info$short_name[i],
+              (.data$editionNumber == 1 && .data$levelType  == param_info$level_type[j]) ||
+              (.data$editionNumber == 2 && .data$levelType  == param_info$level_type_2[j]))
+          if (nrow(grib_info_f) >= 1) break;
+        }
+        if (nrow(grib_info_f) >= 1) break;
+      }
+    }
+
+    if (!is.na(param_info$level_type) && param_info$level_number != -999) {
       grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
     }
-  }
+#  }
 
   grib_info <- grib_info_f
 
@@ -350,8 +263,8 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
     )
     return(grib_info)
   }
-
-  grib_info[["level_type"]] <- parameter[["level_type"]]
+# AD: this should depend on gribEdition, and be careful for length
+  grib_info[["level_type"]] <- grib_info[["levelType"]] #parameter[["level_type"]]
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
   if (!is.null(lead_time)) {

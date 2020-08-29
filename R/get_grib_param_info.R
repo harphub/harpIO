@@ -43,53 +43,53 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   switch(tolower(param$basename),
     "pcp"      = {
       short_name   <-  "tp"
-      param_number <-  61
+#      param_number <-  61
       level_number <-  0
     },
     "fog"      = {
       short_name   <-  "tcc"
-      param_number <-  71
+#      param_number <-  71
       level_type   <-  109
 ## AD: this is hard-coded for one specific project...
       level_number <-  65
     },
     "caf"      = {
       short_name   <-  "tcc"
-      param_number <-  71
+#      param_number <-  71
       level_type   <-  levtype
       level_number <-  level
     },
     "tcc"      =,
     "cctot"    = {
       short_name   <-  "tcc"
-      param_number <-  71
+#      param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
     "hcc"      =,
     "cchigh"   = {
       short_name   <-  "hcc"
-      param_number <-  71
+#      param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
     "mcc"      =,
     "ccmed"    = {
       short_name   <-  "mcc"
-      param_number <-  71
+#      param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
     "lcc"      =,
     "cclow"    = {
       short_name   <-  "lcc"
-      param_number <-  71
+#      param_number <-  71
       level_type   <-  105
       level_number <-  0
     },
     "sst"      = {
       short_name   <-  "t"
-      param_number <-  11
+#      param_number <-  11
       level_type   <-  102
       level_number <-  0
     },
@@ -97,32 +97,32 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     ## So we need new names for this!
     "tg1"      = {
       short_name   <-  "t"
-      param_number <-  11
+#      param_number <-  11
       level_type   <-  105
       level_number <-  800
     },
     "tg2"      = {
       short_name   <-  "t"
-      param_number <-  11
+#      param_number <-  11
       level_type   <-  105
       level_number <-  801
     },
     "t"        = {
       short_name   <-  if (levtype==105 && level==2) "2t" else "t"
-      param_number <-  11
+#      param_number <-  11
       level_type   <-  levtype
       level_number <-  level
     },
     "mslp"     = ,
     "pmsl"     = {
       short_name   <-  "msl"
-      param_number <-  1
+#      param_number <-  1
       level_type   <-  c(103, 102)
       level_number <-  0
     },
     "ps" = {
       short_name   <- "pres"
-      param_number <- 1
+#      param_number <- 1
       level_type   <- c(105, 1)
       level_number <- 0
     },
@@ -137,7 +137,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "orog"       = ,
     "orography"  = {
       short_name   <- "orog"
-      param_number <- 7
+#      param_number <- 7
       level_type   <- c(105, 1)
       level_number <- -999
     },
@@ -145,13 +145,13 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "sfc_geo"          = ,
     "z0m"              = {
       short_name   <-  "z"
-      param_number <-  6
+#      param_number <-  6
       level_type   <-  c(105, 1)
       level_number <-  0
     },
     "z"        = {
       short_name   <-  "z"
-      param_number <-  6
+#      param_number <-  6
       level_type   <-  levtype
       level_number <-  level
     },
@@ -161,19 +161,19 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "s"     = {
 #      short_name   <-  "ws"
       short_name   <-  if (levtype==105 && level==10) c("ws", "10si") else "ws"
-      param_number <-  32
+#      param_number <-  32
       level_type   <-  levtype
       level_number <-  level
     },
     "d"     = {
       short_name   <-  "wdir"
-      param_number <-  31
+#      param_number <-  31
       level_type   <-  levtype
       level_number <-  level
     },
     "u"        = {
       short_name   <-  "u"
-      param_number <-  33
+#      param_number <-  33
       level_type   <-  levtype
       level_number <-  level
       if (levtype==105) {
@@ -181,7 +181,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
           short_name <- "10u"
         } else if (level==100) {
           short_name <- "100u"
-          param_number <- 246
+#          param_number <- 246
           level_type   <-  1
           level_number <-  0
         }
@@ -189,7 +189,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     },
     "v"        = {
       short_name   <-  "v"
-      param_number <-  34
+#      param_number <-  34
       level_type   <-  levtype
       level_number <-  level
       if (levtype==105) {
@@ -197,7 +197,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
           short_name <- "10v"
         } else if (level==100) {
           short_name <- "100v"
-          param_number <- 247
+#          param_number <- 247
           level_type   <-  1
           level_number <-  0
         }
@@ -205,37 +205,37 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     },
     "w"        = {
       short_name   <-  "tw"
-      param_number <-  40
+#      param_number <-  40
       level_type   <-  levtype
       level_number <-  level
     },
     "q"        = {
       short_name   <-  "q"
-      param_number <-  51
+#      param_number <-  51
       level_type   <-  levtype
       level_number <-  level
     },
     "rh"       = {
       short_name   <-  "r"
-      param_number <-  52
+#      param_number <-  52
       level_type   <-  levtype
       level_number <-  level
     },
     "ugust10m" = {
       short_name   <-  "ugst"
-      param_number <-  162
+#      param_number <-  162
       level_type   <-  105
       level_number <-  10
     },
     "vgust10m" = {
       short_name   <-  "vgst"
-      param_number <-  163
+#      param_number <-  163
       level_type   <-  105
       level_number <-  10
     },
     {
       short_name   <- tolower(param$basename)
-      param_number <- NA
+#      param_number <- NA
       level_type   <- levtype
       level_number <- level
     }
