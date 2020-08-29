@@ -1,3 +1,14 @@
+# Set options for FA decoding
+#' @param fa_type The kind of model file: "arome", "alaro", "surfex"... Mainly important for precipitation fields.
+#' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components U & V
+#' @param rotate_wind TRUE means wind U,V (along axes of the grid) should be rotated to actual N.
+#' @param meta If TRUE, the time and grid details are also decoded. This is slower.
+#' @param ... Any non-standard options that don't have default values.
+#' @result Returns a list of options. Either the defaults or any modification.
+fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE, ...) {
+  list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind, ...)
+}
+
 # Read a field from an FA file
 #
 # @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
@@ -123,6 +134,7 @@ read_fa <- function(file_name,
                 silent = TRUE)
     # NOTE: in case of failure (field not available) we may want NA entries
     if (inherits(gdat, "try-error")) return(NULL)
+    # NOTE: fa_info is not part of the argument list. No real problem, though.
     if (!is.null(fa_info[[row_num]]$apply_function)) {
       gdat <- fa_info[[row_num]]$apply_function(gdat)
     }
@@ -168,16 +180,6 @@ read_fa <- function(file_name,
 
 }
 
-# Set options for FA decoding
-# @param fa_type The kind of model file: "arome", "alaro", "surfex"... Mainly important for precipitation fields.
-# @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components U & V
-# @param rotate_wind TRUE means wind U,V (along axes of the grid) should be rotated to actual N.
-# @param meta If TRUE, the time and grid details are also decoded. This is slower.
-# @param ... Any non-standard options that don't have default values.
-# @result Returns a list of options. Either the defaults or any modification.
-fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE, ...) {
-  list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind, ...)
-}
 
 # ALARO doesn't write Tdew, so we calculate it from RH and T
 #' Standard Magnus formula for dewpoint temperature
