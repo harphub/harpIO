@@ -67,13 +67,6 @@ read_grib <- function(
   # format_opts <- c(format_opts, grib_opts()[setdiff(names(grib_opts()), names(format_opts))] 
   #        OR: always expect format_opts to be complete, don't add grib_opts()
   #        then just have format_opts=grib_opts() in the function header
-#  if (!is.null(format_opts) && length(intersect(names(format_opts), names(grib_opts()))) == 0) {
-#    format_opts <- c(format_opts, grib_opts())
-#  }
-
-#  if (is.null(format_opts) || length(format_opts) < 1) {
-#    format_opts <- grib_opts()
-#  }
   format_opts <- do.call(grib_opts, format_opts)
 
   if (is.list(parameter) && inherits(parameter, "harp_parameter")) {
