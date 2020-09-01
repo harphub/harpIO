@@ -22,16 +22,30 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   if (!inherits(param, "harp_parameter")) {
     param <- parse_harp_parameter(param, vertical_coordinate = vertical_coordinate)
   }
-  # NOTE: the parameter number is NEVER used, only kept for the time being
-  #       it would not work for grib-2 in any case
-  # levtype is DIFFERENT in grib2!
+  # NOTE: the following allows for local exceptions to be implemented:
+  if (existsFunction(grib_override)) {
+    if (!is.null(grib_override(param$fullname))) return(grib_override(param$fullname))
+  }
+  # NOTE: - the parameter number is NEVER used, only kept for the time being
+  #           it would not work for grib-2 in any case
+  #       - level_type is DIFFERENT in grib2! So we need a second entry
+  #           We use the standard 255 for missing level_type
+  #       - There is no standard for missing level_number (it could signify 3D extraction)
+  #           But NA may problematic for comparisons, so (for now) we reset to -999.
+  #       - GRIB1 level_types: table3 (but only the most important ones)
+  # NOTE: some definitions may need to be adapted if GRIB files turn up 
+  #    with different conventions. For instance, maybe not everybody encodes cloud cover 
+  #    with level type 105, level 0 (0m above surface). It could also be lev. type 1.
+  #    In fact, there may be more cases where it could be best to set level_type=255
+  #    then it could be ignored in the message filtering process.
   levtype <- switch(
     param$level_type,
-    "height"   = 105,
-    "msl"      = 102,
     "surf"     = 1,
     "pressure" = 100,
+    "msl"      = 102, # NOTE: sometimes 103 may be used: 0m above MSL
+    "height"   = 105,
     "model"    = 109,
+    "unknown"  = 255,
     param$level_type
   )
 
@@ -44,9 +58,10 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "pcp"      = {
       short_name   <-  "tp"
 #      param_number <-  61
+      level_type <- c(1, 105)
       level_number <-  0
     },
-    "fog"      = {
+    "fog"      = {probably
       short_name   <-  "tcc"
 #      param_number <-  71
       level_type   <-  109
@@ -117,7 +132,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     "pmsl"     = {
       short_name   <-  "msl"
 #      param_number <-  1
-      level_type   <-  c(103, 102)
+      level_type   <-  c(102, 103)
       level_number <-  0
     },
     "ps" = {
@@ -141,6 +156,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_type   <- c(105, 1)
       level_number <- -999
     },
+    # FIXME: "z0m" should never arrise: that would have basename "z" (see next)
     "sfc_geopotential" = ,
     "sfc_geo"          = ,
     "z0m"              = {
@@ -150,12 +166,13 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_number <-  0
     },
     "z"        = {
+    # NOTE: z0m *may* have levtype=1 rather than 105!
       short_name   <-  "z"
 #      param_number <-  6
-      level_type   <-  levtype
+      level_type   <-  if (levtype==105 && level==0) c(levtype, 1) else levtype
       level_number <-  level
     },
-    # FIXME: ECMWF uses "10si" for 10m wind speed
+    # NOTE: ECMWF uses "10si" for 10m wind speed
     #   so "ws" may not work for some parameter tables!
     #   grib2 needs 10si
     "s"     = {
@@ -246,11 +263,16 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   level_type_2 <- vapply(level_type, FUN.VAL=1, 
                          FUN=function (x) switch(as.character(x),
                                                  "1"  = 1,
-                                                 "105"  = 103,
-                                                 "102"  = 101,
-                                                 "109"  = 105,
                                                  "100"  = 100,
-                                                 NA))
+                                                 "102"  = 101,
+                                                 "105"  = 103,
+                                                 "109"  = 105,
+                                                 "255"  = 255,
+                                                 255))
+  if (any(is.na(level_type))) level_type[is.na(level_type)] <- 255
+  if (any(is.na(level_type_2))) level_type_2[is.na(level_type_2)] <- 255
+  if (is.na(level_number)) level_number <- -999
+
   list(
     short_name   = short_name,    # shortName
 #    param_number = param_number,  # indicatorOfParameter or parameterNumber

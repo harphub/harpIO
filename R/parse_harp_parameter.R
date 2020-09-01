@@ -22,9 +22,13 @@
 #' parse_harp_parameter("RH", vertical_coordinate = "height")
 parse_harp_parameter <- function(
   param,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height", "unknown")
 ) {
-
+  # NOTE: - we use level_number -999 to represent "missing" or "all levels"
+  #          both contexts mean that you don't filter on level_number
+  #       - level_type should ideally never be NA but "unknown" or such. 
+  #          but in any case the different file formats (grib, fa...)
+  #          may need to modify this. e.g. GRIB uses 255 for missing level_type.
   vertical_coordinate <- match.arg(vertical_coordinate)
   ## TODO: radiation, surface properties...
   if (inherits(param, "harp_parameter")) return(param)
@@ -107,10 +111,11 @@ parse_harp_parameter <- function(
     }
   } else {
     ## no level defined. could be surface, but also MSL, CLOUDS, ...
-    level <- NA
+    level <- -999
     level_type <- "unknown"
   }
   # AD: probably not useful at all:
+  #     this is quite "GRIB" specific and get_grib_param_info() can deal with it
   level_type <- switch(basename,
          "pmsl" = ,
          "mslp" = "msl",
