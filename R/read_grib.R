@@ -227,7 +227,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   #       that would be useful when we need a local "grib_override"
     for (i in seq_along(param_info$short_name)) {
       for(j in seq_along(param_info$level_type)) {
-        if (is.na(param_info$level_type[j])) {
+        if (param_info$level_type[j]==255) {
           grib_info_f <- grib_info %>% dplyr::filter(
               .data$shortName  == param_info$short_name[i])
         } else {
@@ -241,7 +241,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
       }
     }
 
-    if (!is.na(param_info$level_type) && param_info$level_number != -999) {
+    if (param_info$level_type != 255 && param_info$level_number != -999) {
       grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
     }
 #  }

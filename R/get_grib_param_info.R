@@ -23,7 +23,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     param <- parse_harp_parameter(param, vertical_coordinate = vertical_coordinate)
   }
   # NOTE: the following allows for local exceptions to be implemented:
-  if (existsFunction(grib_override)) {
+  if (existsFunction("grib_override")) {
     if (!is.null(grib_override(param$fullname))) return(grib_override(param$fullname))
   }
   # NOTE: - the parameter number is NEVER used, only kept for the time being
