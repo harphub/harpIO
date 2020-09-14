@@ -40,17 +40,19 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   #    then it could be ignored in the message filtering process.
   levtype <- switch(
     param$level_type,
-    "surf"     = 1,
+    "surface"  = 1,
     "pressure" = 100,
+    "sea"      = 1, # ? For SST etc.
     "msl"      = 102, # NOTE: sometimes 103 may be used: 0m above MSL
     "height"   = 105,
     "model"    = 109,
+    "isotherm" = if (param$level == 0) 4 else 20,
     "unknown"  = 255,
     param$level_type
   )
 
   level <- param$level
-  if (tolower(param$basename) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh") && is.null(level)) {
+  if (tolower(param$basename) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh", "td") && is.null(level)) {
     stop("Level must be supplied for ", param$fullname)
   }
 
@@ -107,6 +109,12 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
 #      param_number <-  11
       level_type   <-  102
       level_number <-  0
+    },
+    # dew point temperature
+    "td"       = {
+      short_name   <- if (levtype == 105 && level == 2) "2d" else "dpt"
+      level_type   <- levtype
+      level_number <- level
     },
     ## AD: these names will cause problems: the number would be seen as a pressure!
     ## So we need new names for this!
@@ -260,17 +268,20 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   
   # for GRIB2, we need different level_type values!
   # Or should we use the name of these types?
+  if (any(is.na(level_type))) level_type[is.na(level_type)] <- 255
   level_type_2 <- vapply(level_type, FUN.VAL=1, 
                          FUN=function (x) switch(as.character(x),
                                                  "1"  = 1,
+                                                 "4"  = 4,
+                                                 "20" = 20,
                                                  "100"  = 100,
                                                  "102"  = 101,
                                                  "105"  = 103,
                                                  "109"  = 105,
                                                  "255"  = 255,
                                                  255))
-  if (any(is.na(level_type))) level_type[is.na(level_type)] <- 255
-  if (any(is.na(level_type_2))) level_type_2[is.na(level_type_2)] <- 255
+
+  #if (any(is.na(level_type_2))) level_type_2[is.na(level_type_2)] <- 255
   if (is.na(level_number)) level_number <- -999
 
   list(

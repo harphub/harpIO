@@ -22,7 +22,7 @@
 #' parse_harp_parameter("RH", vertical_coordinate = "height")
 parse_harp_parameter <- function(
   param,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height", "unknown")
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height", "isotherm", "unknown")
 ) {
   # NOTE: - we use level_number -999 to represent "missing" or "all levels"
   #          both contexts mean that you don't filter on level_number
@@ -53,7 +53,8 @@ parse_harp_parameter <- function(
         vertical_coordinate,
         "pressure" = "p",
         "model"    = "s",
-        "height"   = "m"
+        "height"   = "m",
+        "isotherm" = "i"
       )
     }
     basename <- paste0(param, "-999", lev_type)
@@ -85,7 +86,7 @@ parse_harp_parameter <- function(
   }
 
   ## 2. 'basic' field or atmospheric with level information added?
-  if (grepl("^[[:graph:]]+-?[[:digit:]]+[mpsh]?$", basename)){
+  if (grepl("^[[:graph:]]+-?[[:digit:]]+[mpshi]?$", basename)){
     ## trailing digits are interpreted as pressure levels
     ## possibly there's an extra "m": then they are height levels
     ## or an "s", "h": hyprid level (model level)
@@ -102,6 +103,7 @@ parse_harp_parameter <- function(
         "h" =,
         "s" = "model",
         "p" = "pressure",
+        "i" = "isotherm",
         substring(lev, lt))
       level <- as.numeric(substr(lev, 1, lt-1))
     } else {
@@ -123,14 +125,9 @@ parse_harp_parameter <- function(
          "lsm"  = ,
          "pcp"  = ,
          "snow" = ,
+         "sst"  = , # surface also includes sea surface
          "tg"   = "surface",
-         "sst"  = "sea",
          level_type)
-
-#TODO
-# special levels like msl, surface, cloud, soil... Do we need them?
-# allow level indicators longer than 1 char!
-# but often, this is so format-dependent, you can just leave it NULL
 
   result <- list(fullname = fullname, basename = basename,
        level = level, level_type = level_type,
@@ -156,6 +153,7 @@ is_synop <- function(prm, vertical_coordinate = NA_character_) {
                 "cloud"    =,
                 "surface"  = TRUE,
                 "height"   = prm$level %in% c(0, 2, 10, NA),
+                "isotherm" = prm$level == 0,
                 "model"    =,
                 "pressure" = FALSE,
                 FALSE
@@ -178,6 +176,7 @@ is_temp <- function(prm, vertical_coordinate = NA_character_) {
                 "cloud"    =,
                 "surface"  = FALSE,
                 "height"   = !(prm$level %in% c(0, 2, 10, NA)),
+                "isotherm" = prm$level != 0,
                 "model"    =,
                 "pressure" = TRUE,
                 FALSE

@@ -96,30 +96,16 @@ read_grib <- function(
 
   grib_info <- Rgrib2::Gopen(
     file_name,
-    IntPar = c(
-      "editionNumber",
-      "dataDate",
-      "dataTime",
-      "validityDate",
-      "validityTime",
-      "Nx",
-      "Ny",
-      "table2Version",
-      "indicatorOfParameter",
-      "parameterCategory",
-      "parameterNumber",
-      "levelType",
-      "level",
-      "perturbationNumber"
-    ),
+    IntPar = "perturbationNumber",
     multi = format_opts[["multi"]]
   )
 
-  if (packageVersion("Rgrib2") >= "1.3.4.9001") {
-    grib_file <- Rgrib2::Gindex(file_name)
-  } else {
-    grib_file <- file_name
-  }
+  grib_file <- grib_info
+#  if (packageVersion("Rgrib2") >= "1.4.0") {
+#    grib_file <- Rgrib2::grib_position_index(file_name)
+#  } else {
+#    grib_file <- file_name
+#  }
 
   grib_info[["fcdate"]]    <- suppressMessages(
     str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 4, flag = "0")))
@@ -171,7 +157,7 @@ read_grib <- function(
       lead_time    = grib_info$leadtime[row_num],
       parameter    = grib_info$parameter[row_num],
       members      = grib_info$member[row_num],
-      level_type   = grib_info$level_type[row_num],
+      level_type   = grib_info$level_type[row_num], #FIXME: this is grib-1 specific
       level        = grib_info$level[row_num],
       units        = grib_units_to_harp_units(grib_info$units[row_num]),
       gridded_data = list(
@@ -207,6 +193,13 @@ read_grib <- function(
     show_progress
   )
 
+# grib_data <- grib_info[c(fcdate, validdate, leadtime....)]
+  # if keep_raw_data or transf="none":
+  #   grib_data$gridded_data <- lapply(grib_info$position, function(i) Gdec(grib_info, i))
+  # else 
+  #   function(i) transform_geofield(Gdec(...
+  # --> hard to have different column names for transformed data
+
   attr(grib_data, "transformation_opts") <- transformation_opts
 
   grib_data
@@ -225,6 +218,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
   # TODO: for "unknown" shortNames we could try to use parameter number?
   #       that would be useful when we need a local "grib_override"
+  # TODO: what if we need 2 component-fieds followed by transformation (e.g. wind speed from u & v)
     for (i in seq_along(param_info$short_name)) {
       for(j in seq_along(param_info$level_type)) {
         if (param_info$level_type[j]==255) {
@@ -233,8 +227,8 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
         } else {
           grib_info_f <- grib_info %>% dplyr::filter(
               .data$shortName  == param_info$short_name[i],
-              (.data$editionNumber == 1 && .data$levelType  == param_info$level_type[j]) ||
-              (.data$editionNumber == 2 && .data$levelType  == param_info$level_type_2[j]))
+              (.data$editionNumber == 1 & .data$levelType  == param_info$level_type[j]) |
+              (.data$editionNumber == 2 & .data$levelType  == param_info$level_type_2[j]))
           if (nrow(grib_info_f) >= 1) break;
         }
         if (nrow(grib_info_f) >= 1) break;

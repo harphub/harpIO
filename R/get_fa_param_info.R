@@ -14,12 +14,12 @@
 #'   denoting the components (e.g. total precipitation may be the sum of up to 4
 #'   fields).
 #' @export
-get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_wind = TRUE){
+get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_wind = FALSE){
   ### FA names are very inconsistent ("_" vs "." separators...)
   ### so we have to do some hard-coding
   hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m",
                         "g10m", "pmsl", "td2m",
-                        "sfc_geo", "lsm",
+                        "z0m", "sfc_geo", "lsm",
                         "cape", "cien", "tmin", "tmax")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
@@ -37,6 +37,8 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
                      "pmsl" = "MSLPRESSURE     ",
                      "g10m" = c("CLSU.RAF.MOD.XFU", "CLSV.RAF.MOD.XFU"),
                      "td2m" = c("CLSHUMI.RELATIVE", "CLSTEMPERATURE  "),
+                     "z0m"  = ,
+                     "sfc_geopotential" = ,
                      "sfc_geo" = "SURFGEOPOTENTIEL",
                      "lsm"  = "SURFIND.TERREMER",
                      "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
@@ -44,7 +46,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
                      "tmin" = "CLSMINI.TEMPERAT",
                      "tmax" = "CLSMAXI.TEMPERAT",
                      stop("unknown parameter ", param$fullname))
-  } else if (param$level_type %in% c("model", "pressure", "height") ) {
+  } else if (param$level_type %in% c("model", "pressure", "height", "isotherm") ) {
     if (param$level_type != "pressure") plev <- param$level
     else if (param$level < 1000) plev <- param$level * 100
     else plev <- param$level * 100 - 100000
@@ -54,6 +56,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
       "model"    = sprintf("S%03i%%-12.12s", plev),
       "height"   = if (plev %in% c(2, 10)) "CLS%-13.13s" else
         sprintf("H%05i%%-10.10s", plev),
+      "isotherm" = sprintf("KB%03i%%-11.11s", if (plev == 0) 273 else plev),
       NULL)
     #  if (tolower(param$fullname) %in% cls.fields) ftemplate <- "CLS%-13.13s"
 
