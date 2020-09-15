@@ -20,7 +20,7 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
   hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m",
                         "g10m", "pmsl", "td2m",
                         "z0m", "sfc_geo", "lsm",
-                        "cape", "cien", "tmin", "tmax")
+                        "cape", "cien", "tmin", "tmax", "tmax2m", "tmin2m")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
   # generic templates (there are exceptions!)
@@ -43,7 +43,9 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
                      "lsm"  = "SURFIND.TERREMER",
                      "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
                      "cien" = "SURFCIEN.POS.F00",
+                     "tmin2m" = ,
                      "tmin" = "CLSMINI.TEMPERAT",
+                     "tmax2m" = ,
                      "tmax" = "CLSMAXI.TEMPERAT",
                      stop("unknown parameter ", param$fullname))
   } else if (param$level_type %in% c("model", "pressure", "height", "isotherm") ) {
@@ -98,7 +100,9 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
       #
 #      "sfc_geo" = "SPECSURFGEOPOTEN",
       # accumulated radiation fields:
+      "strd"  = ,
       "lwrad" = "SURFRAYT THER DE",  # thermal
+      "ssrd"  = ,
       "swrad" = "SURFRAYT SOLA DE", # direct + diffuse solar
       param$fullname)
   }

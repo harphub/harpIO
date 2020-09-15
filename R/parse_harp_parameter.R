@@ -124,6 +124,7 @@ parse_harp_parameter <- function(
          "psfc" = ,
          "lsm"  = ,
          "pcp"  = ,
+         "rain" = ,
          "snow" = ,
          "sst"  = , # surface also includes sea surface
          "tg"   = "surface",

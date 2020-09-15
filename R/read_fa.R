@@ -58,7 +58,8 @@ read_fa <- function(file_name,
 # harp_env$fa_domain <-
 ## or use the same trick as meteogrid for e.g. .Last.domain()
   if (!requireNamespace("Rfa", quietly=TRUE)) {
-    stop("The Rfa package must be installed to read FA files.")
+    stop("The Rfa package must be installed to read FA files.\n",
+         "Please contact alex.deckmyn@meteo.be for the package code.")
   }
 
   if (is.null(parameter)) {
