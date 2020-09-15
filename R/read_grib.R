@@ -218,7 +218,8 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
   # TODO: for "unknown" shortNames we could try to use parameter number?
   #       that would be useful when we need a local "grib_override"
-  # TODO: what if we need 2 component-fieds followed by transformation (e.g. wind speed from u & v)
+  # TODO: what if we need 2 component-fields followed by transformation (e.g. wind speed from u & v)
+  #       that should be part of the "transformation", but it requires 2 fields, not one.
     for (i in seq_along(param_info$short_name)) {
       for(j in seq_along(param_info$level_type)) {
         if (param_info$level_type[j]==255) {

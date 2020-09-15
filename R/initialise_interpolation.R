@@ -20,6 +20,7 @@ initialise_interpolation <- function(file_name=NULL, file_format=NULL,
                                      domain = NULL,
                                      stations=NULL,
                                      method="closest", use_mask=FALSE,
+                                     wind_rotation=FALSE,
                                      correct_t2m=FALSE,
                                      drop_NA=TRUE, ...) {
   # default station list:
@@ -115,14 +116,17 @@ initialise_interpolation <- function(file_name=NULL, file_format=NULL,
         stations$model_elevation <- meteogrid::point.interp(
                                     infield=init$topo, weights=iweights)
     }
+    # initialise wind rotation
+    if (wind_rotation) {
+      geowind <- meteogrid::geowind.init(init$domain)
+      # we can even interpolate the angle and map factor
+      # so later, after inerpolating wind direction, just add this rotation correction
+      stations$wind_rotation <- meteogrid::point.interp(geowind$angle, weights=iweights)
+      stations$wind_factor <- meteogrid::point.interp(geowind$mapfactor, weights=iweights)
+      init$geowind <- geowind
+    }
     init$weights <- iweights
     init$stations <- stations
-    # initialise wind rotation?
-#    geowind <- meteogrid::geowind.init(init$domain)
-    # we can even interpolate the angle and map factor
-#    stations$wind_rotation <- meteogrid::point.interp(geowind$angle, weights=iweights)
-#    stations$wind_factor <- meteogrid::point.interp(geowind$mapfactor, weights=iweights)
-#    init$geowind <- geowind
   } else {
     message("No domain information available. Can not initialise interpolation.")
   }

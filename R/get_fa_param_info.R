@@ -23,6 +23,11 @@ get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_win
                         "cape", "cien", "tmin", "tmax", "tmax2m", "tmin2m")
   # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
   if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
+  # NOTE: the following allows for local exceptions to be implemented:
+  if (existsFunction("fa_override")) {
+    if (!is.null(fa_override(param$fullname))) return(fa_override(param$fullname))
+  }
+
   # generic templates (there are exceptions!)
   if (tolower(param$fullname) %in% hardcoded_fields) {
     FAname <- switch(tolower(param$fullname),
