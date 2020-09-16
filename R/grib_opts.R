@@ -15,6 +15,6 @@ grib_opts <- function(
   ...
 ) {
 
-  list(meta = meta, multi = multi)
+  list(meta = meta, multi = multi, ...)
 
 }
