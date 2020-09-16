@@ -230,8 +230,8 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
               .data$shortName  == param_info$short_name[i],
               (.data$editionNumber == 1 & .data$levelType  == param_info$level_type[j]) |
               (.data$editionNumber == 2 & .data$levelType  == param_info$level_type_2[j]))
-          if (nrow(grib_info_f) >= 1) break;
         }
+        if (nrow(grib_info_f) >= 1) break;
       }
       if (nrow(grib_info_f) >= 1) break;
     }
