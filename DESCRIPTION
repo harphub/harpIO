@@ -45,7 +45,8 @@ Suggests:
     rmarkdown,
     maps,
     DT,
-    roxygen2
+    roxygen2,
+    harpVis
 Remotes:
     harphub/harpData,
     harphub/meteogrid,
