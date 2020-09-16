@@ -45,11 +45,13 @@ Suggests:
     rmarkdown,
     maps,
     DT,
-    roxygen2
+    roxygen2,
+    harpVis
 Remotes:
     harphub/harpData,
     harphub/meteogrid,
-    harphub/Rgrib2
+    harphub/Rgrib2,
+    harphub/harpVis
 URL: https://github.com/harphub/harpIO
 BugReports: https://github.com/harphub/harpIO/issues
 VignetteBuilder: knitr
