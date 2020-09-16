@@ -232,8 +232,8 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
               (.data$editionNumber == 2 & .data$levelType  == param_info$level_type_2[j]))
           if (nrow(grib_info_f) >= 1) break;
         }
-        if (nrow(grib_info_f) >= 1) break;
       }
+      if (nrow(grib_info_f) >= 1) break;
     }
 
     if (param_info$level_type != 255 && param_info$level_number != -999) {
