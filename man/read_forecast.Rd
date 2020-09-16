@@ -18,7 +18,7 @@ read_forecast(
   file_path = getwd(),
   file_format = NULL,
   file_template = "vfld",
-  file_format_opts = NULL,
+  file_format_opts = list(),
   transformation = c("none", "interpolate", "regrid", "xsection"),
   transformation_opts = NULL,
   output_file_opts = sqlite_opts(),

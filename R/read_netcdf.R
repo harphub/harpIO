@@ -25,8 +25,9 @@ read_netcdf <- function(
       "No 'format_opts' passed for NetCDF file. Using default netcdf_opts()",
       call. = FALSE, immediate. = TRUE
     )
-    format_opts <- netcdf_opts()
+    format_opts <- list()
   }
+  format_opts <- do.call(netcdf_opts, format_opts)
 
   # Convert parameter name to harp parameter and then to netcdf
   parameter  <- lapply(parameter, parse_harp_parameter, vertical_coordinate)

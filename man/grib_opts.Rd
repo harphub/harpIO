@@ -4,12 +4,14 @@
 \alias{grib_opts}
 \title{Set options for grib files}
 \usage{
-grib_opts(meta = TRUE, multi = FALSE)
+grib_opts(meta = TRUE, multi = FALSE, ...)
 }
 \arguments{
 \item{meta}{Logical. Whether to read metadata}
 
 \item{multi}{Logical. Whether there are multi field grib messages.}
+
+\item{...}{Any other options that may exist in futire Rgrib2 versions.}
 }
 \value{
 A list
