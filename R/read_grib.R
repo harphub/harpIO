@@ -246,7 +246,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   if (nrow(grib_info) == 0) {
     warning(
       "Parameter \"", parameter[["fullname"]], "\" ",
-      "(", paste(param_info[["short_name"]], collapse="\" / \" ") not found in grib file.",
+      "(", paste(param_info[["short_name"]], collapse="\" / \" ")," not found in grib file.",
       call. = FALSE, immediate. = TRUE
     )
     return(grib_info)

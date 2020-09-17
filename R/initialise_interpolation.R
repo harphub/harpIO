@@ -32,6 +32,10 @@ initialise_interpolation <- function(file_name=NULL, file_format=NULL,
   # but for now, we will leave it like this, because netcdf uses different
   # interpolation code. TODO: !!!
   # AD: I think we could extract topo for netcdf already?
+  if (!is.null(file_name) && is.null(file_format)) {
+    file_format <- guess_format(file_name)
+  }
+
   if (!is.null(file_format) && file_format %in% c("netcdf", "vfld")) {
     return(list(stations=stations))
   }
@@ -130,5 +134,6 @@ initialise_interpolation <- function(file_name=NULL, file_format=NULL,
   } else {
     message("No domain information available. Can not initialise interpolation.")
   }
+  cat("INIT OK")
   invisible(init)
 }
