@@ -81,8 +81,7 @@ netcdf_opts <- function(
   z_var        = NA,
   member_var   = NA,
   time_var     = "time",
-  ref_time_var = NA,
-  ...
+  ref_time_var = NA
 )  {
 
   options_set <- match.arg(options_set)
@@ -156,7 +155,6 @@ netcdf_opts <- function(
     z_var        = z_var,
     member_var   = member_var,
     time_var     = time_var,
-    ref_time_var = ref_time_var,
-    ...
+    ref_time_var = ref_time_var
   )
 }
