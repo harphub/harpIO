@@ -134,6 +134,5 @@ initialise_interpolation <- function(file_name=NULL, file_format=NULL,
   } else {
     message("No domain information available. Can not initialise interpolation.")
   }
-  cat("INIT OK")
   invisible(init)
 }
