@@ -206,6 +206,83 @@ read_grib <- function(
 
 }
 
+# Read a field from a grib file & interpolate
+#
+# @param file_name The grib file name.
+# @param parameter The parameter to read. Standard HARP names are used.
+# @param lead_time lead time
+# @param members ens members
+# @param vertical_coordinate The vertical coordinate for upper air parameters
+# @param init Initialisation for interpolation. A list that contains
+#    station locations and (possibly) pre-calculated interpolation weights etc.
+# @param method Interpolation method (only necessary if the weights are not yet initialised)
+# @param use_mask If TRUE, use land/sea mask in interpolation
+# @param meta If TRUE, also read all meta data (domain, time properties).
+#
+# @return A tibble
+# NOT exported. Used internally.
+read_grib_interpolate <- function(file_name,
+  parameter,
+  lead_time           = NA_real_,
+  members             = NA_character_,
+  vertical_coordinate = NA_character_,
+  init                = list(),
+  method              = "closest",
+  use_mask            = FALSE,
+  show_progress       = FALSE
+) {
+  # FIXME: grib2 files can contain multiple ensemble members!
+  #stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
+
+  if (!requireNamespace("Rgrib2", quietly = TRUE)) {
+    stop(
+      "read_grib requires the Rgrib2 package. Install with the following command:\n",
+      "remotes::install_github(\"harphub/Rgrib2\")",
+      call. = FALSE
+    )
+  }
+
+  if (!file.exists(file_name)) {
+    warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
+    empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
+    return(empty_data)
+  }
+
+  fcst_data <- read_grib(
+    file_name,
+    parameter,
+    vertical_coordinate = vertical_coordinate,
+    transformation      = "interpolate",
+    transformation_opts = list(
+      stations = init$stations,
+      method   = method,
+      use_mask = use_mask,
+      weights  = init$weights
+    ),
+    show_progress = show_progress
+  )
+
+  list(
+    fcst_data = dplyr::transmute(
+      fcst_data,
+      .data$SID,
+      .data$lat,
+      .data$lon,
+      .data$parameter,
+      forecast  = .data$station_data,
+      member    = members,
+      lead_time = .data$lead_time,
+      p         = dplyr::case_when(
+        .data$level_type == "pressure" ~ .data$level,
+        TRUE                     ~ NA_integer_,
+      )
+    ),
+    units = dplyr::distinct(dplyr::select(fcst_data, .data$parameter, .data$units))
+  )
+
+}
+
+
 #####
 
 # Function to get the grib information for parameters
