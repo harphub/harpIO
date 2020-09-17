@@ -20,7 +20,7 @@ Imports:
     glue,
     lubridate,
     magrittr,
-    meteogrid (>= 3.8.4),
+    meteogrid (>= 3.8.5),
     purrr,
     readr,
     rlang,
