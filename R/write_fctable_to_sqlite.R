@@ -99,7 +99,7 @@ write_fctable_to_sqlite <- function(
 check_level <- function(df) {
   df_cols <- colnames(df)
   if (is.element("level_type", df_cols) && is.element("level", df_cols)) {
-    level_type <- unique(df[["level_type"]])
+    level_type <- stats::na.omit(unique(df[["level_type"]]))
     if (length(level_type) != 1) {
       stop(
         "Cannot have more than 1 vertical coordinate in an output sqlite file. ",
