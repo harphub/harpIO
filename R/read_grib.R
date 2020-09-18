@@ -329,7 +329,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
     return(grib_info)
   }
 # AD: this should depend on gribEdition, and be careful for length
-  grib_info[["level_type"]] <- grib_info[["levelType"]] #parameter[["level_type"]]
+  grib_info[["level_type"]] <- parameter[["level_type"]] #grib_info[["levelType"]]
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
   if (!is.null(lead_time)) {
