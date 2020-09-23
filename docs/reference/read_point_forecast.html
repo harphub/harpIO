@@ -77,7 +77,7 @@ passed as arguments." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9156</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
       </span>
     </div>
 
@@ -112,6 +112,9 @@ passed as arguments." />
       <a href="../articles/write_forecast_data.html">Writing forecast model data</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -159,13 +162,14 @@ passed as arguments.</p>
   <span class='kw'>merge_lags</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>by</span> <span class='kw'>=</span> <span class='st'>"6h"</span>,
   <span class='kw'>file_path</span> <span class='kw'>=</span> <span class='st'>"."</span>,
-  <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='st'>"fctable"</span>,
   <span class='kw'>drop_any_na</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>stations</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>members</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>accumulate</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>vertical_coordinate</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>NA_character_</span>, <span class='st'>"pressure"</span>, <span class='st'>"model"</span>, <span class='st'>"height"</span>),
-  <span class='kw'>get_lat_and_lon</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+  <span class='kw'>get_lat_and_lon</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>force_param_name</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -230,11 +234,10 @@ fastest varying time dimension in the desired file names.</p></td>
       <th>file_template</th>
       <td><p>The template for the file names of the files to be read
 from. This would normally be one of the "fctable_*" templates that can be
-seen in <a href='show_file_templates.html'>show_file_templates</a>. Can be a single string, a
-character vector or list of the same length as <code>fcst_model</code>. If not
-named, the order of templates is assumed to be the same as in
-<code>fcst_model</code>. If named, the names must match the entries in
-<code>fcst_model</code>.</p></td>
+seen in <a href='show_file_templates.html'>show_file_templates</a>. Can be a single string, a character
+vector or list of the same length as <code>fcst_model</code>. If not named, the
+order of templates is assumed to be the same as in <code>fcst_model</code>. If
+named, the names must match the entries in <code>fcst_model</code>.</p></td>
     </tr>
     <tr>
       <th>drop_any_na</th>
@@ -279,6 +282,14 @@ height above ground /sea level.</p></td>
       <th>get_lat_and_lon</th>
       <td><p>Logical indicating whether to also extract the
 latitude and longitude of the point forecasts from the sqlite files.</p></td>
+    </tr>
+    <tr>
+      <th>force_param_name</th>
+      <td><p>Logical. Default is FALSE. Force the parameter name
+in the file template. For upper air data it is assumed that vertical
+profiles of the data are in the files so the vertical level information is
+removed when constructing the file name. If you want the full parameter
+name to be used in the file name set to TRUE.</p></td>
     </tr>
     </table>
 

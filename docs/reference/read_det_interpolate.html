@@ -75,7 +75,7 @@ use in the harp ecosystem, or to the calling environment." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9156</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
       </span>
     </div>
 
@@ -110,6 +110,9 @@ use in the harp ecosystem, or to the calling environment." />
       <a href="../articles/write_forecast_data.html">Writing forecast model data</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -365,79 +368,6 @@ and optionally a land-sea mask.</p>
 <p>For 2m temperature, corrections of the model temperature to be reflictive of
 the observation elevation is done using a simple lapse rate corrrection.</p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='kw'>if</span> (<span class='fu'><a href='https://rdrr.io/r/base/ns-load.html'>requireNamespace</a></span>(<span class='st'>"harpData"</span>, <span class='kw'>quietly</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)) {
-  <span class='fu'>read_det_interpolate</span>(
-    <span class='kw'>start_date</span>    <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>      <span class='kw'>=</span> <span class='fl'>2019021718</span>,
-    <span class='kw'>det_model</span>     <span class='kw'>=</span> <span class='st'>"AROME_Arctic_prod"</span>,
-    <span class='kw'>parameter</span>     <span class='kw'>=</span> <span class='st'>"T2m"</span>,
-    <span class='kw'>lead_time</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>48</span>, <span class='fl'>3</span>),
-    <span class='kw'>by</span>            <span class='kw'>=</span> <span class='st'>"6h"</span>,
-    <span class='kw'>file_path</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='st'>"vfld_det"</span>,
-    <span class='kw'>file_format</span>   <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>return_data</span>   <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-  <span class='fu'>read_det_interpolate</span>(
-    <span class='kw'>start_date</span>     <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>       <span class='kw'>=</span> <span class='fl'>2019021718</span>,
-    <span class='kw'>det_model</span>      <span class='kw'>=</span> <span class='st'>"AROME_Arctic_prod"</span>,
-    <span class='kw'>parameter</span>      <span class='kw'>=</span> <span class='st'>"T2m"</span>,
-    <span class='kw'>lead_time</span>      <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>48</span>, <span class='fl'>3</span>),
-    <span class='kw'>by</span>             <span class='kw'>=</span> <span class='st'>"6h"</span>,
-    <span class='kw'>file_path</span>      <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span>  <span class='kw'>=</span> <span class='st'>"vfld_det"</span>,
-    <span class='kw'>file_format</span>    <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>keep_model_t2m</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-    <span class='kw'>return_data</span>    <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-  <span class='co'># It is possible to get all parameters from vfld files by setting parameter = NULL</span>
-  <span class='fu'>read_det_interpolate</span>(
-    <span class='kw'>start_date</span>     <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>       <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>det_model</span>      <span class='kw'>=</span> <span class='st'>"AROME_Arctic_prod"</span>,
-    <span class='kw'>parameter</span>      <span class='kw'>=</span> <span class='kw'>NULL</span>,
-    <span class='kw'>lead_time</span>      <span class='kw'>=</span> <span class='fl'>3</span>,
-    <span class='kw'>file_path</span>      <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span>  <span class='kw'>=</span> <span class='st'>"vfld_det"</span>,
-    <span class='kw'>file_format</span>    <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>keep_model_t2m</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-    <span class='kw'>return_data</span>    <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-  <span class='kw'>if</span> (<span class='fu'><a href='https://rdrr.io/r/base/ns-load.html'>requireNamespace</a></span>(<span class='st'>"Rgrib2"</span>, <span class='kw'>quitely</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)) {
-    <span class='fu'>read_det_interpolate</span>(
-      <span class='fl'>2017101512</span>,
-      <span class='fl'>2017101512</span>,
-      <span class='st'>"HARMUK"</span>,
-      <span class='st'>"T2m"</span>,
-      <span class='kw'>lead_time</span>     <span class='kw'>=</span> <span class='fl'>3</span>,
-      <span class='kw'>file_path</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"grib"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-      <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='st'>"{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib"</span>,
-      <span class='kw'>file_format</span>   <span class='kw'>=</span> <span class='st'>"grib"</span>,
-      <span class='kw'>return_data</span>   <span class='kw'>=</span> <span class='fl'>TRUE</span>
-    )
-
-    <span class='co'># Need a clim_file that contains surface geopotential to height correct 2m temperature</span>
-    <span class='fu'>read_det_interpolate</span>(
-      <span class='fl'>2017101512</span>,
-      <span class='fl'>2017101512</span>,
-      <span class='st'>"HARMUK"</span>,
-      <span class='st'>"T2m"</span>,
-      <span class='kw'>lead_time</span>      <span class='kw'>=</span> <span class='fl'>3</span>,
-      <span class='kw'>file_path</span>      <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"grib"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-      <span class='kw'>file_template</span>  <span class='kw'>=</span> <span class='st'>"{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib"</span>,
-      <span class='kw'>file_format</span>    <span class='kw'>=</span> <span class='st'>"grib"</span>,
-      <span class='kw'>clim_file</span>      <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"grib/HARMUK20171015T12Z+003.grib"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-      <span class='kw'>keep_model_t2m</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-      <span class='kw'>return_data</span>    <span class='kw'>=</span> <span class='fl'>TRUE</span>
-    )
-  }
-
-}</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
