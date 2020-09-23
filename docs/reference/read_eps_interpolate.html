@@ -75,7 +75,7 @@ ecosystem, or to the calling environment." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9156</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
       </span>
     </div>
 
@@ -110,6 +110,9 @@ ecosystem, or to the calling environment." />
       <a href="../articles/write_forecast_data.html">Writing forecast model data</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -404,75 +407,6 @@ the observation elevation is done using a simple lapse rate corrrection.</p>
 function needs to know which files are available at which time and for which
 ensemble member. This can be done through the <code>lags</code> argument.</p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples">
-<span class='kw'>if</span> (<span class='fu'><a href='https://rdrr.io/r/base/ns-load.html'>requireNamespace</a></span>(<span class='st'>"harpData"</span>, <span class='kw'>quietly</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)) {
-
-  <span class='fu'>read_eps_interpolate</span>(
-    <span class='kw'>start_date</span>    <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>      <span class='kw'>=</span> <span class='fl'>2019021718</span>,
-    <span class='kw'>eps_model</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"MEPS_prod"</span>),
-    <span class='kw'>parameter</span>     <span class='kw'>=</span> <span class='st'>"T2m"</span>,
-    <span class='kw'>lead_time</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>12</span>, <span class='fl'>3</span>),
-    <span class='kw'>members_in</span>    <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>9</span>),
-    <span class='kw'>by</span>            <span class='kw'>=</span> <span class='st'>"6h"</span>,
-    <span class='kw'>file_path</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='st'>"vfld_eps"</span>,
-    <span class='kw'>file_format</span>   <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>return_data</span>   <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-  <span class='co'># More than one model with different members</span>
-  <span class='fu'>read_eps_interpolate</span>(
-    <span class='kw'>start_date</span>    <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>      <span class='kw'>=</span> <span class='fl'>2019021718</span>,
-    <span class='kw'>eps_model</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"MEPS_prod"</span>, <span class='st'>"AROME_Arctic_eps"</span>),
-    <span class='kw'>parameter</span>     <span class='kw'>=</span> <span class='st'>"T2m"</span>,
-    <span class='kw'>lead_time</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>12</span>, <span class='fl'>3</span>),
-    <span class='kw'>members_in</span>    <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>MEPS_prod</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>2</span>), <span class='kw'>AROME_Arctic_eps</span> <span class='kw'>=</span> <span class='fl'>0</span>),
-    <span class='kw'>by</span>            <span class='kw'>=</span> <span class='st'>"6h"</span>,
-    <span class='kw'>file_path</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='st'>"vfld_eps"</span>,
-    <span class='kw'>file_format</span>   <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>return_data</span>   <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-  <span class='co'># Construct a multimodel EPS. Need to remove the model elevation from the output</span>
-  <span class='co'># as the different models have different elevation data.</span>
-  <span class='fu'>read_eps_interpolate</span>(
-    <span class='kw'>start_date</span>        <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>          <span class='kw'>=</span> <span class='fl'>2019021718</span>,
-    <span class='kw'>eps_model</span>         <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>my_multimodel_eps</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"MEPS_prod"</span>, <span class='st'>"AROME_Arctic_eps"</span>)),
-    <span class='kw'>parameter</span>         <span class='kw'>=</span> <span class='st'>"T2m"</span>,
-    <span class='kw'>lead_time</span>         <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>12</span>, <span class='fl'>3</span>),
-    <span class='kw'>members_in</span>        <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>my_multimodel_eps</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>MEPS_prod</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>2</span>), <span class='kw'>AROME_Arctic_eps</span> <span class='kw'>=</span> <span class='fl'>0</span>)),
-    <span class='kw'>by</span>                <span class='kw'>=</span> <span class='st'>"6h"</span>,
-    <span class='kw'>file_path</span>         <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span>     <span class='kw'>=</span> <span class='st'>"vfld_eps"</span>,
-    <span class='kw'>file_format</span>       <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>return_data</span>       <span class='kw'>=</span> <span class='fl'>TRUE</span> ,
-    <span class='kw'>remove_model_elev</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-  <span class='co'># Lagged ensemble - CMEPS produces a full ensemble every 3 hours, but some</span>
-  <span class='co'># members are produced 1 and 2 hours earlier</span>
-
-  <span class='fu'>read_eps_interpolate</span>(
-    <span class='kw'>start_date</span>    <span class='kw'>=</span> <span class='fl'>2019021700</span>,
-    <span class='kw'>end_date</span>      <span class='kw'>=</span> <span class='fl'>2019021718</span>,
-    <span class='kw'>eps_model</span>     <span class='kw'>=</span> <span class='st'>"CMEPS_prod"</span>,
-    <span class='kw'>parameter</span>     <span class='kw'>=</span> <span class='st'>"T2m"</span>,
-    <span class='kw'>lead_time</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/seq.html'>seq</a></span>(<span class='fl'>0</span>, <span class='fl'>12</span>, <span class='fl'>3</span>),
-    <span class='kw'>members_in</span>    <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>1</span>, <span class='fl'>3</span>, <span class='fl'>4</span>, <span class='fl'>5</span>, <span class='fl'>6</span>),
-    <span class='kw'>lags</span>          <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>CMEPS_prod</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>2</span>, <span class='fl'>2</span>, <span class='fl'>1</span>, <span class='fl'>1</span>), <span class='st'>"h"</span>)),
-    <span class='kw'>by</span>            <span class='kw'>=</span> <span class='st'>"3h"</span>,
-    <span class='kw'>file_path</span>     <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span>(<span class='st'>"vfld"</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='st'>"harpData"</span>),
-    <span class='kw'>file_template</span> <span class='kw'>=</span> <span class='st'>"vfld_eps"</span>,
-    <span class='kw'>file_format</span>   <span class='kw'>=</span> <span class='st'>"vfld"</span>,
-    <span class='kw'>return_data</span>   <span class='kw'>=</span> <span class='fl'>TRUE</span>
-  )
-
-}</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

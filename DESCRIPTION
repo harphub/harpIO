@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions and data wrangling for harp
-Version: 0.0.0.9167
+Version: 0.0.0.9168
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -20,7 +20,7 @@ Imports:
     glue,
     lubridate,
     magrittr,
-    meteogrid (>= 3.8.4),
+    meteogrid (>= 3.8.5),
     purrr,
     readr,
     rlang,
@@ -36,7 +36,7 @@ Imports:
     tidyselect
 Suggests:
     ncdf4,
-    Rgrib2 (>= 1.3.1),
+    Rgrib2 (>= 1.4.0),
     Rfa (>= 4.3.1),
     hdf5r,
     harpData,

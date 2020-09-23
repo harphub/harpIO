@@ -62,13 +62,12 @@ read_grib <- function(
     stop("For grib files, parameter = '<parameter>' must be passed.", call. = FALSE)
   }
 
-  if (!is.null(format_opts) && length(intersect(names(format_opts), names(grib_opts()))) == 0) {
-    format_opts <- c(format_opts, grib_opts())
-  }
-
-  if (is.null(format_opts) || length(format_opts) < 1) {
-    format_opts <- grib_opts()
-  }
+  # FIXME: if there is partial overlap, keep the "unchanged" part of grib_opts() ?
+  #        then it all fits on 1 line
+  # format_opts <- c(format_opts, grib_opts()[setdiff(names(grib_opts()), names(format_opts))]
+  #        OR: always expect format_opts to be complete, don't add grib_opts()
+  #        then just have format_opts=grib_opts() in the function header
+  format_opts <- do.call(grib_opts, format_opts)
 
   if (is.list(parameter) && inherits(parameter, "harp_parameter")) {
     parameter <- list(parameter)
@@ -87,10 +86,9 @@ read_grib <- function(
         call.      = FALSE
       )
     )
+    parameter  <- parameter[-unknown_params]
+    param_info  <- param_info[-unknown_params]
   }
-
-  parameter  <- parameter[setdiff(seq_along(parameter), unknown_params)]
-  param_info <- param_info[setdiff(seq_along(parameter), unknown_params)]
 
   if (length(parameter) < 1) {
     stop("None of the requested parameters can be read from grib files.", call. = FALSE)
@@ -98,30 +96,16 @@ read_grib <- function(
 
   grib_info <- Rgrib2::Gopen(
     file_name,
-    IntPar = c(
-      "editionNumber",
-      "dataDate",
-      "dataTime",
-      "validityDate",
-      "validityTime",
-      "Nx",
-      "Ny",
-      "table2Version",
-      "indicatorOfParameter",
-      "parameterCategory",
-      "parameterNumber",
-      "indicatorOfTypeOfLevel",
-      "level",
-      "perturbationNumber"
-    ),
+    IntPar = "perturbationNumber",
     multi = format_opts[["multi"]]
   )
 
-  if (packageVersion("Rgrib2") >= "1.3.4.9001") {
-    grib_file <- Rgrib2::Gindex(file_name)
-  } else {
-    grib_file <- file_name
-  }
+  grib_file <- grib_info
+#  if (packageVersion("Rgrib2") >= "1.4.0") {
+#    grib_file <- Rgrib2::grib_position_index(file_name)
+#  } else {
+#    grib_file <- file_name
+#  }
 
   grib_info[["fcdate"]]    <- suppressMessages(
     str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 4, flag = "0")))
@@ -173,7 +157,7 @@ read_grib <- function(
       lead_time    = grib_info$leadtime[row_num],
       parameter    = grib_info$parameter[row_num],
       members      = grib_info$member[row_num],
-      level_type   = grib_info$level_type[row_num],
+      level_type   = grib_info$level_type[row_num], #FIXME: this is grib-1 specific
       level        = grib_info$level[row_num],
       units        = grib_units_to_harp_units(grib_info$units[row_num]),
       gridded_data = list(
@@ -208,6 +192,13 @@ read_grib <- function(
     transformation_opts,
     show_progress
   )
+
+# grib_data <- grib_info[c(fcdate, validdate, leadtime....)]
+  # if keep_raw_data or transf="none":
+  #   grib_data$gridded_data <- lapply(grib_info$position, function(i) Gdec(grib_info, i))
+  # else
+  #   function(i) transform_geofield(Gdec(...
+  # --> hard to have different column names for transformed data
 
   attr(grib_data, "transformation_opts") <- transformation_opts
 
@@ -295,43 +286,54 @@ read_grib_interpolate <- function(file_name,
 #####
 
 # Function to get the grib information for parameters
-
 filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
-  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
-    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
-  } else {
-    grib_info_f <- grib_info %>%
-      dplyr::filter(
-        .data$shortName              == param_info$short_name,
-        .data$indicatorOfTypeOfLevel == param_info$level_type[1],
-      )
-    if (param_info$level_number != -999) {
+#  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+#    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
+#  } else {
+  # Some parameters may be encoded in two different ways, so we may need a second try
+  #  e.g. precip can be on "surface" or "0m above ground")
+  # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
+  # TODO: for "unknown" shortNames we could try to use parameter number?
+  #       that would be useful when we need a local "grib_override"
+  # TODO: what if we need 2 component-fields followed by transformation (e.g. wind speed from u & v)
+  #       that should be part of the "transformation", but it requires 2 fields, not one.
+    for (i in seq_along(param_info$short_name)) {
+      for(j in seq_along(param_info$level_type)) {
+        if (param_info$level_type[j]==255) {
+          grib_info_f <- grib_info %>% dplyr::filter(
+              .data$shortName  == param_info$short_name[i])
+        } else {
+          grib_info_f <- grib_info %>% dplyr::filter(
+              .data$shortName  == param_info$short_name[i],
+              (.data$editionNumber == 1 & .data$levelType  == param_info$level_type[j]) |
+              (.data$editionNumber == 2 & .data$levelType  == param_info$level_type_2[j]))
+        }
+        if (nrow(grib_info_f) >= 1) break;
+      }
+      if (nrow(grib_info_f) >= 1) break;
+    }
+
+    if (param_info$level_type != 255 && param_info$level_number != -999) {
       grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
     }
-  }
-  if (nrow(grib_info_f) < 1 && length(param_info$level_type) == 2) {
-    grib_info_f <- grib_info %>%
-      dplyr::filter(
-        .data$shortName              == param_info$short_name,
-        .data$indicatorOfTypeOfLevel == param_info$level_type[2]
-      )
-    if (param_info$level_number != -999) {
-      grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
-    }
-  }
+#  }
 
   grib_info <- grib_info_f
 
   if (nrow(grib_info) == 0) {
     warning(
       "Parameter \"", parameter[["fullname"]], "\" ",
-      "(", param_info[["short_name"]], ") not found in grib file.",
+      "(shortName: \"",
+      paste(
+        param_info[["short_name"]], collapse="\" / \""
+      ),
+      "\") not found in grib file.",
       call. = FALSE, immediate. = TRUE
     )
     return(grib_info)
   }
-
-  grib_info[["level_type"]] <- parameter[["level_type"]]
+# AD: this should depend on gribEdition, and be careful for length
+  grib_info[["level_type"]] <- parameter[["level_type"]] #grib_info[["levelType"]]
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
   if (!is.null(lead_time)) {

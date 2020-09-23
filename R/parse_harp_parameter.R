@@ -22,9 +22,13 @@
 #' parse_harp_parameter("RH", vertical_coordinate = "height")
 parse_harp_parameter <- function(
   param,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height", "isotherm", "unknown")
 ) {
-
+  # NOTE: - we use level_number -999 to represent "missing" or "all levels"
+  #          both contexts mean that you don't filter on level_number
+  #       - level_type should ideally never be NA but "unknown" or such. 
+  #          but in any case the different file formats (grib, fa...)
+  #          may need to modify this. e.g. GRIB uses 255 for missing level_type.
   vertical_coordinate <- match.arg(vertical_coordinate)
   ## TODO: radiation, surface properties...
   if (inherits(param, "harp_parameter")) return(param)
@@ -49,7 +53,8 @@ parse_harp_parameter <- function(
         vertical_coordinate,
         "pressure" = "p",
         "model"    = "s",
-        "height"   = "m"
+        "height"   = "m",
+        "isotherm" = "i"
       )
     }
     basename <- paste0(param, "-999", lev_type)
@@ -81,7 +86,7 @@ parse_harp_parameter <- function(
   }
 
   ## 2. 'basic' field or atmospheric with level information added?
-  if (grepl("^[[:graph:]]+-?[[:digit:]]+[mpsh]?$", basename)){
+  if (grepl("^[[:graph:]]+-?[[:digit:]]+[mpshi]?$", basename)){
     ## trailing digits are interpreted as pressure levels
     ## possibly there's an extra "m": then they are height levels
     ## or an "s", "h": hyprid level (model level)
@@ -98,6 +103,7 @@ parse_harp_parameter <- function(
         "h" =,
         "s" = "model",
         "p" = "pressure",
+        "i" = "isotherm",
         substring(lev, lt))
       level <- as.numeric(substr(lev, 1, lt-1))
     } else {
@@ -107,25 +113,22 @@ parse_harp_parameter <- function(
     }
   } else {
     ## no level defined. could be surface, but also MSL, CLOUDS, ...
-    level <- NA
+    level <- -999
     level_type <- "unknown"
   }
-
+  # AD: probably not useful at all:
+  #     this is quite "GRIB" specific and get_grib_param_info() can deal with it
   level_type <- switch(basename,
          "pmsl" = ,
          "mslp" = "msl",
          "psfc" = ,
          "lsm"  = ,
          "pcp"  = ,
+         "rain" = ,
          "snow" = ,
+         "sst"  = , # surface also includes sea surface
          "tg"   = "surface",
-         "sst"  = "sea",
          level_type)
-
-#TODO
-# special levels like msl, surface, cloud, soil...
-# allow level indicators longer than 1 char!
-# but often, this is so format-dependent, you can just leave it NULL
 
   result <- list(fullname = fullname, basename = basename,
        level = level, level_type = level_type,
@@ -151,6 +154,7 @@ is_synop <- function(prm, vertical_coordinate = NA_character_) {
                 "cloud"    =,
                 "surface"  = TRUE,
                 "height"   = prm$level %in% c(0, 2, 10, NA),
+                "isotherm" = prm$level == 0,
                 "model"    =,
                 "pressure" = FALSE,
                 FALSE
@@ -173,6 +177,7 @@ is_temp <- function(prm, vertical_coordinate = NA_character_) {
                 "cloud"    =,
                 "surface"  = FALSE,
                 "height"   = !(prm$level %in% c(0, 2, 10, NA)),
+                "isotherm" = prm$level != 0,
                 "model"    =,
                 "pressure" = TRUE,
                 FALSE

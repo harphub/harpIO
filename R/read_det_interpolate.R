@@ -127,80 +127,6 @@
 #'   member, SID, lat, lon, <parameter>.
 #' @export
 #'
-#' @examples
-#' if (requireNamespace("harpData", quietly = TRUE)) {
-#'   read_det_interpolate(
-#'     start_date    = 2019021700,
-#'     end_date      = 2019021718,
-#'     det_model     = "AROME_Arctic_prod",
-#'     parameter     = "T2m",
-#'     lead_time     = seq(0, 48, 3),
-#'     by            = "6h",
-#'     file_path     = system.file("vfld", package = "harpData"),
-#'     file_template = "vfld_det",
-#'     file_format   = "vfld",
-#'     return_data   = TRUE
-#'   )
-#'
-#'   read_det_interpolate(
-#'     start_date     = 2019021700,
-#'     end_date       = 2019021718,
-#'     det_model      = "AROME_Arctic_prod",
-#'     parameter      = "T2m",
-#'     lead_time      = seq(0, 48, 3),
-#'     by             = "6h",
-#'     file_path      = system.file("vfld", package = "harpData"),
-#'     file_template  = "vfld_det",
-#'     file_format    = "vfld",
-#'     keep_model_t2m = TRUE,
-#'     return_data    = TRUE
-#'   )
-#'
-#'   # It is possible to get all parameters from vfld files by setting parameter = NULL
-#'   read_det_interpolate(
-#'     start_date     = 2019021700,
-#'     end_date       = 2019021700,
-#'     det_model      = "AROME_Arctic_prod",
-#'     parameter      = NULL,
-#'     lead_time      = 3,
-#'     file_path      = system.file("vfld", package = "harpData"),
-#'     file_template  = "vfld_det",
-#'     file_format    = "vfld",
-#'     keep_model_t2m = TRUE,
-#'     return_data    = TRUE
-#'   )
-#'
-#'   if (requireNamespace("Rgrib2", quitely = TRUE)) {
-#'     read_det_interpolate(
-#'       2017101512,
-#'       2017101512,
-#'       "HARMUK",
-#'       "T2m",
-#'       lead_time     = 3,
-#'       file_path     = system.file("grib", package = "harpData"),
-#'       file_template = "{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib",
-#'       file_format   = "grib",
-#'       return_data   = TRUE
-#'     )
-#'
-#'     # Need a clim_file that contains surface geopotential to height correct 2m temperature
-#'     read_det_interpolate(
-#'       2017101512,
-#'       2017101512,
-#'       "HARMUK",
-#'       "T2m",
-#'       lead_time      = 3,
-#'       file_path      = system.file("grib", package = "harpData"),
-#'       file_template  = "{det_model}{YYYY}{MM}{DD}T{HH}Z+{LDT3}.grib",
-#'       file_format    = "grib",
-#'       clim_file      = system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
-#'       keep_model_t2m = TRUE,
-#'       return_data    = TRUE
-#'     )
-#'   }
-#'
-#' }
-#'
 read_det_interpolate <- function(
   start_date,
   end_date,
@@ -261,7 +187,7 @@ read_det_interpolate <- function(
   if (!is.null(clim_file)) {
     message("Initialising interpolation.")
     init <- initialise_interpolation(
-      filename    = clim_file,
+      file_name    = clim_file,
       file_format = clim_format,
       correct_t2m = correct_t2m,
       method      = interpolation_method,
@@ -313,7 +239,7 @@ read_det_interpolate <- function(
       if (any(ff)) {
         message("Initialising interpolation from forecast file.")
         init <- initialise_interpolation(
-          filename    = data_files$file_name[which(ff)[1]],
+          file_name    = data_files$file_name[which(ff)[1]],
           file_format = file_format,
           correct_t2m = correct_t2m,
           method      = interpolation_method,
