@@ -64,7 +64,7 @@ read_grib <- function(
 
   # FIXME: if there is partial overlap, keep the "unchanged" part of grib_opts() ?
   #        then it all fits on 1 line
-  # format_opts <- c(format_opts, grib_opts()[setdiff(names(grib_opts()), names(format_opts))] 
+  # format_opts <- c(format_opts, grib_opts()[setdiff(names(grib_opts()), names(format_opts))]
   #        OR: always expect format_opts to be complete, don't add grib_opts()
   #        then just have format_opts=grib_opts() in the function header
   format_opts <- do.call(grib_opts, format_opts)
@@ -196,7 +196,7 @@ read_grib <- function(
 # grib_data <- grib_info[c(fcdate, validdate, leadtime....)]
   # if keep_raw_data or transf="none":
   #   grib_data$gridded_data <- lapply(grib_info$position, function(i) Gdec(grib_info, i))
-  # else 
+  # else
   #   function(i) transform_geofield(Gdec(...
   # --> hard to have different column names for transformed data
 
@@ -323,7 +323,11 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   if (nrow(grib_info) == 0) {
     warning(
       "Parameter \"", parameter[["fullname"]], "\" ",
-      "(", paste(param_info[["short_name"]], collapse="\" / \" ")," not found in grib file.",
+      "(shortName: \"",
+      paste(
+        param_info[["short_name"]], collapse="\" / \""
+      ),
+      "\") not found in grib file.",
       call. = FALSE, immediate. = TRUE
     )
     return(grib_info)
