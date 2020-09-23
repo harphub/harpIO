@@ -6,7 +6,8 @@
 \usage{
 parse_harp_parameter(
   param,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height", "isotherm",
+    "unknown")
 )
 }
 \arguments{

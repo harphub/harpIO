@@ -8,7 +8,7 @@ get_fa_param_info(
   param,
   fa_type = "arome",
   fa_vector = TRUE,
-  rotate_wind = TRUE
+  rotate_wind = FALSE
 )
 }
 \arguments{
