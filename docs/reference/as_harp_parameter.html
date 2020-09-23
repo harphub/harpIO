@@ -73,7 +73,7 @@ parameters. To do this you need to create a harp parameter." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9161</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
       </span>
     </div>
 
@@ -192,47 +192,10 @@ ignored if the basename begins with a number, or mx or mn followed by a number.<
     <p>A harp paramater</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'># maximum 2m temperature in last 6 hours</span>
-<span class='fu'>as_harp_parameter</span>(<span class='st'>"mx2t6"</span>)</div><div class='output co'>#&gt; $fullname
-#&gt; [1] "mx2t6"
-#&gt; 
-#&gt; $basename
-#&gt; [1] "mx2t6"
-#&gt; 
-#&gt; $level
-#&gt; [1] 0
-#&gt; 
-#&gt; $level_type
-#&gt; [1] "unknown"
-#&gt; 
-#&gt; $accum
-#&gt; [1] 0
-#&gt; 
-#&gt; $acc_unit
-#&gt; NULL
-#&gt; 
-#&gt; attr(,"class")
-#&gt; [1] "harp_parameter"</div><div class='input'><span class='co'># potential vorticity at 500 hPa</span>
-<span class='fu'>as_harp_parameter</span>(<span class='st'>"pv500"</span>, <span class='st'>"pv"</span>, <span class='kw'>level</span> <span class='kw'>=</span> <span class='fl'>500</span>, <span class='kw'>level_type</span> <span class='kw'>=</span> <span class='st'>"pressure"</span>)</div><div class='output co'>#&gt; $fullname
-#&gt; [1] "pv500"
-#&gt; 
-#&gt; $basename
-#&gt; [1] "pv"
-#&gt; 
-#&gt; $level
-#&gt; [1] 500
-#&gt; 
-#&gt; $level_type
-#&gt; [1] "pressure"
-#&gt; 
-#&gt; $accum
-#&gt; [1] 0
-#&gt; 
-#&gt; $acc_unit
-#&gt; NULL
-#&gt; 
-#&gt; attr(,"class")
-#&gt; [1] "harp_parameter"</div></pre>
+    <pre class="examples"><span class='co'># maximum 2m temperature in last 6 hours</span>
+<span class='fu'>as_harp_parameter</span>(<span class='st'>"mx2t6"</span>)
+<span class='co'># potential vorticity at 500 hPa</span>
+<span class='fu'>as_harp_parameter</span>(<span class='st'>"pv500"</span>, <span class='st'>"pv"</span>, <span class='kw'>level</span> <span class='kw'>=</span> <span class='fl'>500</span>, <span class='kw'>level_type</span> <span class='kw'>=</span> <span class='st'>"pressure"</span>)</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
