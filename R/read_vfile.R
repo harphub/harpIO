@@ -121,7 +121,7 @@ read_vfile <- function(
 
   if (num_temp < 1) {
 
-    temp_data   <- empty_data
+    temp_data   <- dplyr::mutate(empty_data, p = NA_real_)
     params_temp <- data.frame(
       parameter        = character(),
       accum_hours      = integer(),

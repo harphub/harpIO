@@ -510,13 +510,27 @@ read_forecast <- function(
     function_output <- lapply(function_output, spread_df)
 
     add_spatial_class <- function(df) {
+
       df <- dplyr::ungroup(df)
-      if (any(sapply(df, function(x) all(sapply(x, meteogrid::is.geofield))))) {
+
+      list_cols <- which(sapply(df, typeof) == "list")
+
+      for (df_col in list_cols) {
+        if (all(sapply(df[[df_col]], meteogrid::is.geofield))) {
+          if (!inherits(df[[df_col]], "geolist")) {
+            df[[df_col]] <- as_geolist(df[[df_col]])
+          }
+        }
+      }
+
+      if (any(sapply(df, function(x) inherits(x, "geolist")))) {
         if (!inherits(df, "harp_spatial_fcst")) {
           class(df) <- c("harp_spatial_fcst", class(df))
         }
       }
+
       df
+
     }
 
     function_output <- lapply(function_output, add_spatial_class)
