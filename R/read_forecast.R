@@ -102,6 +102,9 @@
 #'   unlagged members.
 #' @param show_progress Some files may contain a lot of data. Set to TRUE to
 #'   show progress when reading these files.
+#' @param stop_on_fail Logical. Set to TRUE to make execution stop if there are
+#'   problems reading a file. Missing files are always skipped regardless of
+#'   this setting. The default value is FALSE.
 #'
 #' @return When \code{return_date = TRUE}, a harp_fcst object.
 #' @export
@@ -196,7 +199,8 @@ read_forecast <- function(
   output_file_opts     = sqlite_opts(),
   return_data          = FALSE,
   merge_lags           = TRUE,
-  show_progress        = FALSE
+  show_progress        = FALSE,
+  stop_on_fail         = FALSE
 ){
 
   vertical_coordinate <- match.arg(vertical_coordinate)
@@ -238,6 +242,9 @@ read_forecast <- function(
     function_output <- list()
     list_counter    <- 0
   }
+
+  failure_message <- list("There were problems reading:")
+  failure_count   <- 0
 
   for (fcst_date in fcst_dates) {
 
@@ -303,28 +310,49 @@ read_forecast <- function(
       parameter
     )
 
+    safe_read_grid <- purrr::possibly(
+      ~read_grid(
+        file_name           = .x,
+        parameter           = .y[["parameter"]],
+        file_format         = unique(.y[["file_format"]]),
+        file_format_opts    = file_format_opts,
+        vertical_coordinate = vertical_coordinate,
+        lead_time           = .y[["lead_time"]],
+        members             = .y[["members"]],
+        transformation      = transformation,
+        transformation_opts = transformation_opts,
+        show_progress       = show_progress,
+        data_frame          = TRUE,
+        readable_times      = FALSE
+      ),
+      FALSE
+    )
+
     # Read the required data from the files
     data_df <-dplyr::mutate(
       data_df,
       forecast_data = purrr::map2(
         .data[["file_name"]],
         .data[["data"]],
-        ~read_grid(
-          file_name           = .x,
-          parameter           = .y[["parameter"]],
-          file_format         = unique(.y[["file_format"]]),
-          file_format_opts    = file_format_opts,
-          vertical_coordinate = vertical_coordinate,
-          lead_time           = .y[["lead_time"]],
-          members             = .y[["members"]],
-          transformation      = transformation,
-          transformation_opts = transformation_opts,
-          show_progress       = show_progress,
-          data_frame          = TRUE,
-          readable_times      = FALSE
-        )
+        safe_read_grid
       )
     )
+
+    failures <- which(sapply(data_df[["forecast_data"]], function(x) !inherits(x, "data.frame")))
+
+    if (length(failures) > 0) {
+      failure_count <- failure_count + 1
+      failure_message[[failure_count + 1]] <- paste(
+        data_df[["file_name"]][failures], collapse = "\n "
+      )
+      if (stop_on_fail) {
+        stop(
+          Reduce(function(x, y) paste(x, y, sep = "\n "), failure_message),
+          call. = FALSE
+        )
+      }
+      data_df <- data_df[-failures, ]
+    }
 
     if (nrow(data_df) > 0) {
       transformation_opts <- attr(data_df[["forecast_data"]][[1]], "transformation_opts")
@@ -467,6 +495,10 @@ read_forecast <- function(
     }
 
   } # End loop over fcst_dates
+
+  if (failure_count > 0) {
+    warning(Reduce(function(x, y) paste(x, y, sep = "\n "), failure_message), call. = FALSE)
+  }
 
   if (return_data) {
 
