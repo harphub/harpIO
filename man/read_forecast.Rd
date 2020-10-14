@@ -24,7 +24,8 @@ read_forecast(
   output_file_opts = sqlite_opts(),
   return_data = FALSE,
   merge_lags = TRUE,
-  show_progress = FALSE
+  show_progress = FALSE,
+  stop_on_fail = FALSE
 )
 }
 \arguments{
@@ -143,6 +144,10 @@ unlagged members.}
 
 \item{show_progress}{Some files may contain a lot of data. Set to TRUE to
 show progress when reading these files.}
+
+\item{stop_on_fail}{Logical. Set to TRUE to make execution stop if there are
+problems reading a file. Missing files are always skipped regardless of
+this setting. The default value is FALSE.}
 }
 \value{
 When \code{return_date = TRUE}, a harp_fcst object.

@@ -147,7 +147,7 @@ read_vfld_interpolate <- function(
 
   # Extract the temp parameters
 
-  if (length(temp_parameters) > 0) {
+  if (length(temp_parameters) > 0 && nrow(tidyr::drop_na(vfld_data$temp)) > 0) {
     p_level_elements <- which(purrr::map_chr(temp_parameters, "level_type") == "pressure")
     if (length(p_level_elements) < length(temp_parameters)) {
       warning(

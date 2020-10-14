@@ -157,7 +157,8 @@ read_grid <- function(
     gridded_data <- tidyr::spread(gridded_data, key = "members", value = data_col)
   }
 
-  for (df_col in colnames(gridded_data)) {
+  list_cols <- which(sapply(gridded_data, typeof) == "list")
+  for (df_col in list_cols) {
     if (all(sapply(gridded_data[[df_col]], meteogrid::is.geofield))) {
       class(gridded_data[[df_col]]) <- c("geolist", class(gridded_data[[df_col]]))
     }
