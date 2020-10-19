@@ -182,6 +182,12 @@ file_templates <- function() {
       "meps_mbr0_sfx_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
+    "meps_det", file.path(
+      "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
+      "{YYYY}", "{MM}", "{DD}",
+      "meps_det_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+    ),
+
     "meps_extracted" ,  file.path(
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
@@ -192,6 +198,12 @@ file_templates <- function() {
       "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
       "{YYYY}", "{MM}", "{DD}",
       "meps_full_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+    ),
+
+    "meps_lagged_6h_subset", file.path(
+      "/lustre/storeB/immutable/archive/projects/metproduction/MEPS",
+      "{YYYY}", "{MM}", "{DD}",
+      "meps_lagged_6_h_subset_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
     "meps_sfx" ,  file.path(
