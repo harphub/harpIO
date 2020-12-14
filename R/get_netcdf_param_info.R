@@ -69,7 +69,7 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
     "wg2"      , "WG2"                            , NA,
     "wg3"      , "WG3"                            , NA,
     "fog"      , "fog_area_fraction"              , NA,
-    "sst"      , "SST"                            , "SST",
+    "sst"      , "sea_surface_temperature"        , "SST",
     "snow"     , "snowfall_amount_acc"            , NA
   )
 
