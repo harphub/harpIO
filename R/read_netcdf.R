@@ -375,6 +375,14 @@ read_and_transform_netcdf <- function(
       nc_times      <- ncdf4::ncvar_get(nc_id, nc_opts[["time_var"]])
       time_pos      <- which(nc_var_dims == nc_opts[["time_var"]])
 
+      # WRF uses Times to store the time data, but Time as the dimension
+      if (length(time_pos) == 0) {
+        time_pos <- which(nc_var_dims == sub("s$", "", nc_opts[["time_var"]]))
+      }
+      if (length(time_pos) == 0) {
+        stop("Cannot find position of the time dimension", call. = FALSE)
+      }
+
       start[time_pos] <- select_nc_time(
         nc_times,
         nc_info[["time_units"]][x],
