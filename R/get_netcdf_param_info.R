@@ -79,7 +79,7 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
       dplyr::filter(.data$harp_param == tolower(param$fullname)) %>%
       dplyr::pull(.data$nc_param_wrf)
 
-    if (length(netcdf_param) == 0 | is.na(netcdf_param)) {
+    if (length(netcdf_param) == 0 || is.na(netcdf_param)) {
       netcdf_param <- param$fullname
     }
 
