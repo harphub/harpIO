@@ -33,8 +33,8 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
   #       - There is no standard for missing level_number (it could signify 3D extraction)
   #           But NA may problematic for comparisons, so (for now) we reset to -999.
   #       - GRIB1 level_types: table3 (but only the most important ones)
-  # NOTE: some definitions may need to be adapted if GRIB files turn up 
-  #    with different conventions. For instance, maybe not everybody encodes cloud cover 
+  # NOTE: some definitions may need to be adapted if GRIB files turn up
+  #    with different conventions. For instance, maybe not everybody encodes cloud cover
   #    with level type 105, level 0 (0m above surface). It could also be lev. type 1.
   #    In fact, there may be more cases where it could be best to set level_type=255
   #    then it could be ignored in the message filtering process.
@@ -116,9 +116,9 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_number <-  0
     },
     "sst"      = {
-      short_name   <-  "t"
+      short_name   <-  c("t", "sst")
 #      param_number <-  11
-      level_type   <-  102
+      level_type   <-  c(102, 1)
       level_number <-  0
     },
     # dew point temperature
@@ -286,11 +286,11 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_number <- level
     }
   )
-  
+
   # for GRIB2, we need different level_type values!
   # Or should we use the name of these types?
   if (any(is.na(level_type))) level_type[is.na(level_type)] <- 255
-  level_type_2 <- vapply(level_type, FUN.VAL=1, 
+  level_type_2 <- vapply(level_type, FUN.VAL=1,
                          FUN=function (x) switch(as.character(x),
                                                  "1"  = 1,
                                                  "4"  = 4,
