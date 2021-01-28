@@ -157,10 +157,11 @@ read_netcdf <- function(
 
 make_nc_info <- function(param, info_df, nc_id, file_name) {
 
-  nc_param   <- param[["nc_param"]]
-  harp_param <- param[["harp_param"]][["fullname"]]
-  nc_dims    <- sort(sapply(nc_id[["var"]][[nc_param]][["dim"]], function(x) x[["name"]]))
-  opts_dims  <- sort(stats::na.omit(unlist(
+  nc_param    <- param[["nc_param"]]
+  harp_param  <- param[["harp_param"]]
+  nc_dims_raw <- sapply(nc_id[["var"]][[nc_param]][["dim"]], function(x) x[["name"]])
+  nc_dims     <- sort(nc_dims_raw)
+  opts_dims   <- sort(stats::na.omit(unlist(
     param[["opts"]][c("x_dim", "y_dim", "z_var", "member_var", "time_var")], use.names = FALSE
   )))
 
@@ -182,13 +183,28 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
 
   if (!identical(nc_dims, opts_dims)) {
-    warning(
-      "Requested dimensions do not match for '", harp_param, "' in ", file_name, ".\n",
-      "Requested dimensions: (", paste(opts_dims, collapse = ","), ")\n",
-      "Dimensions in file: (", paste(nc_dims, collapse = ", "),
-      call. = FALSE, immediate. = TRUE
-    )
-    return(NULL)
+    warn_dims <- TRUE
+    if (length(missing_dims) == 1) {
+      missing_nc_dim <- nc_dims[opts_dims == missing_dims]
+      idx            <- which(nc_dims_raw == missing_nc_dim)
+      if (nc_id[["var"]][[nc_param]][["dim"]][[idx]][["len"]] == 1) {
+        dim_to_rename <- names(which(param[["opts"]] == missing_dims))
+        param[["opts"]][[dim_to_rename]] <- missing_nc_dim
+        warn_dims <- FALSE
+      } else if (gsub("[[:digit:]]", "", missing_dims) == gsub("[[:digit:]]", "", missing_nc_dim)) {
+        param[["opts"]][[names(which(param[["opts"]] == missing_dims))]] <- missing_nc_dim
+        warn_dims <- FALSE
+      }
+    }
+    if (warn_dims) {
+      warning(
+        "Requested dimensions do not match for '", harp_param, "' in ", file_name, ".\n",
+        "Requested dimensions: (", paste(opts_dims, collapse = ","), ")\n",
+        "Dimensions in file: (", paste(nc_dims, collapse = ", "),
+        call. = FALSE, immediate. = TRUE
+      )
+      return(NULL)
+    }
   }
 
   if (!is.na(param[["opts"]][["z_var"]])) {
