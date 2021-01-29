@@ -123,6 +123,8 @@ read_netcdf <- function(
     show_progress
   )
 
+  ncdf4::nc_close(nc_id)
+
   if (is.null(lead_time)) {
     result[["lead_time"]] = sapply(
       paste0(result[["lead_time"]], "s"),
