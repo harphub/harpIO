@@ -110,8 +110,6 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
   }
 
   if (opts[["options_set"]] %in% c("met_norway_eps", "met_norway_det"))  {
-    if (grepl("_+[[:digit:]]m$", netcdf_param)) opts[["z_var"]] <- "height1"
-    if (grepl("_0m$", netcdf_param)) opts[["z_var"]] <- "height0"
     if (grepl("surface", netcdf_param)) opts[["z_var"]] <- "height0"
   }
   if (opts[["options_set"]] %in% c("met_norway_ifsens", "met_norway_ifshires"))  {
