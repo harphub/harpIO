@@ -72,6 +72,10 @@ get_clim <- function(opts, trans) {
 
   } else {
 
+    if (is.null(opts[["clim_file_opts"]])) {
+      opts[["clim_file_opts"]] <- list()
+    }
+
     opts[["clim_file_opts"]][["first_only"]] <- TRUE
 
     opts[["clim_field"]] <- try(
