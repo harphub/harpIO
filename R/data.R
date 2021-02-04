@@ -11,3 +11,17 @@
 #'
 #' @source HIRLAM station list
 "station_list"
+
+#' Weather station IDs with regional groups
+#'
+#' A dataset with station IDs and geographic groups they belong it. Can be used
+#' to do grouped verification by joining the station_groups to a harp_fcst list
+#' and running the verification with \code{groupings = c("leadtime", "group")}.
+#' Note that many stations belong to more than one group
+#'
+#' @format A data frame with 6001 rows and 2 variables: \describe{
+#'   \item{SID}{station ID number} \item{group}{Geographic group the station
+#'   belongs to}}
+#'
+#' @source selecttion.pm from HARMONIE / HIRLAM monitor
+"station_groups"
