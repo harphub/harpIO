@@ -85,6 +85,10 @@ read_netcdf <- function(
   # Do the same if ensemble members are requested.
 
   nc_info <- lapply(param_info, make_nc_info, time_info, nc_id, file_name)
+
+  param_info <- lapply(nc_info, function(x) x[[2]])
+  nc_info    <- lapply(nc_info, function(x) x[[1]])
+
   if (all(sapply(nc_info, is.null))) {
     stop("Cannot read from netcdf file: ", file_name, call. = FALSE)
   }
@@ -246,7 +250,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
     info_df[["units"]] <- "unknown"
   }
 
-  info_df
+  list(info_df, param)
 }
 
 ###
