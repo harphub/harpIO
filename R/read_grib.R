@@ -425,9 +425,9 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
 
   }
   # AD: this should depend on gribEdition, and be careful for length
-  grib_info[["level_type"]] <- level_type_grib1
+  grib_info[["level_type"]] <- grib_edition_level_name(level_type_grib1, 1)
   grib_info[["level_type"]][grib_info[["editionNumber"]] == 2] <-
-    level_type_grib2
+    grib_edition_level_name(level_type_grib2, 2)
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
   if (!is.null(lead_time)) {
@@ -467,4 +467,66 @@ grib_units_to_harp_units <- function(x) {
     "(0 - 1)" = "fraction",
     x
   )
+}
+
+grib_edition_level_name <- function(id, edition) {
+
+  if (edition == 1) {
+    level_name <- sapply(id, function(x) switch(
+      as.character(x),
+      "sfc"               = ,
+      "surface"           = ,
+      "1"                 = "surface",
+      "isobaricInhPa"     = ,
+      "100"               = "pressure",
+      "102"               = ,
+      "meanSea"           = ,
+      "msl"               = "MSL",
+      "103"               = ,
+      "heightAboveSea"    = "ASL",
+      "105"               = ,
+      "heightAboveGround" = "height",
+      "107"               = ,
+      "sigma"             = "sigma",
+      "109"               = ,
+      "hybrid"            = "model",
+      "4"                 = ,
+      "isothermZero"      = "isotherm_zero",
+      "20"                = ,
+      "isotherm"          = "isotherm",
+      "unknown"
+    ))
+
+  }
+
+  if (edition == 2) {
+    level_name <- sapply(id, function(x) switch(
+      as.character(x),
+      "sfc"               = ,
+      "surface"           = ,
+      "1"                 = "surface",
+      "isobaricInhPa"     = ,
+      "100"               = "pressure",
+      "101"               = ,
+      "meanSea"           = ,
+      "msl"               = "MSL",
+      "102"               = ,
+      "heightAboveSea"    = "ASL",
+      "103"               = ,
+      "heightAboveGround" = "height",
+      "104"               = ,
+      "sigma"             = "sigma",
+      "105"               = ,
+      "hybrid"            = "model",
+      "4"                 = ,
+      "isothermZero"      = "isotherm_zero",
+      "20"                = ,
+      "isotherm"          = "isotherm",
+      "unknown"
+    ))
+
+  }
+
+  level_name
+
 }
