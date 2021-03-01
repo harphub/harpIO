@@ -96,34 +96,51 @@ read_grib <- function(
 
   grib_info <- Rgrib2::Gopen(
     file_name,
-    IntPar = "perturbationNumber",
+    IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel"),
+    StrPar = "typeOfLevel",
     multi = format_opts[["multi"]]
   )
 
   grib_file <- grib_info
-#  if (packageVersion("Rgrib2") >= "1.4.0") {
-#    grib_file <- Rgrib2::grib_position_index(file_name)
-#  } else {
-#    grib_file <- file_name
-#  }
 
   grib_info[["fcdate"]]    <- suppressMessages(
-    str_datetime_to_unixtime(paste0(grib_info$dataDate, formatC(grib_info$dataTime, width = 4, flag = "0")))
+    str_datetime_to_unixtime(
+      paste0(
+        grib_info$dataDate,
+        formatC(grib_info$dataTime, width = 4, flag = "0")
+      )
+    )
   )
+
   grib_info[["validdate"]] <- suppressMessages(
-    str_datetime_to_unixtime(paste0(grib_info$validityDate, formatC(grib_info$validityTime, width = 4, flag = "0")))
+    str_datetime_to_unixtime(
+      paste0(
+        grib_info$validityDate,
+        formatC(grib_info$validityTime, width = 4, flag = "0")
+      )
+    )
   )
-  grib_info[["leadtime"]]  <- (grib_info[["validdate"]] - grib_info[["fcdate"]]) / 3600
+
+  grib_info[["leadtime"]]  <-
+    (grib_info[["validdate"]] - grib_info[["fcdate"]]) / 3600
+
   colnames(grib_info)[colnames(grib_info) == "perturbationNumber"] <- "member"
 
   # filter_grib_info function defined at end of file
   # For dplyr methods in filter_grib_info the new class has to be after
   class(grib_info) <- rev(class(grib_info))
-  grib_info <- purrr::map2_dfr(parameter, param_info, filter_grib_info, grib_info, lead_time, members)
+  grib_info <- purrr::map2_dfr(
+    parameter, param_info, filter_grib_info,
+    grib_info, lead_time, members, format_opts
+  )
   class(grib_info) <- rev(class(grib_info))
 
   if (nrow(grib_info) < 1) {
-    stop("None of the requested data could be read from grib file: ", file_name, call. = FALSE)
+    stop(
+      "None of the requested data could be read from grib file: ",
+      file_name,
+      call. = FALSE
+    )
   }
 
   if (transformation != "none") {
@@ -179,7 +196,9 @@ read_grib <- function(
   }
 
   if (show_progress) {
-    pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(grib_info))
+    pb <- progress::progress_bar$new(
+      format = "[:bar] :percent eta: :eta", total = nrow(grib_info)
+    )
   }
 
   grib_data <- purrr::map_dfr(
@@ -193,7 +212,7 @@ read_grib <- function(
     show_progress
   )
 
-# grib_data <- grib_info[c(fcdate, validdate, leadtime....)]
+  # grib_data <- grib_info[c(fcdate, validdate, leadtime....)]
   # if keep_raw_data or transf="none":
   #   grib_data$gridded_data <- lapply(grib_info$position, function(i) Gdec(grib_info, i))
   # else
@@ -286,10 +305,10 @@ read_grib_interpolate <- function(file_name,
 #####
 
 # Function to get the grib information for parameters
-filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members) {
-#  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
-#    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
-#  } else {
+filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members, opts) {
+  #  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
+  #    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
+  #  } else {
   # Some parameters may be encoded in two different ways, so we may need a second try
   #  e.g. precip can be on "surface" or "0m above ground")
   # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
@@ -297,43 +316,118 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   #       that would be useful when we need a local "grib_override"
   # TODO: what if we need 2 component-fields followed by transformation (e.g. wind speed from u & v)
   #       that should be part of the "transformation", but it requires 2 fields, not one.
-    for (i in seq_along(param_info$short_name)) {
-      for(j in seq_along(param_info$level_type)) {
-        if (param_info$level_type[j]==255) {
-          grib_info_f <- grib_info %>% dplyr::filter(
-              .data$shortName  == param_info$short_name[i])
-        } else {
-          grib_info_f <- grib_info %>% dplyr::filter(
-              .data$shortName  == param_info$short_name[i],
-              (.data$editionNumber == 1 & .data$levelType  == param_info$level_type[j]) |
-              (.data$editionNumber == 2 & .data$levelType  == param_info$level_type_2[j]))
-        }
-        if (nrow(grib_info_f) >= 1) break;
+
+  param_find <- opts[["param_find"]][[parameter[["fullname"]]]]
+
+  if (is.null(param_find)) {
+    param_find <- use_grib_shortName(param_info[["short_name"]])
+  }
+
+  level_find <- opts[["level_find"]][[parameter[["fullname"]]]]
+
+  if (is.null(level_find)) {
+
+    level_find_grib1 <- use_grib_key_level(
+      "levelType",
+      param_info[["level_type"]],
+      param_info[["level_number"]]
+    )
+
+    level_find_grib2 <- use_grib_key_level(
+      "levelType",
+      param_info[["level_type_2"]],
+      param_info[["level_number"]]
+    )
+
+    level_find <- level_find_grib1
+
+  } else {
+
+    level_find_grib1 <- level_find
+    level_find_grib2 <- level_find
+
+  }
+
+  for (i in seq_along(param_find[["value"]])) {
+    for(j in seq_along(level_find[["value"]])) {
+
+      if (level_find[["value"]][j] == 255 | level_find[["value"]][j] == "unknown") {
+        grib_info_f <- grib_info %>% dplyr::filter(
+          .data[[param_find[["key"]]]] == param_find[["value"]][i])
+        level_type_grib1 <- "unknown"
+        level_type_grib2 <- "unknown"
+
+      } else {
+
+        grib_info_f <- grib_info %>% dplyr::filter(
+          .data[[param_find[["key"]]]] == param_find[["value"]][i] &
+            (
+              .data$editionNumber == 1 &
+                .data[[level_find_grib1[["key"]]]] == level_find_grib1[["value"]][j]
+            ) | (
+              .data$editionNumber == 2 &
+                .data[[level_find_grib2[["key"]]]] == level_find_grib2[["value"]][j]
+            )
+        )
+
       }
-      if (nrow(grib_info_f) >= 1) break;
+
+      if (nrow(grib_info_f) >= 1) {
+        level_type_grib1 <- level_find_grib1[["value"]][j]
+        level_type_grib2 <- level_find_grib2[["value"]][j]
+        break
+      }
+
     }
 
-    if (param_info$level_type != 255 && param_info$level_number != -999) {
-      grib_info_f <- dplyr::filter(grib_info_f, .data$level == param_info$level_number)
+    if (nrow(grib_info_f) >= 1) {
+      break
     }
-#  }
+
+  }
+
+  if (
+    length(level_find[["value"]]) > 1 ||
+      level_find[["value"]] != 255 &&
+      level_find[["value"]] != "unknown" &&
+      level_find[["level"]] != -999
+  ) {
+
+    grib_info_f <- dplyr::filter(
+      grib_info_f, .data[["level"]] %in% level_find[["level"]]
+    )
+
+  }
 
   grib_info <- grib_info_f
 
   if (nrow(grib_info) == 0) {
+
     warning(
       "Parameter \"", parameter[["fullname"]], "\" ",
-      "(shortName: \"",
+      "(", param_find[["key"]], ": \"",
       paste(
-        param_info[["short_name"]], collapse="\" / \""
+        param_find[["value"]], collapse = "\" / \""
       ),
-      "\") not found in grib file.",
+      "\", ", level_find[["key"]], ": \"",
+      paste(
+        level_find[["value"]], collapse = "\" / \""
+      ),
+      "\" for level(s) ",
+      paste(
+        level_find[["level"]], collapse = ","
+      ),
+      ") not found in grib file.",
       call. = FALSE, immediate. = TRUE
     )
+
     return(grib_info)
+
   }
-# AD: this should depend on gribEdition, and be careful for length
-  grib_info[["level_type"]] <- parameter[["level_type"]] #grib_info[["levelType"]]
+  # AD: this should depend on gribEdition, and be careful for length
+  grib_info[["level_type"]] <- level_type_grib1
+  grib_info[["level_type"]][grib_info[["editionNumber"]] == 2] <-
+    level_type_grib2
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
   if (!is.null(lead_time)) {

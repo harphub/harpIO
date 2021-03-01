@@ -2,23 +2,133 @@
 % Please edit documentation in R/grib_opts.R
 \name{grib_opts}
 \alias{grib_opts}
+\alias{use_grib_key}
+\alias{use_grib_indicatorOfParameter}
+\alias{use_grib_paramId}
+\alias{use_grib_shortName}
+\alias{use_grib_key_level}
+\alias{use_grib_indicatorOfTypeOfLevel}
+\alias{use_grib_typeOfLevel}
+\alias{use_grib_heightAboveGround}
+\alias{use_grib_pressure}
+\alias{use_grib_hybrid}
+\alias{use_grib_model}
+\alias{use_grib_surface}
+\alias{use_grib_meanSea}
 \title{Set options for grib files}
 \usage{
-grib_opts(meta = TRUE, multi = FALSE, ...)
+grib_opts(
+  meta = TRUE,
+  multi = FALSE,
+  param_find = NULL,
+  level_find = NULL,
+  ...
+)
+
+use_grib_key(key, value)
+
+use_grib_indicatorOfParameter(value)
+
+use_grib_paramId(value)
+
+use_grib_shortName(value)
+
+use_grib_key_level(key, value, level = -999)
+
+use_grib_indicatorOfTypeOfLevel(value, level = -999)
+
+use_grib_typeOfLevel(value, level = -999)
+
+use_grib_heightAboveGround(level = -999)
+
+use_grib_pressure(level = -999)
+
+use_grib_hybrid(level = -999)
+
+use_grib_model(level = -999)
+
+use_grib_surface()
+
+use_grib_meanSea()
 }
 \arguments{
 \item{meta}{Logical. Whether to read metadata}
 
 \item{multi}{Logical. Whether there are multi field grib messages.}
 
-\item{...}{Any other options that may exist in futire Rgrib2 versions.}
+\item{param_find}{A named list with names being the parameters to find in the
+grib files. Each element of the named list is a list with names "key" and
+"value". The default is NULL, which means to attempt to automatically find
+the parameter using shortName from the appropriate grib table.}
+
+\item{level_find}{A named list with names being the parameters to find in the
+grib files. Each element of the named list is a list with names "key",
+"value" and "level". Here "key" is the grib key to be used to find the
+level, "value" is the value of the grib key and "level" is the value of the
+level. Set level = -999 to select all available levels. The default is
+NULL, which means to attempt to automatically find the level.}
+
+\item{...}{Any other options that may exist in future Rgrib2 versions.}
 }
 \value{
-A list
+A list of options for reading grib files.
 }
 \description{
-Set options for grib files
+In general options for grib files do not need to be explicitly set. However,
+if you wish to be explicit about how to find a field in a grib file you make
+use of the \code{param_find} argument. Here you pass a named list with the
+parameters given in e.g. \link{read_forecast} or \link{read_grid} you wish to
+be explicit about as the names. The helper functions use_grib_* can be used
+to set key value pairs to use in the search.
+}
+\details{
+If harp is not aware of the grib shortName for the field you wish to read, or
+harp has the wrong shortName you can set \code{param_find} using
+\code{use_grib_shortName()}. Alternatively if the field you wish to read does
+not have a shortName, but has a value for indicatorOfParameter you can set
+\code{param_find} using \code{use_grib_indicatorOfParameter()}, and the same
+applies for paramId using \code{use_grib_paramId()}.
+
+You can use other grib key value pairs to find fields in a grib file by
+setting \code{param_find} with \code{use_grib_key} giving it the key and
+value to search for. Finally, each element of \code{param_find} can be simply
+set using a list with names "key" and "value".
+
+Similarly, although harp knows the type of vertical level most parameters are
+on, you may need to set this explicitly with the \code{level_find} argument
+which is a list that selects which grib key to use to find the type of level,
+the value of that grib key that corresponds to the desired type of level and
+the value of the level itself. As for \code{param_find}, there are helper
+functions to help you to set the desired values for \code{level_find}.
+
+You can use \code{use_grib_key_level} to set the grib key, value and level
+explicitly; \code{use_grib_typeOfLevel} to use the typeOfLevel grib key and
+explicitly set the value and level, similarly with
+\code{use_grib_indicatorOfTypeOfLevel}; \code{use_grib_heightAboveGround},
+\code{use_grib_pressure}, \code{use_grib_hybrid} to set a height, pressure or
+hybrid level respectively; and \code{use_grib_surface} and
+\code{use_grib_meanSea} to select the surface and mean sea levels
+respectively.
 }
 \examples{
 grib_opts()
+grib_opts(param_find = list(S10m = list(key = "shortName", value = "WS10")))
+grib_opts(param_find = list(S10m = use_grib_key("shortName", "WS10")))
+grib_opts(param_find = list(S10m = use_grib_shortName("WS10")))
+grib_opts(
+  param_find = list(T2m = use_grib_shortName("t")),
+  level_find = list(T2m = use_grib_typeOfLevel("heightAboveGround", 2))
+)
+use_grib_key("indicatorOfParameter", 65)
+use_grib_indicatorOfParameter(65)
+use_grib_key("paramId", 33)
+use_grib_paramId(33)
+use_grib_key("shortName", "tp")
+use_grib_shortName("tp")
+use_grib_key_level("typeOfLevel", "heightAboveGround", 2)
+use_grib_typeOfLevel("heightAboveGround", 2)
+use_grib_heightAboveGround(2)
+use_grib_indicatorOfTypeOfLevel(105, 2)
+use_grib_pressure(500)
+use_grib_surface()
 }
