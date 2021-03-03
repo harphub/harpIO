@@ -281,7 +281,13 @@ read_forecast <- function(
     # Nest by file name and remove rows with missing files
     data_df  <- tidyr::nest(dplyr::group_by(files_df, .data[["file_name"]]))
 
-    missing_files <- data_df[["file_name"]][!file.exists(data_df[["file_name"]])]
+    # Do not check external sources
+    on_disk_files <- grep(
+      "https://|http://", data_df[["file_name"]], invert = TRUE, value = TRUE
+    )
+
+    missing_files <- on_disk_files[!file.exists(on_disk_files)]
+
     if (length(missing_files) > 0) {
       warning(
         "Files not found for ", fcst_date, ". Missing files:\n",
@@ -329,7 +335,7 @@ read_forecast <- function(
     )
 
     # Read the required data from the files
-    data_df <-dplyr::mutate(
+    data_df <- dplyr::mutate(
       data_df,
       forecast_data = purrr::map2(
         .data[["file_name"]],

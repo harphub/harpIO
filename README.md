@@ -9,9 +9,9 @@
 
 # harpIO <a href=#><img src='man/figures/harp_logo_dark.svg' align="right" height="131.5" style="margin-left:30px" /></a>
 
-**harpIO** provides a set of read and write functions for harp plus the
+{{harpIO}} provides a set of read and write functions for harp plus the
 option to transform gridded data to point data, cross sections or other
-grids at read time. **harpIO** is able to read *grib1*, *grib2*, *FA*,
+grids at read time. {{harpIO}} is able to read *grib1*, *grib2*, *FA*,
 *NetCDF* and *vfld* files from weather forecast / climate models;
 station observations from *vobs* files, radar / satellite observations
 from *HDF5* files and in the future from in-house databases at selected
@@ -28,11 +28,11 @@ remotes::install_github("harphub/harpIO")
 
 ### System libraries
 
-**harpIO** uses the [meteogrid](https://github.com/harphub/meteogrid)
-package for interpolation and the geogrid class for storing gridded
-data. This package makes use of the [PROJ4](https://proj4.org) library
-for handling projections. If you do not have PROJ4 installed you can
-install with:
+{{harpIO}} uses the
+[{{meteogrid}}](https://github.com/harphub/meteogrid) package for
+interpolation and the geogrid class for storing gridded data. This
+package makes use of the [PROJ4](https://proj4.org) library for handling
+projections. If you do not have PROJ4 installed you can install with:
 
 ``` bash
 sudo apt-get install libproj-dev
@@ -81,7 +81,7 @@ be restarted for the changes to take effect before running
 
 ## Reading, transforming and writing forecast data
 
-The main workhorse for **harpIO** is `read_forecast()`. This function
+The main workhorse for {{harpIO}} is `read_forecast()`. This function
 can read multiple files from multiple sources of both gridded and point
 data. See the articles [Reading forcast model
 data](articles/read_raw_forecast.html) and [Options for file
@@ -111,7 +111,7 @@ available if data are either point data to begin with, or
 
 ## Reading observation data
 
-For point observations, **harpIO** can currently only read from *vobs*
+For point observations, {{harpIO}} can currently only read from *vobs*
 files, as produced by the
 [HIRLAM](http://hirlam.org/index.php/hirlam-programme-53) consortium,
 and write them out to SQLite files using `read_obs_convert()` for faster

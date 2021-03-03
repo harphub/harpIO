@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9176</span>
       </span>
     </div>
 
@@ -88,7 +88,8 @@
 
       
 
-      </header><div class="row">
+      </header><script src="transformations_files/accessible-code-block-0.0.1/empty-anchor.js"></script><link href="transformations_files/anchor-sections-1.0/anchor-sections.css" rel="stylesheet">
+<script src="transformations_files/anchor-sections-1.0/anchor-sections.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Transforming forecast model data</h1>
@@ -129,92 +130,92 @@ text-align: justify;
   <span class="kw">file_path</span>      <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"grib/AROME_Arctic"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"harpData"</span>),
   <span class="kw">file_template</span>  <span class="kw">=</span> <span class="st">"harmonie_grib_fp"</span>,
   <span class="kw">return_data</span>    <span class="kw">=</span> <span class="fl">TRUE</span>
-)
-<span class="co">#&gt; Warning: 'transformation_opts' not set for transformation = 'interpolate'. Using</span>
-<span class="co">#&gt; default interpolate_opts()</span>
-<span class="co">#&gt; ● AROME_Arctic</span>
-<span class="co">#&gt; # A tibble: 119 x 12</span>
-<span class="co">#&gt;    fcdate              lead_time parameter validdate           level_type level</span>
-<span class="co">#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;int&gt;</span>
-<span class="co">#&gt;  1 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  2 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  3 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  4 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  5 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  6 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  7 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10</span>
-<span class="co">#&gt;  8 2018-07-10 00:00:00         3 S10m      2018-07-10 03:00:00 height        10</span>
-<span class="co">#&gt;  9 2018-07-10 00:00:00         3 S10m      2018-07-10 03:00:00 height        10</span>
-<span class="co">#&gt; 10 2018-07-10 00:00:00         3 S10m      2018-07-10 03:00:00 height        10</span>
-<span class="co">#&gt; # … with 109 more rows, and 6 more variables: units &lt;chr&gt;, SID &lt;int&gt;,</span>
-<span class="co">#&gt; #   lat &lt;dbl&gt;, lon &lt;dbl&gt;, fcst_cycle &lt;chr&gt;, AROME_Arctic_det &lt;dbl&gt;</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; Warning: 'transformation_opts' not set for transformation = 'interpolate'. Using
+#&gt; default interpolate_opts()</code></pre>
+<pre><code>#&gt; ● AROME_Arctic
+#&gt; # A tibble: 119 x 12
+#&gt;    fcdate              lead_time parameter validdate           level_type level
+#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;int&gt;
+#&gt;  1 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  2 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  3 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  4 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  5 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  6 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  7 2018-07-10 00:00:00         0 S10m      2018-07-10 00:00:00 height        10
+#&gt;  8 2018-07-10 00:00:00         3 S10m      2018-07-10 03:00:00 height        10
+#&gt;  9 2018-07-10 00:00:00         3 S10m      2018-07-10 03:00:00 height        10
+#&gt; 10 2018-07-10 00:00:00         3 S10m      2018-07-10 03:00:00 height        10
+#&gt; # … with 109 more rows, and 6 more variables: units &lt;chr&gt;, SID &lt;int&gt;,
+#&gt; #   lat &lt;dbl&gt;, lon &lt;dbl&gt;, fcst_cycle &lt;chr&gt;, AROME_Arctic_det &lt;dbl&gt;</code></pre>
 <p>You will see a warning and a couple of messages. The warning states that <code><a href="../reference/read_forecast.html">read_forecast()</a></code> did not receive any options for the interpolation so it is using the default options with the default station list. Furthermore, you will see that interpolate weights are being derived from ‘sfc_geo’ - this is the default behaviour so that if corrections are to be made for 2m temperature for elevation differences between the model and reality.</p>
 <div id="interpolate-options" class="section level3">
 <h3 class="hasAnchor">
 <a href="#interpolate-options" class="anchor"></a>Interpolate options</h3>
 <p>Options for interpolation are set using the <code><a href="../reference/interpolate_opts.html">interpolate_opts()</a></code> function and passed to <code><a href="../reference/read_forecast.html">read_forecast()</a></code> via the <code>transformation_opts</code> argument. You can see options are available and their defaults by running <code>interpolate_opts</code></p>
-<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="../reference/interpolate_opts.html">interpolate_opts</a></span>()
-<span class="co">#&gt; No stations specified. Using default stations: 'station_list'</span>
-<span class="co">#&gt; $stations</span>
-<span class="co">#&gt; # A tibble: 13,417 x 5</span>
-<span class="co">#&gt;      SID   lat   lon  elev name         </span>
-<span class="co">#&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        </span>
-<span class="co">#&gt;  1  1001  70.9 -8.67   9.4 JAN MAYEN    </span>
-<span class="co">#&gt;  2  1002  80.1 16.2    8   VERLEGENHUKEN</span>
-<span class="co">#&gt;  3  1003  77   15.5   11.1 HORNSUND     </span>
-<span class="co">#&gt;  4  1004  78.9 11.9    8   NY-ALESUND II</span>
-<span class="co">#&gt;  5  1006  78.3 22.8   14   EDGEOYA      </span>
-<span class="co">#&gt;  6  1007  78.9 11.9    7.7 NY-ALESUND   </span>
-<span class="co">#&gt;  7  1008  78.2 15.5   26.8 SVALBARD AP  </span>
-<span class="co">#&gt;  8  1009  80.7 25.0    5   KARL XII OYA </span>
-<span class="co">#&gt;  9  1010  69.3 16.1   13.1 ANDOYA       </span>
-<span class="co">#&gt; 10  1011  80.1 31.5   10   KVITOYA      </span>
-<span class="co">#&gt; # … with 13,407 more rows</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $method</span>
-<span class="co">#&gt; [1] "nearest"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $correct_t2m</span>
-<span class="co">#&gt; [1] TRUE</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $keep_model_t2m</span>
-<span class="co">#&gt; [1] FALSE</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $lapse_rate</span>
-<span class="co">#&gt; [1] 0.0065</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $clim_file</span>
-<span class="co">#&gt; NULL</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $clim_file_format</span>
-<span class="co">#&gt; NULL</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $clim_file_opts</span>
-<span class="co">#&gt; NULL</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $clim_param</span>
-<span class="co">#&gt; [1] "sfc_geo"</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $use_mask</span>
-<span class="co">#&gt; [1] FALSE</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $weights</span>
-<span class="co">#&gt; NULL</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; $keep_raw_data</span>
-<span class="co">#&gt; [1] FALSE</span></pre></body></html></div>
+<div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="fu"><a href="../reference/interpolate_opts.html">interpolate_opts</a></span>()</pre></body></html></div>
+<pre><code>#&gt; No stations specified. Using default stations: 'station_list'</code></pre>
+<pre><code>#&gt; $stations
+#&gt; # A tibble: 13,417 x 5
+#&gt;      SID   lat   lon  elev name         
+#&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        
+#&gt;  1  1001  70.9 -8.67   9.4 JAN MAYEN    
+#&gt;  2  1002  80.1 16.2    8   VERLEGENHUKEN
+#&gt;  3  1003  77   15.5   11.1 HORNSUND     
+#&gt;  4  1004  78.9 11.9    8   NY-ALESUND II
+#&gt;  5  1006  78.3 22.8   14   EDGEOYA      
+#&gt;  6  1007  78.9 11.9    7.7 NY-ALESUND   
+#&gt;  7  1008  78.2 15.5   26.8 SVALBARD AP  
+#&gt;  8  1009  80.7 25.0    5   KARL XII OYA 
+#&gt;  9  1010  69.3 16.1   13.1 ANDOYA       
+#&gt; 10  1011  80.1 31.5   10   KVITOYA      
+#&gt; # … with 13,407 more rows
+#&gt; 
+#&gt; $method
+#&gt; [1] "nearest"
+#&gt; 
+#&gt; $correct_t2m
+#&gt; [1] TRUE
+#&gt; 
+#&gt; $keep_model_t2m
+#&gt; [1] FALSE
+#&gt; 
+#&gt; $lapse_rate
+#&gt; [1] 0.0065
+#&gt; 
+#&gt; $clim_file
+#&gt; NULL
+#&gt; 
+#&gt; $clim_file_format
+#&gt; NULL
+#&gt; 
+#&gt; $clim_file_opts
+#&gt; NULL
+#&gt; 
+#&gt; $clim_param
+#&gt; [1] "sfc_geo"
+#&gt; 
+#&gt; $use_mask
+#&gt; [1] FALSE
+#&gt; 
+#&gt; $weights
+#&gt; NULL
+#&gt; 
+#&gt; $keep_raw_data
+#&gt; [1] FALSE</code></pre>
 <p>We can use <code><a href="../reference/interpolate_opts.html">interpolate_opts()</a></code> to set the points to which we want to interpolate, by setting stations as a data frame (if you do not use the default <code>station_list</code>, this would normally be read in from an external source rather than set manually). It is important that the data frame includes columns “SID”, “lat”, “lon” and, optionally, “elev”, where “SID” a unique station ID and “elev” is the elevation of the station in meters.</p>
-<div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="no">my_stations</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(
+<div class="sourceCode" id="cb9"><html><body><pre class="r"><span class="no">my_stations</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(
   <span class="kw">SID</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">1003</span>, <span class="fl">1004</span>, <span class="fl">1006</span>),
   <span class="kw">lat</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">77.0000</span>, <span class="fl">78.9167</span>, <span class="fl">78.2506</span>),
   <span class="kw">lon</span> <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">15.5000</span>, <span class="fl">11.9331</span>, <span class="fl">22.8225</span>)
 )
-<span class="no">my_options</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/interpolate_opts.html">interpolate_opts</a></span>(<span class="kw">stations</span> <span class="kw">=</span> <span class="no">my_stations</span>)
-<span class="co">#&gt; Warning: No 'elev' column found in stations, and correct_t2m = TRUE. Setting</span>
-<span class="co">#&gt; correct_t2m = FALSE</span></pre></body></html></div>
+<span class="no">my_options</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/interpolate_opts.html">interpolate_opts</a></span>(<span class="kw">stations</span> <span class="kw">=</span> <span class="no">my_stations</span>)</pre></body></html></div>
+<pre><code>#&gt; Warning: No 'elev' column found in stations, and correct_t2m = TRUE. Setting
+#&gt; correct_t2m = FALSE</code></pre>
 <p>You will see a warning that no “elev” column was found and <code>correct_t2m</code> is being set to FALSE. When interpolating 2m temperature an attempt is made to make a correction due to the difference in height between the model and reality using a simple lapse rate that can be changed from the default of 0.0065 K/m with the <code>lapse_rate</code> argument. If the station elevation is not available, this cannot be done. Furthermore, if the 2m correction is done, the uncorrected model temperature is discarded, but can be kept by setting <code>keep_model_2m = TRUE</code>. Finally, if the first forecast file does not contain surface geopotential, or model orography a “clim file” can be passed that does contain this information on the same grid as the forecast files. Additionally the parameter to read from the clim file can be set - this would normally by “sfc_geo” or “oro”.</p>
 <p>To demonstrate all of this, let’s add an “elev” column (with fake data) to our small station list and read the 2m temperature while keeping the uncorrected model 2m temperature and manually setting a clim file.</p>
-<div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="no">my_stations</span>$<span class="no">elev</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">145</span>, <span class="fl">233</span>, <span class="fl">308</span>)
+<div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="no">my_stations</span>$<span class="no">elev</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">145</span>, <span class="fl">233</span>, <span class="fl">308</span>)
 
 <span class="no">my_options</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/interpolate_opts.html">interpolate_opts</a></span>(
   <span class="kw">stations</span>       <span class="kw">=</span> <span class="no">my_stations</span>,
@@ -237,22 +238,22 @@ text-align: justify;
   <span class="kw">return_data</span>         <span class="kw">=</span> <span class="fl">TRUE</span>
 )</pre></body></html></div>
 <p>To show the effect of the correction to 2m temperature, we can just show the relevant columns using the <code>select</code> method from the dplyr package.</p>
-<div class="sourceCode" id="cb7"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">dplyr</span>)
-<span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(<span class="no">t2m</span>$<span class="no">AROME_Arctic</span>, <span class="no">SID</span>, <span class="no">lead_time</span>, <span class="no">parameter</span>, <span class="no">AROME_Arctic_det</span>)
-<span class="co">#&gt; # A tibble: 102 x 4</span>
-<span class="co">#&gt;      SID lead_time parameter       AROME_Arctic_det</span>
-<span class="co">#&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                      &lt;dbl&gt;</span>
-<span class="co">#&gt;  1  1003         0 T2m                         276.</span>
-<span class="co">#&gt;  2  1004         0 T2m                         276.</span>
-<span class="co">#&gt;  3  1006         0 T2m                         276.</span>
-<span class="co">#&gt;  4  1003         0 T2m_uncorrected             277.</span>
-<span class="co">#&gt;  5  1004         0 T2m_uncorrected             277.</span>
-<span class="co">#&gt;  6  1006         0 T2m_uncorrected             278.</span>
-<span class="co">#&gt;  7  1003         3 T2m                         277.</span>
-<span class="co">#&gt;  8  1004         3 T2m                         276.</span>
-<span class="co">#&gt;  9  1006         3 T2m                         276.</span>
-<span class="co">#&gt; 10  1003         3 T2m_uncorrected             277.</span>
-<span class="co">#&gt; # … with 92 more rows</span></pre></body></html></div>
+<div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">dplyr</span>)
+<span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span>(<span class="no">t2m</span>$<span class="no">AROME_Arctic</span>, <span class="no">SID</span>, <span class="no">lead_time</span>, <span class="no">parameter</span>, <span class="no">AROME_Arctic_det</span>)</pre></body></html></div>
+<pre><code>#&gt; # A tibble: 102 x 4
+#&gt;      SID lead_time parameter       AROME_Arctic_det
+#&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                      &lt;dbl&gt;
+#&gt;  1  1003         0 T2m                         276.
+#&gt;  2  1004         0 T2m                         276.
+#&gt;  3  1006         0 T2m                         276.
+#&gt;  4  1003         0 T2m_uncorrected             277.
+#&gt;  5  1004         0 T2m_uncorrected             277.
+#&gt;  6  1006         0 T2m_uncorrected             278.
+#&gt;  7  1003         3 T2m                         277.
+#&gt;  8  1004         3 T2m                         276.
+#&gt;  9  1006         3 T2m                         276.
+#&gt; 10  1003         3 T2m_uncorrected             277.
+#&gt; # … with 92 more rows</code></pre>
 <p>As you will see the uncorrected temperatures are higher as we set artificially high elevations for the elevation in my_stations.</p>
 </div>
 </div>
@@ -261,7 +262,7 @@ text-align: justify;
 <a href="#regrid" class="anchor"></a>Regrid</h2>
 <p>Regridding is done in much the same way as interpolating to points, except you set <code>transformation = "regrid"</code> and the options are generated using <code><a href="../reference/interpolate_opts.html">regrid_opts()</a></code>. Unlike for interpolation <code>transformation_opts</code> must be set other <code><a href="../reference/read_forecast.html">read_forecast()</a></code> won’t know what grid to which to regrid the data. The most important argument to <code><a href="../reference/interpolate_opts.html">regrid_opts()</a></code> is <code>new_domain</code>. This defines the domain that to which the data will be regridded. It must be a “geofield” or “geodomain” object - all gridded data read in by <code><a href="../reference/read_forecast.html">read_forecast()</a></code> or <code><a href="../reference/read_grid.html">read_grid()</a></code> are automatically coerced into geofields, or a geodomain can be defined using <a href="https://github.com/harphub/meteogrid">meteogrid’s</a> <code><a href="https://rdrr.io/pkg/meteogrid/man/Make.domain.html">Make.domain()</a></code> function.</p>
 <p>We will demonstrate regridding by making a domain with 10km resolution based on the AROME_Arctic domain.</p>
-<div class="sourceCode" id="cb8"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">meteogrid</span>)
+<div class="sourceCode" id="cb14"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">meteogrid</span>)
 
 <span class="no">my_domain</span> <span class="kw">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/meteogrid/man/Make.domain.html">Make.domain</a></span>(
   <span class="st">"lambert"</span>,
@@ -274,7 +275,7 @@ text-align: justify;
 
 <span class="no">my_options</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/interpolate_opts.html">regrid_opts</a></span>(<span class="kw">new_domain</span> <span class="kw">=</span> <span class="no">my_domain</span>, <span class="kw">keep_raw_data</span> <span class="kw">=</span> <span class="fl">TRUE</span>)</pre></body></html></div>
 <p>In the above, <code>keep_raw_data = TRUE</code>, which means that both the original fields and the regridded fields are kept so that we can compare them. If <code>keep_raw_data</code> is not set, then the original data before regridding will be discarded.</p>
-<div class="sourceCode" id="cb9"><html><body><pre class="r"><span class="no">s10m</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
+<div class="sourceCode" id="cb15"><html><body><pre class="r"><span class="no">s10m</span> <span class="kw">&lt;-</span> <span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
   <span class="fl">2018071000</span>,
   <span class="fl">2018071000</span>,
   <span class="st">"AROME_Arctic"</span>,
@@ -286,28 +287,26 @@ text-align: justify;
   <span class="kw">return_data</span>         <span class="kw">=</span> <span class="fl">TRUE</span>
 )</pre></body></html></div>
 <p>We can now plot the two fields using <code><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html">plot_field()</a></code> from the harpVis package.</p>
-<div class="sourceCode" id="cb10"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">harpVis</span>)
-<span class="co">#&gt; Loading required package: ggplot2</span>
-<span class="co">#&gt; Loading required package: shiny</span>
-
-<span class="fu"><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html">plot_field</a></span>(
+<div class="sourceCode" id="cb16"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(<span class="no">harpVis</span>)</pre></body></html></div>
+<pre><code>#&gt; Loading required package: ggplot2</code></pre>
+<pre><code>#&gt; Loading required package: shiny</code></pre>
+<div class="sourceCode" id="cb19"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html">plot_field</a></span>(
   <span class="no">s10m</span>,
   <span class="kw">fcst_model</span> <span class="kw">=</span> <span class="st">"AROME_Arctic"</span>,
   <span class="kw">plot_col</span>   <span class="kw">=</span> <span class="no">gridded_data</span>,
   <span class="kw">lead_time</span>  <span class="kw">=</span> <span class="fl">0</span>,
   <span class="kw">breaks</span>     <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">20</span>, <span class="fl">2</span>)
-)
-<span class="co">#&gt; Date assumed to be YYYYMMDDHHmmss</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; Date assumed to be YYYYMMDDHHmmss</code></pre>
 <p><img src="transformations_files/figure-html/plot-1.png" width="768"></p>
-<div class="sourceCode" id="cb11"><html><body><pre class="r">
-<span class="fu"><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html">plot_field</a></span>(
+<div class="sourceCode" id="cb21"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html">plot_field</a></span>(
   <span class="no">s10m</span>,
   <span class="kw">fcst_model</span> <span class="kw">=</span> <span class="st">"AROME_Arctic"</span>,
   <span class="kw">plot_col</span>   <span class="kw">=</span> <span class="no">regridded_data</span>,
   <span class="kw">lead_time</span>  <span class="kw">=</span> <span class="fl">0</span>,
   <span class="kw">breaks</span>     <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span>(<span class="fl">0</span>, <span class="fl">20</span>, <span class="fl">2</span>)
-)
-<span class="co">#&gt; Date assumed to be YYYYMMDDHHmmss</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; Date assumed to be YYYYMMDDHHmmss</code></pre>
 <p><img src="transformations_files/figure-html/plot-2.png" width="768"></p>
 </div>
 <div id="xsection" class="section level2">
