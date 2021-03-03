@@ -77,8 +77,12 @@ grib_opts <- function(
         stop("`", arg_name, "` must be a named list", call. = FALSE)
       }
 
-      if (is.null(names(arg)) || sort(names(arg)) == c("key", "value")) {
-        stop("`", arg_name, "` must be a named list", call. = FALSE)
+      if (is.null(names(arg)) || any(names(arg) %in% c("key", "value", "level"))) {
+        stop(
+          "`", arg_name, "` must be a named list.\n",
+          "Names cannot include `key`, `value`, or `level`",
+          call. = FALSE
+        )
       }
 
       if (arg_name == "param_find") {
@@ -181,28 +185,28 @@ use_grib_indicatorOfTypeOfLevel <- function(value, level = -999) {
 use_grib_typeOfLevel <- function(value, level = -999) {
   stopifnot(is.character(value))
   stopifnot(is.numeric(level))
-  use_grib_key_level("indicatorOfTypeOfLevel", value, level)
+  use_grib_key_level("typeOfLevel", value, level)
 }
 
 #' @rdname grib_opts
 #' @export
 use_grib_heightAboveGround <- function(level = -999) {
   stopifnot(is.numeric(level))
-  use_grib_key_level("typeOfLevel", "heightAboveGround", level)
+  use_grib_typeOfLevel("heightAboveGround", level)
 }
 
 #' @rdname grib_opts
 #' @export
 use_grib_pressure <- function(level = -999) {
   stopifnot(is.numeric(level))
-  use_grib_key_level("typeOfLevel", "isobaricInhPa", level)
+  use_grib_typeOfLevel("isobaricInhPa", level)
 }
 
 #' @rdname grib_opts
 #' @export
 use_grib_hybrid <- function(level = -999) {
   stopifnot(is.numeric(level))
-  use_grib_key_level("typeOfLevel", "hybrid", level)
+  use_grib_typeOfLevel("hybrid", level)
 }
 
 #' @rdname grib_opts
@@ -215,7 +219,7 @@ use_grib_model <- function(level = -999) {
 #' @rdname grib_opts
 #' @export
 use_grib_surface <- function() {
-  use_grib_key_level("typeOfLevel", "surface", -999)
+  use_grib_typeOfLevel("surface", -999)
 }
 
 #' @rdname grib_opts

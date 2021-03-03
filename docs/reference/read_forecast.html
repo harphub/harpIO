@@ -76,7 +76,7 @@ calling environment, and / or written to files." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9176</span>
       </span>
     </div>
 
@@ -169,7 +169,8 @@ calling environment, and / or written to files.</p>
   <span class='kw'>output_file_opts</span> <span class='kw'>=</span> <span class='fu'><a href='sqlite_opts.html'>sqlite_opts</a></span>(),
   <span class='kw'>return_data</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>merge_lags</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>show_progress</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
+  <span class='kw'>show_progress</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>stop_on_fail</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>
 )</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -330,6 +331,12 @@ unlagged members.</p></td>
       <th>show_progress</th>
       <td><p>Some files may contain a lot of data. Set to TRUE to
 show progress when reading these files.</p></td>
+    </tr>
+    <tr>
+      <th>stop_on_fail</th>
+      <td><p>Logical. Set to TRUE to make execution stop if there are
+problems reading a file. Missing files are always skipped regardless of
+this setting. The default value is FALSE.</p></td>
     </tr>
     </table>
 

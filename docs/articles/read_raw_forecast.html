@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9176</span>
       </span>
     </div>
 
@@ -88,7 +88,8 @@
 
       
 
-      </header><div class="row">
+      </header><script src="read_raw_forecast_files/accessible-code-block-0.0.1/empty-anchor.js"></script><link href="read_raw_forecast_files/anchor-sections-1.0/anchor-sections.css" rel="stylesheet">
+<script src="read_raw_forecast_files/anchor-sections-1.0/anchor-sections.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Reading forecast model data</h1>
@@ -128,30 +129,30 @@ text-align: justify;
   <span class="kw">file_path</span>     <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"grib/AROME_Arctic"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"harpData"</span>),
   <span class="kw">file_template</span> <span class="kw">=</span> <span class="st">"harmonie_grib_fp"</span>,
   <span class="kw">return_data</span>   <span class="kw">=</span> <span class="fl">TRUE</span>
-)
-<span class="co">#&gt; ● AROME_Arctic</span>
-<span class="co">#&gt; # A tibble: 17 x 9</span>
-<span class="co">#&gt;    fcdate              lead_time parameter validdate           level_type level</span>
-<span class="co">#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;int&gt;</span>
-<span class="co">#&gt;  1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2</span>
-<span class="co">#&gt;  2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2</span>
-<span class="co">#&gt;  3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2</span>
-<span class="co">#&gt;  4 2018-07-10 00:00:00         9 T2m       2018-07-10 09:00:00 height         2</span>
-<span class="co">#&gt;  5 2018-07-10 00:00:00        12 T2m       2018-07-10 12:00:00 height         2</span>
-<span class="co">#&gt;  6 2018-07-10 00:00:00        15 T2m       2018-07-10 15:00:00 height         2</span>
-<span class="co">#&gt;  7 2018-07-10 00:00:00        18 T2m       2018-07-10 18:00:00 height         2</span>
-<span class="co">#&gt;  8 2018-07-10 00:00:00        21 T2m       2018-07-10 21:00:00 height         2</span>
-<span class="co">#&gt;  9 2018-07-10 00:00:00        24 T2m       2018-07-11 00:00:00 height         2</span>
-<span class="co">#&gt; 10 2018-07-10 00:00:00        27 T2m       2018-07-11 03:00:00 height         2</span>
-<span class="co">#&gt; # … with 7 more rows, and 3 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,</span>
-<span class="co">#&gt; #   AROME_Arctic_det &lt;geolist&gt;</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; ● AROME_Arctic
+#&gt; # A tibble: 17 x 9
+#&gt;    fcdate              lead_time parameter validdate           level_type level
+#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;int&gt;
+#&gt;  1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2
+#&gt;  2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2
+#&gt;  3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2
+#&gt;  4 2018-07-10 00:00:00         9 T2m       2018-07-10 09:00:00 height         2
+#&gt;  5 2018-07-10 00:00:00        12 T2m       2018-07-10 12:00:00 height         2
+#&gt;  6 2018-07-10 00:00:00        15 T2m       2018-07-10 15:00:00 height         2
+#&gt;  7 2018-07-10 00:00:00        18 T2m       2018-07-10 18:00:00 height         2
+#&gt;  8 2018-07-10 00:00:00        21 T2m       2018-07-10 21:00:00 height         2
+#&gt;  9 2018-07-10 00:00:00        24 T2m       2018-07-11 00:00:00 height         2
+#&gt; 10 2018-07-10 00:00:00        27 T2m       2018-07-11 03:00:00 height         2
+#&gt; # … with 7 more rows, and 3 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,
+#&gt; #   AROME_Arctic_det &lt;geolist&gt;</code></pre>
 <p>The last column in the data frame, named AROME_Arctic_det is the forecast data, which are stored as geofield objects - these are simply 2d arrays with attributes that describe the projection, time and parameter information of the data. For all deterministic models the name of the column is the forecast model name with a suffix "_det".</p>
 </div>
 <div id="ensemble-forecasts" class="section level2">
 <h2 class="hasAnchor">
 <a href="#ensemble-forecasts" class="anchor"></a>Ensemble forecasts</h2>
 <p>Reading ensemble forecasts works in exactly the same way. harpData includes output from the AROME-Arctic ensemble model, AAEPS, for the same dates as before, but this time stored in a single netcdf file. Since the data are in a netcdf file, and netcdf files can use many different dimension names and variable names, <code><a href="../reference/read_forecast.html">read_forecast()</a></code> needs some information about the structure of the netcdf file. This structure information is generated with the function <code><a href="../reference/netcdf_opts.html">netcdf_opts()</a></code>, and since the data come from an EPS model produced by MET Norway we can use one of the built it options sets: <code><a href="../reference/netcdf_opts.html">netcdf_opts(options_set = "met_norway_eps")</a></code>. All lead times and ensemble members are in the same file, so if you want to read all members from the file you don’t have to pass the members as an argument.</p>
-<div class="sourceCode" id="cb4"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
+<div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
   <span class="fl">2018071000</span>,
   <span class="fl">2018071000</span>,
   <span class="st">"AAEPS"</span>,
@@ -160,24 +161,24 @@ text-align: justify;
   <span class="kw">file_template</span>    <span class="kw">=</span> <span class="st">"fc{YYYY}{MM}{DD}{HH}.nc"</span>,
   <span class="kw">file_format_opts</span> <span class="kw">=</span> <span class="fu"><a href="../reference/netcdf_opts.html">netcdf_opts</a></span>(<span class="kw">options_set</span> <span class="kw">=</span> <span class="st">"met_norway_eps"</span>),
   <span class="kw">return_data</span>      <span class="kw">=</span> <span class="fl">TRUE</span>
-)
-<span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.0/harpData/netcdf/AAEPS/fc2018071000.nc</span>
-<span class="co">#&gt; Warning: Lead times: 15h,18h,21h,24h,27h,30h,33h,36h,39h,42h,45h,48h for 'T2m'</span>
-<span class="co">#&gt; not found in file.</span>
-<span class="co">#&gt; ● AAEPS</span>
-<span class="co">#&gt; # A tibble: 5 x 13</span>
-<span class="co">#&gt;   fcdate              lead_time parameter validdate           level_type level</span>
-<span class="co">#&gt;   &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2</span>
-<span class="co">#&gt; 2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2</span>
-<span class="co">#&gt; 3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2</span>
-<span class="co">#&gt; 4 2018-07-10 00:00:00         9 T2m       2018-07-10 09:00:00 height         2</span>
-<span class="co">#&gt; 5 2018-07-10 00:00:00        12 T2m       2018-07-10 12:00:00 height         2</span>
-<span class="co">#&gt; # … with 7 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,</span>
-<span class="co">#&gt; #   AAEPS_mbr000 &lt;geolist&gt;, AAEPS_mbr001 &lt;geolist&gt;, AAEPS_mbr002 &lt;geolist&gt;,</span>
-<span class="co">#&gt; #   AAEPS_mbr003 &lt;geolist&gt;, AAEPS_mbr004 &lt;geolist&gt;</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.0/harpData/netcdf/AAEPS/fc2018071000.nc</code></pre>
+<pre><code>#&gt; Warning: Lead times: 15h,18h,21h,24h,27h,30h,33h,36h,39h,42h,45h,48h for 'T2m'
+#&gt; not found in file.</code></pre>
+<pre><code>#&gt; ● AAEPS
+#&gt; # A tibble: 5 x 13
+#&gt;   fcdate              lead_time parameter validdate           level_type level
+#&gt;   &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;dbl&gt;
+#&gt; 1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2
+#&gt; 2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2
+#&gt; 3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2
+#&gt; 4 2018-07-10 00:00:00         9 T2m       2018-07-10 09:00:00 height         2
+#&gt; 5 2018-07-10 00:00:00        12 T2m       2018-07-10 12:00:00 height         2
+#&gt; # … with 7 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,
+#&gt; #   AAEPS_mbr000 &lt;geolist&gt;, AAEPS_mbr001 &lt;geolist&gt;, AAEPS_mbr002 &lt;geolist&gt;,
+#&gt; #   AAEPS_mbr003 &lt;geolist&gt;, AAEPS_mbr004 &lt;geolist&gt;</code></pre>
 <p>You will see that there is a warning about missing lead times. This is because the default behaviour is to ask for lead times 0 - 48 hours, every three hours. The forecast data are in columns with the name of the forecast model with a suffix "_mbrXXX" where XXX is the member number. We could also ask for a limited set of lead times and ensemble members:</p>
-<div class="sourceCode" id="cb5"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
+<div class="sourceCode" id="cb9"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
   <span class="fl">2018071000</span>,
   <span class="fl">2018071000</span>,
   <span class="st">"AAEPS"</span>,
@@ -188,23 +189,23 @@ text-align: justify;
   <span class="kw">file_template</span>    <span class="kw">=</span> <span class="st">"fc{YYYY}{MM}{DD}{HH}.nc"</span>,
   <span class="kw">file_format_opts</span> <span class="kw">=</span> <span class="fu"><a href="../reference/netcdf_opts.html">netcdf_opts</a></span>(<span class="kw">options_set</span> <span class="kw">=</span> <span class="st">"met_norway_eps"</span>),
   <span class="kw">return_data</span>      <span class="kw">=</span> <span class="fl">TRUE</span>
-)
-<span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.0/harpData/netcdf/AAEPS/fc2018071000.nc</span>
-<span class="co">#&gt; ● AAEPS</span>
-<span class="co">#&gt; # A tibble: 3 x 11</span>
-<span class="co">#&gt;   fcdate              lead_time parameter validdate           level_type level</span>
-<span class="co">#&gt;   &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;dbl&gt;</span>
-<span class="co">#&gt; 1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2</span>
-<span class="co">#&gt; 2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2</span>
-<span class="co">#&gt; 3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2</span>
-<span class="co">#&gt; # … with 5 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,</span>
-<span class="co">#&gt; #   AAEPS_mbr000 &lt;geolist&gt;, AAEPS_mbr002 &lt;geolist&gt;, AAEPS_mbr004 &lt;geolist&gt;</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.0/harpData/netcdf/AAEPS/fc2018071000.nc</code></pre>
+<pre><code>#&gt; ● AAEPS
+#&gt; # A tibble: 3 x 11
+#&gt;   fcdate              lead_time parameter validdate           level_type level
+#&gt;   &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;dbl&gt;
+#&gt; 1 2018-07-10 00:00:00         0 T2m       2018-07-10 00:00:00 height         2
+#&gt; 2 2018-07-10 00:00:00         3 T2m       2018-07-10 03:00:00 height         2
+#&gt; 3 2018-07-10 00:00:00         6 T2m       2018-07-10 06:00:00 height         2
+#&gt; # … with 5 more variables: units &lt;chr&gt;, fcst_cycle &lt;chr&gt;,
+#&gt; #   AAEPS_mbr000 &lt;geolist&gt;, AAEPS_mbr002 &lt;geolist&gt;, AAEPS_mbr004 &lt;geolist&gt;</code></pre>
 </div>
 <div id="lagged-ensembles" class="section level2">
 <h2 class="hasAnchor">
 <a href="#lagged-ensembles" class="anchor"></a>Lagged ensembles</h2>
 <p>For lagged ensembles, data are available in harpData for the CMEPS model in <code>vfld</code> format. <code>vfld</code> files are text files with gridded data already interpolated to points. The CMEPS ensemble is quite complex with a number of members available each hour, but tied to a control member every three hours. harpData has members 0, 1, 3, 4, 5 and 6 where members 0 and 1 are run at hours 0, 3, 6, …, 21; members 3 and 4 at hours 1, 4, 7, …, 22; and members 5 and 6 at hours 2, 5, 8, …, 23. This means that members 3 and 4 are two hours behind members 0 and 1, and members 5 and 6 are one hour behind members 0 and 1. The <code>lags</code> argument is used to pass the lagging information to <code>read_forecast</code> and the lags aer assumed to be in the same order as the <code>members</code> argument. Note also that the dates for CMEPS data are different to the ones that have been used before.</p>
-<div class="sourceCode" id="cb6"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
+<div class="sourceCode" id="cb12"><html><body><pre class="r"><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span>(
   <span class="fl">2019021700</span>,
   <span class="fl">2019021718</span>,
   <span class="st">"CMEPS_prod"</span>,
@@ -215,25 +216,25 @@ text-align: justify;
   <span class="kw">file_path</span>     <span class="kw">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span>(<span class="st">"vfld"</span>, <span class="kw">package</span> <span class="kw">=</span> <span class="st">"harpData"</span>),
   <span class="kw">file_template</span> <span class="kw">=</span> <span class="st">"vfld_eps"</span>,
   <span class="kw">return_data</span>   <span class="kw">=</span> <span class="fl">TRUE</span>
-)
-<span class="co">#&gt; ● CMEPS_prod</span>
-<span class="co">#&gt; # A tibble: 22,980 x 15</span>
-<span class="co">#&gt;    fcdate              lead_time parameter   SID   lat   lon units</span>
-<span class="co">#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
-<span class="co">#&gt;  1 2019-02-17 00:00:00         0 T2m        1001  70.9 -8.67 K    </span>
-<span class="co">#&gt;  2 2019-02-17 00:00:00         0 T2m        1010  69.3 16.1  K    </span>
-<span class="co">#&gt;  3 2019-02-17 00:00:00         0 T2m        1014  69.2 17.9  K    </span>
-<span class="co">#&gt;  4 2019-02-17 00:00:00         0 T2m        1015  69.6 17.8  K    </span>
-<span class="co">#&gt;  5 2019-02-17 00:00:00         0 T2m        1018  69.2 16.0  K    </span>
-<span class="co">#&gt;  6 2019-02-17 00:00:00         0 T2m        1023  69.1 18.5  K    </span>
-<span class="co">#&gt;  7 2019-02-17 00:00:00         0 T2m        1025  69.7 18.9  K    </span>
-<span class="co">#&gt;  8 2019-02-17 00:00:00         0 T2m        1026  69.7 18.9  K    </span>
-<span class="co">#&gt;  9 2019-02-17 00:00:00         0 T2m        1027  69.7 18.9  K    </span>
-<span class="co">#&gt; 10 2019-02-17 00:00:00         0 T2m        1033  70.2 19.5  K    </span>
-<span class="co">#&gt; # … with 22,970 more rows, and 8 more variables: validdate &lt;dttm&gt;,</span>
-<span class="co">#&gt; #   fcst_cycle &lt;chr&gt;, CMEPS_prod_mbr000 &lt;dbl&gt;, CMEPS_prod_mbr001 &lt;dbl&gt;,</span>
-<span class="co">#&gt; #   CMEPS_prod_mbr003_lag2h &lt;dbl&gt;, CMEPS_prod_mbr004_lag2h &lt;dbl&gt;,</span>
-<span class="co">#&gt; #   CMEPS_prod_mbr005_lag1h &lt;dbl&gt;, CMEPS_prod_mbr006_lag1h &lt;dbl&gt;</span></pre></body></html></div>
+)</pre></body></html></div>
+<pre><code>#&gt; ● CMEPS_prod
+#&gt; # A tibble: 22,980 x 15
+#&gt;    fcdate              lead_time parameter   SID   lat   lon units
+#&gt;    &lt;dttm&gt;                  &lt;dbl&gt; &lt;chr&gt;     &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;
+#&gt;  1 2019-02-17 00:00:00         0 T2m        1001  70.9 -8.67 K    
+#&gt;  2 2019-02-17 00:00:00         0 T2m        1010  69.3 16.1  K    
+#&gt;  3 2019-02-17 00:00:00         0 T2m        1014  69.2 17.9  K    
+#&gt;  4 2019-02-17 00:00:00         0 T2m        1015  69.6 17.8  K    
+#&gt;  5 2019-02-17 00:00:00         0 T2m        1018  69.2 16.0  K    
+#&gt;  6 2019-02-17 00:00:00         0 T2m        1023  69.1 18.5  K    
+#&gt;  7 2019-02-17 00:00:00         0 T2m        1025  69.7 18.9  K    
+#&gt;  8 2019-02-17 00:00:00         0 T2m        1026  69.7 18.9  K    
+#&gt;  9 2019-02-17 00:00:00         0 T2m        1027  69.7 18.9  K    
+#&gt; 10 2019-02-17 00:00:00         0 T2m        1033  70.2 19.5  K    
+#&gt; # … with 22,970 more rows, and 8 more variables: validdate &lt;dttm&gt;,
+#&gt; #   fcst_cycle &lt;chr&gt;, CMEPS_prod_mbr000 &lt;dbl&gt;, CMEPS_prod_mbr001 &lt;dbl&gt;,
+#&gt; #   CMEPS_prod_mbr003_lag2h &lt;dbl&gt;, CMEPS_prod_mbr004_lag2h &lt;dbl&gt;,
+#&gt; #   CMEPS_prod_mbr005_lag1h &lt;dbl&gt;, CMEPS_prod_mbr006_lag1h &lt;dbl&gt;</code></pre>
 <p>You will see that a number of members have NA - this is beacues certain combinations of forecast time and lead time do not exist for those members. When data are in read in from SQLite files using <code><a href="../reference/read_point_forecast.html">read_point_forecast()</a></code> this information is adjusted to take care of the lagged members. When working with point data, the most efficient workflow is to use <code><a href="../reference/read_forecast.html">read_forecast()</a></code> to write the data to  files and then read from the  files.</p>
 <div id="see-also" class="section level3">
 <h3 class="hasAnchor">

@@ -74,7 +74,7 @@ read_netcdf <- function(
     missing_dims <- setdiff(missing_dims, names(nc_id$var))
     if (length(missing_dims) > 0) {
       stop(
-        "Requested dimensions: '", paste(missing_dims, collapse = ", ", " not found in file:\n"),
+        "Requested dimensions: '", paste0(missing_dims, collapse = ", ", "' not found in file:\n"),
         file_name, "\nUse netcdf_opts() to set the correct dimension names.",
         call. = FALSE
       )
@@ -204,9 +204,10 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
     }
     if (warn_dims) {
       warning(
-        "Requested dimensions do not match for '", harp_param, "' in ", file_name, ".\n",
-        "Requested dimensions: (", paste(opts_dims, collapse = ","), ")\n",
-        "Dimensions in file: (", paste(nc_dims, collapse = ", "),
+        "Requested dimensions do not match for '", harp_param[["fullname"]],
+        "' in ", file_name, ".\n",
+        "Requested dimensions: (", paste(opts_dims, collapse = ", "), ")\n",
+        "Dimensions in file: (", paste(nc_dims, collapse = ", "), ").",
         call. = FALSE, immediate. = TRUE
       )
       return(NULL)

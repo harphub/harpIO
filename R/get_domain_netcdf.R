@@ -33,6 +33,16 @@ get_domain_netcdf <- function(file_name, opts) {
         call. = FALSE
       )
     }
+    if (is.null(proj4_att)) {
+      proj4 <- ncdf4::ncvar_get(proj4_var)
+      if (!grepl("+proj", proj4)) {
+        stop(
+          "Projection variable '", proj4_var, "' does not appear to be a proj string:\n",
+          proj4,
+          call. = FALSE
+        )
+      }
+    }
     proj4 <- ncdf4::ncatt_get(nc_id, proj4_var, proj4_att)
     if (!proj4[["hasatt"]]) {
       stop(

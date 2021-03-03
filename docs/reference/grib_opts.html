@@ -40,7 +40,12 @@
 
 
 <meta property="og:title" content="Set options for grib files — grib_opts" />
-<meta property="og:description" content="Set options for grib files" />
+<meta property="og:description" content="In general options for grib files do not need to be explicitly set. However,
+if you wish to be explicit about how to find a field in a grib file you make
+use of the param_find argument. Here you pass a named list with the
+parameters given in e.g. read_forecast or read_grid you wish to
+be explicit about as the names. The helper functions use_grib_* can be used
+to set key value pairs to use in the search." />
 
 
 
@@ -72,7 +77,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">harpIO</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9168</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9176</span>
       </span>
     </div>
 
@@ -138,10 +143,47 @@
     </div>
 
     <div class="ref-description">
-    <p>Set options for grib files</p>
+    <p>In general options for grib files do not need to be explicitly set. However,
+if you wish to be explicit about how to find a field in a grib file you make
+use of the <code>param_find</code> argument. Here you pass a named list with the
+parameters given in e.g. <a href='read_forecast.html'>read_forecast</a> or <a href='read_grid.html'>read_grid</a> you wish to
+be explicit about as the names. The helper functions use_grib_* can be used
+to set key value pairs to use in the search.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>grib_opts</span>(<span class='kw'>meta</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>multi</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
+    <pre class="usage"><span class='fu'>grib_opts</span>(
+  <span class='kw'>meta</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>multi</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>param_find</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>level_find</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='no'>...</span>
+)
+
+<span class='fu'>use_grib_key</span>(<span class='no'>key</span>, <span class='no'>value</span>)
+
+<span class='fu'>use_grib_indicatorOfParameter</span>(<span class='no'>value</span>)
+
+<span class='fu'>use_grib_paramId</span>(<span class='no'>value</span>)
+
+<span class='fu'>use_grib_shortName</span>(<span class='no'>value</span>)
+
+<span class='fu'>use_grib_key_level</span>(<span class='no'>key</span>, <span class='no'>value</span>, <span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_indicatorOfTypeOfLevel</span>(<span class='no'>value</span>, <span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_typeOfLevel</span>(<span class='no'>value</span>, <span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_heightAboveGround</span>(<span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_pressure</span>(<span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_hybrid</span>(<span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_model</span>(<span class='kw'>level</span> <span class='kw'>=</span> -<span class='fl'>999</span>)
+
+<span class='fu'>use_grib_surface</span>()
+
+<span class='fu'>use_grib_meanSea</span>()</pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -155,17 +197,78 @@
       <td><p>Logical. Whether there are multi field grib messages.</p></td>
     </tr>
     <tr>
+      <th>param_find</th>
+      <td><p>A named list with names being the parameters to find in the
+grib files. Each element of the named list is a list with names "key" and
+"value". The default is NULL, which means to attempt to automatically find
+the parameter using shortName from the appropriate grib table.</p></td>
+    </tr>
+    <tr>
+      <th>level_find</th>
+      <td><p>A named list with names being the parameters to find in the
+grib files. Each element of the named list is a list with names "key",
+"value" and "level". Here "key" is the grib key to be used to find the
+level, "value" is the value of the grib key and "level" is the value of the
+level. Set level = -999 to select all available levels. The default is
+NULL, which means to attempt to automatically find the level.</p></td>
+    </tr>
+    <tr>
       <th>...</th>
-      <td><p>Any other options that may exist in futire Rgrib2 versions.</p></td>
+      <td><p>Any other options that may exist in future Rgrib2 versions.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A list</p>
+    <p>A list of options for reading grib files.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>If harp is not aware of the grib shortName for the field you wish to read, or
+harp has the wrong shortName you can set <code>param_find</code> using
+<code>use_grib_shortName()</code>. Alternatively if the field you wish to read does
+not have a shortName, but has a value for indicatorOfParameter you can set
+<code>param_find</code> using <code>use_grib_indicatorOfParameter()</code>, and the same
+applies for paramId using <code>use_grib_paramId()</code>.</p>
+<p>You can use other grib key value pairs to find fields in a grib file by
+setting <code>param_find</code> with <code>use_grib_key</code> giving it the key and
+value to search for. Finally, each element of <code>param_find</code> can be simply
+set using a list with names "key" and "value".</p>
+<p>Similarly, although harp knows the type of vertical level most parameters are
+on, you may need to set this explicitly with the <code>level_find</code> argument
+which is a list that selects which grib key to use to find the type of level,
+the value of that grib key that corresponds to the desired type of level and
+the value of the level itself. As for <code>param_find</code>, there are helper
+functions to help you to set the desired values for <code>level_find</code>.</p>
+<p>You can use <code>use_grib_key_level</code> to set the grib key, value and level
+explicitly; <code>use_grib_typeOfLevel</code> to use the typeOfLevel grib key and
+explicitly set the value and level, similarly with
+<code>use_grib_indicatorOfTypeOfLevel</code>; <code>use_grib_heightAboveGround</code>,
+<code>use_grib_pressure</code>, <code>use_grib_hybrid</code> to set a height, pressure or
+hybrid level respectively; and <code>use_grib_surface</code> and
+<code>use_grib_meanSea</code> to select the surface and mean sea levels
+respectively.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='fu'>grib_opts</span>()</pre>
+    <pre class="examples"><span class='fu'>grib_opts</span>()
+<span class='fu'>grib_opts</span>(<span class='kw'>param_find</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>S10m</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>key</span> <span class='kw'>=</span> <span class='st'>"shortName"</span>, <span class='kw'>value</span> <span class='kw'>=</span> <span class='st'>"WS10"</span>)))
+<span class='fu'>grib_opts</span>(<span class='kw'>param_find</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>S10m</span> <span class='kw'>=</span> <span class='fu'>use_grib_key</span>(<span class='st'>"shortName"</span>, <span class='st'>"WS10"</span>)))
+<span class='fu'>grib_opts</span>(<span class='kw'>param_find</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>S10m</span> <span class='kw'>=</span> <span class='fu'>use_grib_shortName</span>(<span class='st'>"WS10"</span>)))
+<span class='fu'>grib_opts</span>(
+  <span class='kw'>param_find</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>T2m</span> <span class='kw'>=</span> <span class='fu'>use_grib_shortName</span>(<span class='st'>"t"</span>)),
+  <span class='kw'>level_find</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>T2m</span> <span class='kw'>=</span> <span class='fu'>use_grib_typeOfLevel</span>(<span class='st'>"heightAboveGround"</span>, <span class='fl'>2</span>))
+)
+<span class='fu'>use_grib_key</span>(<span class='st'>"indicatorOfParameter"</span>, <span class='fl'>65</span>)
+<span class='fu'>use_grib_indicatorOfParameter</span>(<span class='fl'>65</span>)
+<span class='fu'>use_grib_key</span>(<span class='st'>"paramId"</span>, <span class='fl'>33</span>)
+<span class='fu'>use_grib_paramId</span>(<span class='fl'>33</span>)
+<span class='fu'>use_grib_key</span>(<span class='st'>"shortName"</span>, <span class='st'>"tp"</span>)
+<span class='fu'>use_grib_shortName</span>(<span class='st'>"tp"</span>)
+<span class='fu'>use_grib_key_level</span>(<span class='st'>"typeOfLevel"</span>, <span class='st'>"heightAboveGround"</span>, <span class='fl'>2</span>)
+<span class='fu'>use_grib_typeOfLevel</span>(<span class='st'>"heightAboveGround"</span>, <span class='fl'>2</span>)
+<span class='fu'>use_grib_heightAboveGround</span>(<span class='fl'>2</span>)
+<span class='fu'>use_grib_indicatorOfTypeOfLevel</span>(<span class='fl'>105</span>, <span class='fl'>2</span>)
+<span class='fu'>use_grib_pressure</span>(<span class='fl'>500</span>)
+<span class='fu'>use_grib_surface</span>()</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

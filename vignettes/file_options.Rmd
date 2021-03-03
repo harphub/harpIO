@@ -9,13 +9,413 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>"
 )
 ```
 
-```{r setup}
+For this vignette, we will use the {{harpIO}} and {{dplyr}} packages. Note that {{dplyr}} is only used for the `dplyr::select()` function to remove some columns from data frames so that they are not too wide for the vignette!
+
+```{r setup, message = FALSE}
 library(harpIO)
+library(dplyr)
 ```
 
-# Coming Soon!
+{{harpIO}} is able to read data from several different file formats. This is includes grib (both editions 1 and 2), netcdf, FA and vfld / vobs. In most cases, reading forecast data with the `read_forecast()` function is straightforward, but there are some issues that need to be taken into account for some formats. This vignette describes the extra options for grib and netcdf file formats. 
+
+## Grib files
+Grib files have long been used to store meteorological data. They are a binary data format and store "messages" as 2d fields. Each message is accompanied by metadata that describe the geographic projection of the data and the grid that they are on. This metadata also includes key-value pairs that describe what the data are - i.e. the parameter, what vertical level they are on, etc. {{harpIO}} harnesses the {{Rgrib2}} package to read data from grib files, making use of the key-value pairs to extract the correct 2d fields from the files. Behind the scenes, {{Rgirb2}} uses the [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) system library, which includes lookup tables for many different operational centres. 
+
+For built in harp parameters (see `show_harp_parameters()`), the extraction of grib messages is done based on the grib _shortName_, _indicatorOfTypeOfLevel_, _level_, _dataDate_, _dataTime_ and _stepRange_ keys. Additionally, for ensemble forecasts the _perturbationNumber_ key is used when different ensemble members are in the same file. In some cases, the values used for these keys may not be compatible with the key-value pairs used in some grib files. For example, different forecast centres may use values for the shortName key that are not listed in the lookup tables that are included with ecCodes, or store fields on vertical levels that are not consistent with what {{harpIO}} expects. In order to address the `grib_opts()` function can be used to set the `file_format_opts` argument in calls to `read_forecast()` or `read_grid()` so that specific key-value pairs can be used to override those built in to {{harpIO}}. 
+
+In the following examples, we will use `read_grid()` to read gridded data from a grib file in the {{harpData}} package, so first we create the path to the file. We export this to a system variable so that 
+
+```{r make-path}
+grib_file <- system.file(
+  "grib/AROME_Arctic/2018/07/10/00/fc2018071000+006grib_fp", 
+  package = "harpData"
+)
+
+```
+
+We can then use the system command, `grib_ls` from ecCodes to get a summary of the content of the grib file. The -p tag is used to just select the keys we might be interested in. 
+
+```{r grib-ls, eval=FALSE}
+system(
+  paste(
+    "grib_ls",
+    "-p shortName,indicatorOfParameter,typeOfLevel,level", 
+    grib_file
+  )
+)
+```
+
+```{r grib-ls-print, echo=FALSE}
+cat(
+  system(
+    paste(
+      "grib_ls",
+      "-p shortName,indicatorOfParameter,typeOfLevel,level", 
+      grib_file
+    ),
+    intern = TRUE
+  )[2:148],
+  sep = "\n"
+)
+
+grib_file <- "fc2018071000+006grib_fp"
+```
+
+### Setting the shortName
+If we take for example the grib message with shortName "tp", we can read this without problem using the harp parameter "Pcp":
+
+```{r read-precip-normal}
+read_grid(grib_file, "Pcp")
+```
+
+However, what if for some reason we wanted to use "Precip" instead of "Pcp" for the parameter name. Then `read_grid()` will not know which _shortName_ to search for, so will attempt to find a message with _shortName_ = "precip", and won't be able to find anything. Note it also uses _levelType_ = 255 and _level_ = -999. This means that if it does find messages with with _shortName_ = "precip", it will ignore the type of level and read messages for all levels.  
+
+```{r read-precip-fail, message = FALSE, error = TRUE}
+read_grid(grib_file, "Precip")
+```
+
+We can then use `grib_opts()` with the argument `param_find` to force it to look for the _shortName_ "tp" instead. `param_find` must be a named list with the name being the same as the parameter that is requested, and the elements can be set using a `use_grib_*()` function, which are listed in the help for `grib_opts()`. To set the grib _shortName_ to look for, we use the `use_grib_shortName()` function. 
+
+```{r read-precip-new-var}
+read_grid(
+  grib_file,
+  "Precip",
+  file_format_opts = grib_opts(
+    param_find = list(Precip = use_grib_shortName("tp"))
+  )
+)
+```
+
+We can also read more than one variable in this way - for example, let's say we want to read 2m temperature, precipitation and total cloud cover - we will stick with the harp name, "T2m", for 2m temperature but use different names for precipitation (Precip, _shortName_ = "tp") and total cloud cover (Cloud, _shortName_ = "tcc").
+
+```{r read-new-vars}
+read_grid(
+  grib_file,
+  c("Cloud", "T2m", "Precip"),
+  file_format_opts = grib_opts(
+    param_find = list(
+      Precip = use_grib_shortName("tp"),
+      Cloud  = use_grib_shortName("tcc")
+    )
+  )
+)
+```
+
+And if we set the output of `read_grid()` to be a data frame, we can see that the modified parameter names have been used. 
+
+```{r read-new-vars-df}
+read_grid(
+  grib_file,
+  c("Cloud", "T2m", "Precip"),
+  file_format_opts = grib_opts(
+    param_find = list(
+      Precip = use_grib_shortName("tp"),
+      Cloud  = use_grib_shortName("tcc")
+    )
+  ), 
+  data_frame = TRUE
+) %>% 
+  select(-ends_with("date"), -members)
+```
+
+### Dealing with an unknown shortName
+
+In some cases the grib lookup table that is used may be a local version that is not included with ecCodes. In this case you would need to use another grib key to locate the correct message. Typically this would be _indicatorOfParameter_ for grib edition 1, or _paramId_ for grib edition 2. Looking back to the output of `grib_ls` above, we can see that the message for total precipitation (_shortName_ = "tp") has _indicatorOfParameter_ = 61, and that for 10m wind speed (_shortName_ = "ws") has _indicatorOfParameter_ = 32. We can therefore use these to extract the data from the file by using `use_grib_indicatorOfParameter`. 
+
+```{r use-indicator-of-parameter}
+read_grid(
+  grib_file,
+  c("total_precipitation", "wind_speed"),
+  file_format_opts = grib_opts(
+    param_find = list(
+      total_precipitation = use_grib_indicatorOfParameter(61),
+      wind_speed          = use_grib_indicatorOfParameter(32)
+    )
+  )
+)
+```
+
+In practical situations, where the grib _shortName_ is not known, it is the user's responsibility to know which _indicatorOfParameter_ or _paramId_ to use. 
+
+### Reading data from specific level types
+
+In our example data file, some data exist on potential vorticity levels. {{harpIO}} does not know how to read these data, but we can use the `level_find` argument of `grib_opts()` to select the correct type of level. `level_find` works in the same way as `param_find` in that it requires a named list and a `use_grib_*()` function to set the correct grib keys. Here, the _typeOfLevel_ key has a value of "potentialVorticity", so we can read the geopotential (Z), wind speed in the x direction of the model grid (U), and wind speed in the y direction of the model grid (V) by setting the _typeOfLevel_ key to "potentialVorticity". Z, U, V are parameters that {{harpIO}} knows, so we don't need to worry about `param_find`.
+
+```{r pv-levels}
+read_grid(
+  grib_file,
+  c("U", "V", "Z"),
+  file_format_opts = grib_opts(
+    level_find = list(
+      U = use_grib_typeOfLevel("potentialVorticity"),
+      V = use_grib_typeOfLevel("potentialVorticity"),
+      Z = use_grib_typeOfLevel("potentialVorticity")
+    )
+  ), 
+  data_frame = TRUE
+) %>% 
+  select(-ends_with("date"), -members)
+```
+
+By default, all levels are read, but we can use the second argument of `use_grib_typeOfLevel` to set the levels to read:
+
+```{r pv-specified-levels}
+read_grid(
+  grib_file,
+  c("U", "V", "Z"),
+  file_format_opts = grib_opts(
+    level_find = list(
+      U = use_grib_typeOfLevel("potentialVorticity", 1500),
+      V = use_grib_typeOfLevel("potentialVorticity", 3000),
+      Z = use_grib_typeOfLevel("potentialVorticity", c(2000, 3000))
+    )
+  ), 
+  data_frame = TRUE
+) %>% 
+  select(-ends_with("date"), -members)
+```
+
+Note that currently a warning is only given if no levels are found. If more than one level is asked for, but at least one is found the function is silent about the missing levels. 
+
+### Reading specific levels
+
+Currently `read_grid()` and `read_forecast()` can either read one or all vertical levels from files. To read a small selection of levels from a grib file, the `level_find` argument to `grib_opts()` can be used conjunction with `use_grib_pressure()`, `use_grib_model()` and `use_grib_heightAboveGround()` to read from specific pressure, model (hybrid), or height levels. Our example data contain data on a range of pressure levels, so if we want, for example, temperature at 850-, 500- and 200 hPa, we would do the following:
+
+```{r pressure-levels}
+read_grid(
+  grib_file, 
+  "T",
+  file_format_opts = grib_opts(
+    level_find = list(
+      T = use_grib_pressure(c(850, 500, 200))
+    )
+  ),
+  data_frame = TRUE
+) %>% 
+  select(-ends_with("date"), -members)
+```
+
+Similarly, to read temperature at 500-, 1000- and 1500m above the ground we would do the following:
+
+```{r height-levels}
+read_grid(
+  grib_file, 
+  "T",
+  file_format_opts = grib_opts(
+    level_find = list(
+      T = use_grib_heightAboveGround(c(500, 1000, 1500))
+    )
+  ),
+  data_frame = TRUE
+) %>% 
+  select(-ends_with("date"), -members)
+```
+
+It should be emphasised that __no interpolation is done__. i.e. you can only use `level_find` to select vertical levels that exist in the file.  
+
+## Netcdf files
+
+Netcdf files are becoming increasingly used in meteorology and climatology. Each variable in a netcdf file is stored as an array that can be subsetted. Each array in the file has attributes and dimensions that describe the variable. In order to read data from netcdf files using {{harpIO}} it is important that you know something about the contents of the files so that the correct variables can be read and the correct subsets taken. This is done by passing a list generated by the `netcdf_opts()` function to `read_forecast()` or `read_grid()` via the `file_format_opts` argument. `netcdf_opts()` generates a list that has names for the dimensions of an array and either where to find the geographic projection information in the file, or the projection information as a [proj4 string](https://proj.org/operations/projections/index.html), and whether any of the dimensions are reversed. 
+
+We can use a netcdf file from the {{harpData}} package to show how `netcdf_opts()` works. 
+
+```{r nc-file, eval = FALSE}
+nc_file <- system.file(
+  "netcdf/AAEPS/fc2018071000.nc", 
+  package = "harpData"
+)
+```
+
+```{r nc-file-hidden, echo = FALSE}
+nc_file <- "fc2018071000.nc"
+```
+
+Then we can open a connection to the file using the {{ncdf4}} package to get a summary of the contents of the file.
+
+```{r open-nc}
+library(ncdf4)
+nc <- nc_open(nc_file)
+nc
+```
+
+From the above you see the variables, their attributes, the dimensions of the variables and some global attributes. We can use this information to set the correct information using `netcdf_opts()` when we want to read data using `read_forecast()`, or `read_grid()`. For these examples we will use `read_grid()`, but the same principles apply for `read_forecast()`.
+
+It is important to close the connection to a netcdf file when we are finished with it (this is taken care of for us when we use `read_forecast()` and `read_grid()`). 
+
+```{r close-nc}
+nc_close(nc)
+```
+
+Let's take a look at some of the default values for `netcdf_opts()`
+```{r netcdf-opts}
+netcdf_opts()
+```
+
+### Projection information
+
+There are 3 elements in the list that begin with `proj4_`. These are to control where the projection information is obtained. 
+
+- _proj4_var_ is the name of the variable in the netcdf file that holds the proj4 string. 
+- _proj4_att_ is the name of the attribute of _proj4_var_ that has the proj4 string. If set to `NULL`, an attempt is made to read the proj4 string directly from _proj4_var_
+- _proj4_ is where you can set the proj4 string directly rather than attempt to read it from the file. If _proj4_ is not `NULL`, _proj4_var_ and _proj4_att_ are ignored. 
+
+In the summary of our netcdf file above, there is a variable `projection_lambert` that has an attribute `proj4`, which contains the proj4 string "+proj=lcc +lat_0=77.5 +lon_0=-25 +lat_1=77.5 +lat_2=77.5 +no_defs +R=6.371e+06", so the default values we get from `netcdf_opts()` are correct for this file. 
+
+### Dimension names
+
+The dimension names of variables are set using _x_dim_, _y_dim_, _z_var_, _member_var_ and _time_var_. The reason we need to know the names are that arrays in netcdf file can be stored in any dimension order, and we may wish to read only a subset of the array so we need to know which parts of the dimensions to take. By default, `netcdf_opts()` gives us:
+
+```{r show-nc-dim-defaults, eval = FALSE}
+x_dim      = "x"
+y_dim      = "y"
+time_var   = "time"
+z_var      = NA
+member_var = NA
+```
+
+Since _z_var_ and _member_var_ are NA, the default means that it is expecting to find variables in the netcdf file with 3 dimensions: "x", "y" and "time". If we go back to our example above, and let's say we want to read 2m temperature ("air_temperature_2m", or the harp parameter "T2m"), we see that air_temperature_2m has 5 dimensions: _x_, _y_, _ensemble_member_, _height1_ and _time_. We therefore need to modify the values of _z_var_ and _member_var_ using `netcdf_opts()`:
+
+```{r change-dim-names}
+my_nc_opts <- netcdf_opts(z_var = "height1", member_var = "ensemble_member")
+```
+
+### Latitude, longitude and time
+
+This leaves _lon_var_, _lat_var_ and _ref_time_var_. If the file contains arrays of longitude and latitude, these are used to geographically orientate the data - if they are set to `NULL` an attempt is made to do this using _x_dim_ and _y_dim_ and the projection information. _ref_time_var_ is used in forecasts to calculate the lead time. If set to NA, the lead time is calculated by subtracting the first element of the time dimension from each subsequent element.  
+
+We can now attempt to read some data - firstly without using `netcdf_opts()`:
+
+```{r read-no-ncopts, error = TRUE}
+read_grid(nc_file, "T2m", data_frame = TRUE)
+```
+
+The error tells you what dimension names you have given - in this case (time, x, y) - the defaults from `netcdf_opts()`, and what dimensions it found in the file: (ensemble_member, height1, time, x, y). Note that in the warning the dimensions are listed in alphabetical order, it us up to you to decide which dimension they should go with. 
+
+So, now if we use our modified options to read the file, we should get a result:
+
+```{r read-with-ncopts}
+read_grid(nc_file, "T2m", file_format_opts = my_nc_opts, data_frame = TRUE) %>% 
+  select(-ends_with("date"))
+```
+
+We can also select specific members and lead times:
+
+```{r read-nc-mem-lt}
+read_grid(
+  nc_file, 
+  "T2m",
+  lead_time        = c(0,3),
+  members          = c(0, 2, 4), 
+  file_format_opts = my_nc_opts, 
+  data_frame       = TRUE
+) %>% 
+  select(-ends_with("date"))
+```
+
+### Options sets
+
+Finally, `netcdf_opts()` has a number of default sets of options that can be set via the `options_set` argument. These set the options to known values for some data sources - currently operational NWP forecasts from MET Norway and WRF (though this isn't fully tested). These options are:
+
+- "met_norway_eps" - EPS forecasts produced by MET Norway,
+- "met_norway_det" - deterministic forecasts produced by MET Norway
+- "met_norway_ifsens" - IFSENS forecasts from ECMWF archived at MET Norway
+- "met_norway_ifshires" - IFSHIRES forecasts from ECMWF archived at MET Norway
+- "wrf" - WRF forecasts on the WRF "mass" grid
+- "wrf_u_stagger" - WRF forecasts on the U-staggered grid
+- "wrf_v_stagger" - WRF forecasts on the V-staggered grid
+
+You can, for example, use the "met_norway_det" options set when reading data from the MET Norway thredds server:
+
+```{r aa-thredds}
+read_grid(
+  "https://thredds.met.no/thredds/dodsC/aromearcticarchive/2021/03/01/arome_arctic_extracted_2_5km_20210301T21Z.nc", 
+  "T2m",
+  lead_time        = 6,
+  file_format      = "netcdf",
+  file_format_opts = netcdf_opts("met_norway_det")
+)
+```
+
+Note that to download data from an external source we need to explicitly tell `read_grid()` (or `read_forecast()`) that the file format is "netcdf". This is because when the file is on disk an initial scan of the file is done to try and guess the format, but this is not possible with external files. For demonstration purposes we could do the same using `read_forecast()`
+
+```{r aa-thredds-read-forecast, eval = FALSE}
+url      <- "https://thredds.met.no/thredds/dodsC/aromearcticarchive"
+template <- paste0(
+  "{YYYY}/{MM}/{DD}/",
+  "{fcst_model}_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+)
+read_forecast(
+  2021030100, 
+  2021030118,
+  fcst_model       = "arome_arctic",
+  parameter        = "T2m",
+  by               = "6h",
+  lead_time        = seq(0, 3),
+  file_path        = url,
+  file_template    = template,
+  file_format      = "netcdf",
+  file_format_opts = netcdf_opts("met_norway_det"),
+  return_data      = TRUE
+) %>% 
+  select(-starts_with("level"), -fcst_cycle ,-validdate)
+```
+
+```{r aa-thredds-read-forecast-run, echo = FALSE}
+library(harpPoint)
+url      <- "https://thredds.met.no/thredds/dodsC/aromearcticarchive"
+template <- paste0(
+  "{YYYY}/{MM}/{DD}/",
+  "{fcst_model}_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
+)
+read_forecast(
+  2021030100, 
+  2021030118,
+  fcst_model       = "arome_arctic",
+  parameter        = "T2m",
+  by               = "6h",
+  lead_time        = seq(0, 3),
+  file_path        = url,
+  file_template    = template,
+  file_format      = "netcdf",
+  file_format_opts = netcdf_opts("met_norway_det"),
+  return_data      = TRUE
+) %>% 
+  select(-starts_with("level"), -fcst_cycle ,-validdate)
+```
+
+### The _z_var_ problem
+Netcdf files typically contain many variables, and for meteorological data they can have a range of vertical coordinates - e.g. height, pressure, model levels etc. So although we have set our options with `netcdf_opts()` we don't want to set everything for every variable we wish to read from the file. To address this, the function `modify_opts()` can be used to change one or more options. If we try to read "specific_humidity_ml" from our example file with the netcdf options we currently have, we will get an error as _z_var_ = "height1", but for this variable it needs to be "hybrid":
+
+```{r read-q-wrong-z, error = TRUE}
+read_grid(
+  nc_file, 
+  "specific_humidity_ml", 
+  lead_time        = 3,
+  file_format_opts = my_nc_opts, 
+  data_frame       = TRUE
+)
+```
+
+So, to change _z_var_ to "hybrid" we use `modify_opts()`:
+
+```{r read-q-modify-z}
+read_grid(
+  nc_file, 
+  "specific_humidity_ml",
+  lead_time            = 3,
+  file_format_opts     = modify_opts(my_nc_opts, z_var = "hybrid"),
+  data_frame           = TRUE,
+  vertical_coordinate = "model"
+) %>% 
+  select(-ends_with("date"))
+```
+
+We also have to pass the `vertical_coordinate = "model"` to get the correct name in the  `level_type` coloumn in the data frame of the output. 
+
+Note that for variables with a singleton z dimension, any name can be given for _z_var_ as long as it exists as a dimension in the file. Furthermore, if there are many different dimensions with names such as "height0", "height1", "height2" etc. the number doesn't have to match. This means that you do not have to modify _z_var_ so much. 
+
