@@ -14,21 +14,21 @@ knitr::opts_chunk$set(
 )
 ```
 
-For this vignette, we will use the {{harpIO}} and {{dplyr}} packages. Note that {{dplyr}} is only used for the `dplyr::select()` function to remove some columns from data frames so that they are not too wide for the vignette!
+For this vignette, we will use the {harpIO} and {dplyr} packages. Note that {dplyr} is only used for the `dplyr::select()` function to remove some columns from data frames so that they are not too wide for the vignette!
 
 ```{r setup, message = FALSE}
 library(harpIO)
 library(dplyr)
 ```
 
-{{harpIO}} is able to read data from several different file formats. This is includes grib (both editions 1 and 2), netcdf, FA and vfld / vobs. In most cases, reading forecast data with the `read_forecast()` function is straightforward, but there are some issues that need to be taken into account for some formats. This vignette describes the extra options for grib and netcdf file formats. 
+{harpIO} is able to read data from several different file formats. This is includes grib (both editions 1 and 2), netcdf, FA and vfld / vobs. In most cases, reading forecast data with the `read_forecast()` function is straightforward, but there are some issues that need to be taken into account for some formats. This vignette describes the extra options for grib and netcdf file formats. 
 
 ## Grib files
-Grib files have long been used to store meteorological data. They are a binary data format and store "messages" as 2d fields. Each message is accompanied by metadata that describe the geographic projection of the data and the grid that they are on. This metadata also includes key-value pairs that describe what the data are - i.e. the parameter, what vertical level they are on, etc. {{harpIO}} harnesses the {{Rgrib2}} package to read data from grib files, making use of the key-value pairs to extract the correct 2d fields from the files. Behind the scenes, {{Rgirb2}} uses the [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) system library, which includes lookup tables for many different operational centres. 
+Grib files have long been used to store meteorological data. They are a binary data format and store "messages" as 2d fields. Each message is accompanied by metadata that describe the geographic projection of the data and the grid that they are on. This metadata also includes key-value pairs that describe what the data are - i.e. the parameter, what vertical level they are on, etc. {harpIO} harnesses the {Rgrib2} package to read data from grib files, making use of the key-value pairs to extract the correct 2d fields from the files. Behind the scenes, {Rgirb2} uses the [ecCodes](https://confluence.ecmwf.int/display/ECC/ecCodes+Home) system library, which includes lookup tables for many different operational centres. 
 
-For built in harp parameters (see `show_harp_parameters()`), the extraction of grib messages is done based on the grib _shortName_, _indicatorOfTypeOfLevel_, _level_, _dataDate_, _dataTime_ and _stepRange_ keys. Additionally, for ensemble forecasts the _perturbationNumber_ key is used when different ensemble members are in the same file. In some cases, the values used for these keys may not be compatible with the key-value pairs used in some grib files. For example, different forecast centres may use values for the shortName key that are not listed in the lookup tables that are included with ecCodes, or store fields on vertical levels that are not consistent with what {{harpIO}} expects. In order to address the `grib_opts()` function can be used to set the `file_format_opts` argument in calls to `read_forecast()` or `read_grid()` so that specific key-value pairs can be used to override those built in to {{harpIO}}. 
+For built in harp parameters (see `show_harp_parameters()`), the extraction of grib messages is done based on the grib _shortName_, _indicatorOfTypeOfLevel_, _level_, _dataDate_, _dataTime_ and _stepRange_ keys. Additionally, for ensemble forecasts the _perturbationNumber_ key is used when different ensemble members are in the same file. In some cases, the values used for these keys may not be compatible with the key-value pairs used in some grib files. For example, different forecast centres may use values for the shortName key that are not listed in the lookup tables that are included with ecCodes, or store fields on vertical levels that are not consistent with what {harpIO} expects. In order to address the `grib_opts()` function can be used to set the `file_format_opts` argument in calls to `read_forecast()` or `read_grid()` so that specific key-value pairs can be used to override those built in to {harpIO}. 
 
-In the following examples, we will use `read_grid()` to read gridded data from a grib file in the {{harpData}} package, so first we create the path to the file. We export this to a system variable so that 
+In the following examples, we will use `read_grid()` to read gridded data from a grib file in the {harpData} package, so first we create the path to the file. We export this to a system variable so that 
 
 ```{r make-path}
 grib_file <- system.file(
@@ -144,7 +144,7 @@ In practical situations, where the grib _shortName_ is not known, it is the user
 
 ### Reading data from specific level types
 
-In our example data file, some data exist on potential vorticity levels. {{harpIO}} does not know how to read these data, but we can use the `level_find` argument of `grib_opts()` to select the correct type of level. `level_find` works in the same way as `param_find` in that it requires a named list and a `use_grib_*()` function to set the correct grib keys. Here, the _typeOfLevel_ key has a value of "potentialVorticity", so we can read the geopotential (Z), wind speed in the x direction of the model grid (U), and wind speed in the y direction of the model grid (V) by setting the _typeOfLevel_ key to "potentialVorticity". Z, U, V are parameters that {{harpIO}} knows, so we don't need to worry about `param_find`.
+In our example data file, some data exist on potential vorticity levels. {harpIO} does not know how to read these data, but we can use the `level_find` argument of `grib_opts()` to select the correct type of level. `level_find` works in the same way as `param_find` in that it requires a named list and a `use_grib_*()` function to set the correct grib keys. Here, the _typeOfLevel_ key has a value of "potentialVorticity", so we can read the geopotential (Z), wind speed in the x direction of the model grid (U), and wind speed in the y direction of the model grid (V) by setting the _typeOfLevel_ key to "potentialVorticity". Z, U, V are parameters that {harpIO} knows, so we don't need to worry about `param_find`.
 
 ```{r pv-levels}
 read_grid(
@@ -220,9 +220,9 @@ It should be emphasised that __no interpolation is done__. i.e. you can only use
 
 ## Netcdf files
 
-Netcdf files are becoming increasingly used in meteorology and climatology. Each variable in a netcdf file is stored as an array that can be subsetted. Each array in the file has attributes and dimensions that describe the variable. In order to read data from netcdf files using {{harpIO}} it is important that you know something about the contents of the files so that the correct variables can be read and the correct subsets taken. This is done by passing a list generated by the `netcdf_opts()` function to `read_forecast()` or `read_grid()` via the `file_format_opts` argument. `netcdf_opts()` generates a list that has names for the dimensions of an array and either where to find the geographic projection information in the file, or the projection information as a [proj4 string](https://proj.org/operations/projections/index.html), and whether any of the dimensions are reversed. 
+Netcdf files are becoming increasingly used in meteorology and climatology. Each variable in a netcdf file is stored as an array that can be subsetted. Each array in the file has attributes and dimensions that describe the variable. In order to read data from netcdf files using {harpIO} it is important that you know something about the contents of the files so that the correct variables can be read and the correct subsets taken. This is done by passing a list generated by the `netcdf_opts()` function to `read_forecast()` or `read_grid()` via the `file_format_opts` argument. `netcdf_opts()` generates a list that has names for the dimensions of an array and either where to find the geographic projection information in the file, or the projection information as a [proj4 string](https://proj.org/operations/projections/index.html), and whether any of the dimensions are reversed. 
 
-We can use a netcdf file from the {{harpData}} package to show how `netcdf_opts()` works. 
+We can use a netcdf file from the {harpData} package to show how `netcdf_opts()` works. 
 
 ```{r nc-file, eval = FALSE}
 nc_file <- system.file(
@@ -235,7 +235,7 @@ nc_file <- system.file(
 nc_file <- "fc2018071000.nc"
 ```
 
-Then we can open a connection to the file using the {{ncdf4}} package to get a summary of the contents of the file.
+Then we can open a connection to the file using the {ncdf4} package to get a summary of the contents of the file.
 
 ```{r open-nc}
 library(ncdf4)
