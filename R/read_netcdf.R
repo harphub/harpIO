@@ -476,8 +476,15 @@ read_and_transform_netcdf <- function(
 select_nc_time <- function(nc_times, time_units, validdate, lead_time) {
 
   if (grepl(" since", time_units)) {
-    origin <- sub("^ ", "", gsub("s[[:alpha:]]+ since", "", time_units))
-    which(as.numeric(as.POSIXct(nc_times, tz = "UTC", origin = origin)) == validdate)
+    origin <- sub("^ ", "", gsub("[[:alpha:]]+ since", "", time_units))
+    time_x <- substring(time_units, 1, 1)
+    which(
+      as.numeric(as.POSIXct(
+        nc_times * units_multiplier(time_x),
+        tz     = "UTC",
+        origin = origin
+      )) == validdate
+    )
   } else if (time_units %in% c("h", "m", "s", "d")) {
     which(nc_times * units_multiplier(time_units) == leadtime)
   } else {
@@ -489,8 +496,11 @@ select_nc_time <- function(nc_times, time_units, validdate, lead_time) {
 
 get_basedate <- function (nc_time, time_units) {
   if (grepl(" since", time_units)) {
-    origin <- sub("^ ", "", gsub("s[[:alpha:]]+ since", "", time_units))
-    as.POSIXct(nc_time, tz = "UTC", origin = origin)
+    origin <- sub("^ ", "", gsub("[[:alpha:]]+ since", "", time_units))
+    time_x <- substring(time_units, 1, 1)
+    as.POSIXct(
+      nc_time * units_multiplier(time_x), tz = "UTC", origin = origin
+    )
   } else if (time_units %in% c("h", "m", "s", "d")) {
     paste(nc_time, time_units)
   } else {

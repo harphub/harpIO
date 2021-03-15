@@ -46,6 +46,8 @@
 #' @param ref_time_var The name of the variable holding the forecast reference
 #'   time. Set to NA if it is to be derived from the first value in the time
 #'   dimension.
+#' @param force_param_name Logical. Set to TRUE to force harp to look for the
+#'   exact parameter name as passed rather than to use a lookup table.
 #'
 #' @return A list of options for reading netcdf files.
 #' @export
@@ -69,19 +71,20 @@ netcdf_opts <- function(
     "wrf_u_stagger",
     "wrf_v_stagger"
   ),
-  proj4_var    = "projection_lambert",
-  proj4_att    = "proj4",
-  proj4        = NULL,
-  x_dim        = "x",
-  y_dim        = "y",
-  lon_var      = "longitude",
-  lat_var      = "latitude",
-  x_rev        = FALSE,
-  y_rev        = FALSE,
-  z_var        = NA,
-  member_var   = NA,
-  time_var     = "time",
-  ref_time_var = NA
+  proj4_var        = "projection_lambert",
+  proj4_att        = "proj4",
+  proj4            = NULL,
+  x_dim            = "x",
+  y_dim            = "y",
+  lon_var          = "longitude",
+  lat_var          = "latitude",
+  x_rev            = FALSE,
+  y_rev            = FALSE,
+  z_var            = NA,
+  member_var       = NA,
+  time_var         = "time",
+  ref_time_var     = NA,
+  force_param_name = FALSE
 )  {
 
   options_set <- match.arg(options_set)
@@ -142,19 +145,20 @@ netcdf_opts <- function(
   )
 
   list(
-    options_set  = options_set,
-    proj4_var    = proj4_var,
-    proj4_att    = proj4_att,
-    proj4        = proj4,
-    x_dim        = x_dim,
-    y_dim        = y_dim,
-    lon_var      = lon_var,
-    lat_var      = lat_var,
-    x_rev        = x_rev,
-    y_rev        = y_rev,
-    z_var        = z_var,
-    member_var   = member_var,
-    time_var     = time_var,
-    ref_time_var = ref_time_var
+    options_set      = options_set,
+    proj4_var        = proj4_var,
+    proj4_att        = proj4_att,
+    proj4            = proj4,
+    x_dim            = x_dim,
+    y_dim            = y_dim,
+    lon_var          = lon_var,
+    lat_var          = lat_var,
+    x_rev            = x_rev,
+    y_rev            = y_rev,
+    z_var            = z_var,
+    member_var       = member_var,
+    time_var         = time_var,
+    ref_time_var     = ref_time_var,
+    force_param_name = force_param_name
   )
 }
