@@ -73,6 +73,16 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
     "snow"     , "snowfall_amount_acc"            , NA
   )
 
+  if (opts[["force_param_name"]]) {
+    return(
+      list(
+        harp_param = param,
+        nc_param   = param[["fullname"]],
+        opts       = opts
+      )
+    )
+  }
+
   if (grepl("wrf", opts[["options_set"]])) {
 
     netcdf_param <- param_table %>%
