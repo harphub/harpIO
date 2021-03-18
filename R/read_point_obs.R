@@ -167,7 +167,8 @@ read_point_obs <- function(
 
   attr(obs, "bad_obs") <- obs_removed
   colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
-  obs
+
+  dplyr::mutate(obs, validdate = unix2datetime(.data[["validdate"]]))
 }
 
 
