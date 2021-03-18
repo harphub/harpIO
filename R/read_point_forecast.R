@@ -555,6 +555,29 @@ read_point_forecast <- function(
     fcst <- merge_names_df(fcst, lag_table$fcst_model)
   }
 
+  fcst <- purrr::map(
+    fcst,
+    ~ dplyr::select(
+      dplyr::mutate(
+        .x,
+        fcdate = unix2datetime(.data[["fcdate"]]),
+        validdate = unix2datetime(.data[["validdate"]])
+      ),
+      .data[["fcdate"]],
+      .data[["validdate"]],
+      .data[["leadtime"]],
+      .data[["SID"]],
+      dplyr::matches("^parameter$"),
+      dplyr::matches("^p$"), dplyr::matches("^m$"), dplyr::matches("^z$"),
+      dplyr::matches("_det$"),
+      dplyr::matches("_mbr[[:digit:]]+$"),
+      dplyr::matches("_mbr[[:digit:]]+_lag[[:digit:]]*$"),
+      dplyr::everything()
+    ) %>%
+      dplyr::transmute(
+        dplyr::across(where(~!all(is.na(.x))))
+      )
+  )
 
   attr(fcst, "missing_files") <- missing_files
   class(fcst) <- "harp_fcst"
@@ -614,11 +637,11 @@ lag_and_join <- function(fcst_list, lags_df) {
     fcst_list[non_zero_values],
     lag_seconds[non_zero_values],
     ~ dplyr::mutate(
-        .x,
-        fcdate     = .data$fcdate + .y,
-        leadtime   = .data$leadtime - .y / 3600,
-        fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
-      )
+      .x,
+      fcdate     = .data$fcdate + .y,
+      leadtime   = .data$leadtime - .y / 3600,
+      fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
+    )
   )
 
   join_lags <- function(inner_list) {
