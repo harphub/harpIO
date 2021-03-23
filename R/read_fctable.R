@@ -9,11 +9,12 @@ read_fctable <- function(
   stations            = NULL,
   members             = NULL,
   param               = NULL, # Passed as a parsed harp parameter
-  get_latlon          = FALSE
+  get_latlon          = FALSE,
+  force_param_name    = FALSE
 ) {
 
   level_col <- NULL
-  if (!is.na(param$level_type) && is_temp(param)) {
+  if (!is.na(param$level_type) && is_temp(param) && !force_param_name) {
     level_col <- switch(
       param$level_type,
       "pressure" = "p",
