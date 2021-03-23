@@ -419,11 +419,12 @@ read_point_forecast <- function(
       .x,
       suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
       suppressMessages(str_datetime_to_unixtime(end_date)),
-      lead_time  = lead_time + readr::parse_number(.y),
-      stations   = stations,
-      members    = ..3,
-      param      = parameter,
-      get_latlon = get_lat_and_lon
+      lead_time        = lead_time + readr::parse_number(.y),
+      stations         = stations,
+      members          = ..3,
+      param            = parameter,
+      get_latlon       = get_lat_and_lon,
+      force_param_name = force_param_name
     )
   )
 
