@@ -62,6 +62,9 @@ read_vfile <- function(
       units            = character(),
       stringsAsFactors = FALSE
     )
+    if (v_version == 4) {
+      num_param    <- scan(file_connection, nmax = 1, quiet = TRUE)
+    }
 
   } else {
 
