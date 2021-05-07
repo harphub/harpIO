@@ -16,6 +16,10 @@
 #' @examples
 #' msub(letters[1:10], c("a", "c", "e"), c("A", "C", "E"))
 #'
+
+# This function needs to some work. It should really replace whole
+# strings rather than just patterns within strings.
+
 msub <- function(x, pattern, replacement, ...) {
 
   stopifnot(is.character(x))
