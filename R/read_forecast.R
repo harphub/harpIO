@@ -461,42 +461,54 @@ read_forecast <- function(
 
     # If a file path is given in output_file_opts then write out the data - only
     # applies to data interpolated to stations.
-    if (
-      is.element("station_data", colnames(data_df)) &&
-        !is.null(output_file_opts) &&
-        !is.null(output_file_opts[["path"]])
-    ) {
+    if (!is.null(output_file_opts) && !is.null(output_file_opts[["path"]])) {
 
-      # Ensure data frame contains data that were asked for, even if they were not found
-      meta_df <- args_df
-      meta_df[["fcdate"]]    <- suppressMessages(str_datetime_to_unixtime(fcst_date))
-      meta_df[["lead_time"]] <- list(lead_time)
-      meta_df[["parameter"]] <- list(parameter)
+      if (is.element("station_data", colnames(data_df))) {
 
-      unnest_func <- function(df, col) {
-        if (tidyr_new_interface()) {
-          df <- tidyr::unnest(df, tidyr::one_of(col))
-        } else {
-          df <- tidyr::unnest(df, .data[[col]], .drop = FALSE)
-        }
-      }
-
-      meta_df <- unnest_func(meta_df, "lead_time")
-      meta_df <- unnest_func(meta_df, "parameter")
-      meta_df <- meta_df[intersect(
-        colnames(meta_df),
-        c("fcst_model", "sub_model", "lags", "members", "members_out", "fcdate", "lead_time", "parameter")
-      )]
-
-      data_df <- suppressMessages(dplyr::full_join(
-        data_df,
-        mbr_to_char(
-          meta_df,
-          c("members", "members_out")
+        # Ensure data frame contains data that were asked for, even if they were not found
+        meta_df <- args_df
+        meta_df[["fcdate"]]    <- suppressMessages(
+          str_datetime_to_unixtime(fcst_date)
         )
-      ))
+        meta_df[["lead_time"]] <- list(lead_time)
+        meta_df[["parameter"]] <- list(parameter)
 
-      write_forecast(data_df, output_file_opts)
+        unnest_func <- function(df, col) {
+          if (tidyr_new_interface()) {
+            df <- tidyr::unnest(df, tidyr::one_of(col))
+          } else {
+            df <- tidyr::unnest(df, .data[[col]], .drop = FALSE)
+          }
+        }
+
+        meta_df <- unnest_func(meta_df, "lead_time")
+        meta_df <- unnest_func(meta_df, "parameter")
+        meta_df <- meta_df[intersect(
+          colnames(meta_df),
+          c(
+            "fcst_model", "sub_model", "lags", "members",
+            "members_out", "fcdate", "lead_time", "parameter"
+          )
+        )]
+
+        data_df <- suppressMessages(dplyr::full_join(
+          data_df,
+          mbr_to_char(
+            meta_df,
+            c("members", "members_out")
+          )
+        ))
+
+        write_forecast(data_df, output_file_opts)
+
+      } else {
+
+        warning(
+          "You need `transformation = \"interpolate\"` to write out data.",
+          call. = FALSE
+        )
+
+      }
 
     }
 

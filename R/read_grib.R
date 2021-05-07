@@ -96,7 +96,7 @@ read_grib <- function(
 
   grib_info <- Rgrib2::Gopen(
     file_name,
-    IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel"),
+    IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel", "paramId"),
     StrPar = "typeOfLevel",
     multi = format_opts[["multi"]]
   )
@@ -348,6 +348,27 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
 
   }
 
+  if (!is.element(param_find[["key"]], colnames(grib_info))) {
+    stop(
+      "`", param_find[["key"]], "` not found in grib keys for file.",
+      call. = FALSE
+    )
+  }
+
+  if (!is.element(level_find_grib1[["key"]], colnames(grib_info))) {
+    stop(
+      "`", level_find_grib1[["key"]], "` not found in grib keys for file.",
+      call. = FALSE
+    )
+  }
+
+  if (!is.element(level_find_grib2[["key"]], colnames(grib_info))) {
+    stop(
+      "`", level_find_grib2[["key"]], "` not found in grib keys for file.",
+      call. = FALSE
+    )
+  }
+
   for (i in seq_along(param_find[["value"]])) {
     for(j in seq_along(level_find[["value"]])) {
 
@@ -361,13 +382,13 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
 
         grib_info_f <- grib_info %>% dplyr::filter(
           .data[[param_find[["key"]]]] == param_find[["value"]][i] &
-            (
+            ((
               .data$editionNumber == 1 &
                 .data[[level_find_grib1[["key"]]]] == level_find_grib1[["value"]][j]
             ) | (
               .data$editionNumber == 2 &
                 .data[[level_find_grib2[["key"]]]] == level_find_grib2[["value"]][j]
-            )
+            ))
         )
 
       }
