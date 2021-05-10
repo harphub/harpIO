@@ -75,7 +75,7 @@ read_grib <- function(
 
   parameter      <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info     <- lapply(parameter, get_grib_param_info)
-  unknown_params <- which(sapply(param_info, function(x) is.na(x$short_name)))
+  unknown_params <- which(sapply(param_info, function(x) any(is.na(x$short_name))))
 
   if (length(unknown_params) > 0) {
     lapply(
