@@ -274,6 +274,10 @@ file_templates <- function() {
     "vobs" , file.path(
       "{file_path}",
       "vobs{YYYY}{MM}{DD}{HH}"
+    ),
+    "obsoul", file.path(
+      "{file_path}",
+      "obsoul_1_xxxxxy_{country}_{YYYY}{MM}{DD}{HH}"
     )
 
   )
