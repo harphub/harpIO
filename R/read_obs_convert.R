@@ -80,8 +80,8 @@ read_obs_convert <- function(
   end_date,
   by                   = "3h",
   obs_path             = ".",
-  obs_format           = c("obsoul","vobs"),
-  obsfile_template     = c("obsoul","vobs"),
+  obs_format           = c("obsoul", "vobs"),
+  obsfile_template     = c("obsoul", "vobs"),
   parameter            = NULL,
   sqlite_path          = NULL,
   sqlite_template      = "obstable",
@@ -113,7 +113,7 @@ read_obs_convert <- function(
   sqlite_template <- get_template(sqlite_template)
   obsfile_template <- get_template(obsfile_template)
   
-if(obs_format == "vobs"){
+if (obs_format == "vobs"){
   for (i in 1:num_iterations) {
 
     if (return_data) list_counter <- list_counter + 1
