@@ -10,9 +10,6 @@ read_obfile <- function(
 
 v_type <- match.arg(v_type)
 
-print(country)
-
-
   data_type <- switch(
     v_type,
     "vfld" = "fcst",
@@ -188,7 +185,15 @@ list(synop = data, synop_params = params_synop)
 
 v_default_names <- function(data_type, v_type) {
   if(data_type == "obsoul"){
-    c("TT","RH","QQ","DD","FF")
+    res <-c("TT",
+    "RH",
+    "QQ",
+    "DD",
+    "FF"
+    )
+    if (v_type == "obsoul"){
+     res <- res[1:length(res)]
+    }
   } else {
     NA_character_
   }

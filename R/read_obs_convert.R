@@ -77,29 +77,14 @@
 #'   )
 #' }
 
-#'@examples
-
-#'read_obs_convert(
-#  start_date  = 2021061300,
-#'  end_date    = 2021061307,
-#'  by          = "1h",
-#'  obs_format = "obsoul",
-#'  obs_path    = "/path/to/obssoul/",
-#'  obsfile_template = "obsoul_1_xxxxxy_hu_{YYYY}{MM}{DD}{HH}",
-#'  sqlite_path = "/users/ext005/app/oplace/OBSOUL",
-#'  country = "hu",
-#'  return_data = TRUE
-#')
-
 #'@exmaples
 #'read_obs_convert(
 #' start_date  = 2021061300,
 #'  end_date    = 2021061307,
 #'  by          = "1h",
 #'  obs_format = "obsoul",
-#' obs_path    = "/users/ext005/app/oplace/obsoul",
+#'  obs_path    = "/path/to/obsoul",
 #'  obsfile_template = "obsoul_1_xxxxxy_sk_{YYYY}{MM}{DD}{HH}",
-#'  sqlite_path = "/users/ext005/app/oplace/OBSOUL",
 #'  country = "sk",
 #'  return_data = TRUE
 #')
@@ -291,7 +276,7 @@ for (i in 1:num_iterations) {
 
     read_func <- get(paste("read", obs_format, sep = "_"))
 
-print(data_files)
+
     obs_data  <- data_files %>%
       dplyr::transmute(
         .data$fcdate,
@@ -303,7 +288,7 @@ print(data_files)
         region = country,
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       )
-print(obs_data)
+
     obs_data <- dplyr::mutate(
       obs_data,
       file_name = purrr::map_chr(
@@ -312,7 +297,7 @@ print(obs_data)
         sqlite_template
       )
     )
-#print(obs_data)
+
     synop_data <- obs_data %>%
       dplyr::transmute(
         .data$file_name,
