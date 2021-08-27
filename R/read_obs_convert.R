@@ -56,6 +56,8 @@
 #'   is "delete", but can also be "truncate", "persist", "memory", "wal", or
 #'   "off". See \url{https://www.sqlite.org/pragma.html#pragma_journal_mode} for
 #'   more information.
+#' @param country necessary to define the country due to the different format. Used 
+#'   for obsoul
 #' @param ... Arguments to read functions. Not currently used.
 #'
 #' @return If return_data is TRUE - a list with four data frames - one for synop
@@ -74,7 +76,35 @@
 #'     return_data = TRUE
 #'   )
 #' }
-#'
+
+#'@examples
+
+#'read_obs_convert(
+#  start_date  = 2021061300,
+#'  end_date    = 2021061307,
+#'  by          = "1h",
+#'  obs_format = "obsoul",
+#'  obs_path    = "/path/to/obssoul/",
+#'  obsfile_template = "obsoul_1_xxxxxy_hu_{YYYY}{MM}{DD}{HH}",
+#'  sqlite_path = "/users/ext005/app/oplace/OBSOUL",
+#'  country = "hu",
+#'  return_data = TRUE
+#')
+
+#'@exmaples
+#'read_obs_convert(
+#' start_date  = 2021061300,
+#'  end_date    = 2021061307,
+#'  by          = "1h",
+#'  obs_format = "obsoul",
+#' obs_path    = "/users/ext005/app/oplace/obsoul",
+#'  obsfile_template = "obsoul_1_xxxxxy_sk_{YYYY}{MM}{DD}{HH}",
+#'  sqlite_path = "/users/ext005/app/oplace/OBSOUL",
+#'  country = "sk",
+#'  return_data = TRUE
+#')
+
+
 read_obs_convert <- function(
   start_date,
   end_date,
