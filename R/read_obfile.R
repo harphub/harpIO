@@ -50,7 +50,8 @@ params_synop <- data.frame(
     )
 
 params_synop    <- data.frame(
-        parameter        = v_default_names("obsoul", v_type),
+        parameter =c("TT","RH","QQ","DD","FF"),
+        #parameter        = v_default_names("obsoul", v_type),
         accum_hours      = 0,
         stringsAsFactors = FALSE
       )
