@@ -50,8 +50,8 @@ params_synop <- data.frame(
     )
 
 params_synop    <- data.frame(
-        parameter =c("TT","RH","QQ","DD","FF"),
-        #parameter        = v_default_names("obsoul", v_type),
+        #parameter =c("TT","RH","QQ","DD","FF"),
+        parameter        = v_default_names_obs("obsoul"),
         accum_hours      = 0,
         stringsAsFactors = FALSE
       )
@@ -191,7 +191,7 @@ list(synop = data, synop_params = params_synop)
 }
 
 
-v_default_names <- function(data_type, v_type) {
+v_default_names_obs <- function(data_type) {
   if(data_type == "obsoul"){
     c("TT","RH","QQ","DD","FF")
   } else {
