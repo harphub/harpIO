@@ -82,8 +82,6 @@ if (obs_format == "vobs"){
       )
     )
 
-    #print(obs_data$obs)
-
     synop_data <- obs_data %>%
       dplyr::transmute(
         .data$file_name,
@@ -194,7 +192,6 @@ for (i in 1:num_iterations) {
 
     read_func <- get(paste("read", obs_format, sep = "_"))
 
-print(data_files)
     obs_data  <- data_files %>%
       dplyr::transmute(
         .data$fcdate,
@@ -206,7 +203,7 @@ print(data_files)
         region = country,
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       )
-print(obs_data)
+
     obs_data <- dplyr::mutate(
       obs_data,
       file_name = purrr::map_chr(
@@ -215,7 +212,7 @@ print(obs_data)
         sqlite_template
       )
     )
-#print(obs_data)
+
     synop_data <- obs_data %>%
       dplyr::transmute(
         .data$file_name,

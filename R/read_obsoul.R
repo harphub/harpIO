@@ -16,8 +16,6 @@ read_obsoul <- function(file_name,country,missing_value = -99, ...) {
 
 
   v_data
-  #print(str(v_data))
-  #message("Write", " ", file_name," ", "in to csv forat")
-  #write.csv(v_data,"v_data.csv")
+  
 
 }

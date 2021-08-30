@@ -1,11 +1,3 @@
-library(data.table)
-library(dplyr)
-
-
-
-#add station list in to default HARP list!!!!!:
-#station <- read.csv("oplace_national_station_list",header = TRUE,sep=",")
-#print(station)
 
 read_obfile <- function(
   v_file_name,
@@ -18,9 +10,6 @@ read_obfile <- function(
 
 
 v_type <- match.arg(v_type)
-
-print(country)
-
 
   data_type <- switch(
     v_type,
@@ -149,37 +138,37 @@ switch(country,
 'hu' = {
     data$SID <- paste("93",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[HU]")
-    #data$SID <- str_replace(data$SID,"HU","93")
+  
 },
 
 'at' = {
     data$SID <- paste("90",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[AT]")
-    #data$SID <- str_replace(data$SID,"AT","90")  
+     
 },
 
 'cz' = {
     data$SID <- paste("92",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[CZ]")
-    #data$SID <- str_replace(data$SID,"CZ","92")
+    
 },
 
 'cr' = {
     data$SID <- paste("91",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[CR]")
-    #data$SID <- str_replace(data$SID,"CR","91")
+    
 },
 
 'pl' = {
     data$SID <- paste("94",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[PL]")
-    #data$SID <- str_replace(data$SID,"PL","94")    
+        
 },
 
 'ro' = {
     data$SID <- paste("95",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[RO]")
-    #data$SID <- str_replace(data$SID,"RO","95")   
+    
 },
 
 'si' = {
@@ -196,11 +185,8 @@ switch(country,
 
 data$SID <- as.numeric(as.character(data$SID))
 
-#write.csv(data,"export_sk.csv")
-
 list(synop = data, synop_params = params_synop)
 
-#print(params_synop)
 }
 
 
