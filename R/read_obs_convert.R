@@ -1,95 +1,3 @@
-#' Read observations and output to sqlite OBSTABLE file(s)
-#'
-#' Read observations from any source (currently only vobs...) and output the
-#' data to sqlite files.
-#'
-#' This function is used for reading point observations from files and ouputting
-#' the data to sqlite files. Where observations are stored in files, the time
-#' taken to read in the data can be heavily depndent on the number of files and
-#' the amount of data in them. Therefore, to make the observaton data availble
-#' more quickly for future use this function should be used to save the
-#' interpolated data in sqlite files.
-#'
-#' Sqlite is a portable file based database solution with the ability to query
-#' sqlite files using SQL syntax. This makes accessing data fast, and ensures
-#' that you only read the data that you need.
-#'
-#' To output the data to sqlite files, a path to where you want the files to be
-#' written must be given in the \code{sqlite_path} argument. To return the data
-#' to the calling environment you must set \code{return_data = TRUE} - by
-#' default no data are returned. This is because \code{read_det_interpolate}
-#' could be processing large volumes of data and returning those data to the
-#' environment could result in exceeding memory capacity. If you set neither
-#' \code{sqlite_path}, nor \code{return_data} explicitly, it can appear that
-#' this function does nothing.
-#'
-#' For observations already stored in databases, it may be better to read
-#' directly from the database.
-#'
-#' @param start_date Date of the first observations to be read in. Should be in
-#'   YYYYMMDDhh format. Can be numeric or charcter.
-#' @param end_date Date of the last observations to be read in. Should be in
-#'   YYYYMMDDhh format. Can be numeric or charcter.
-#' @param by The time between observations. Should be a string of a number
-#'   followed by a letter (the defualt is "6h"), where the letter gives the
-#'   units - may be d for days, h for hours or m for minutes.
-#' @param obs_path The path for the input observation files. obs_path will, in
-#'   most cases, form part of the file template.
-#' @param obs_format The format of the input observation files. Currently only
-#'   "vobs".
-#' @param obsfile_template The template for the observation files. Currently
-#'   only "vobs".
-#' @param parameter Not used for vobs.
-#' @param sqlite_path If not NULL, sqlite files are generated and written to the
-#'   directory specified here.
-#' @param sqlite_template The template for the sqlite observations file. The
-#'   default is "obstable", which is "{sqlite_path}/OBSTABLE_{YYYY}.sqlite".
-#' @param return_data Whether to return the data to the calling environment. The
-#'   default is FALSE.
-#' @param iterations_per_write The number of iterations of "by" before each
-#'   write to the sqlite file. The default is 24.
-#' @param sqlite_synchronous The synchronus setting for sqlite files. The
-#'   defualt is "off", but could also be "normal", "full", or "extra". See
-#'   \url{https://www.sqlite.org/pragma.html#pragma_synchronous} for more
-#'   information.
-#' @param sqlite_journal_mode The journal mode for the sqlite files. The default
-#'   is "delete", but can also be "truncate", "persist", "memory", "wal", or
-#'   "off". See \url{https://www.sqlite.org/pragma.html#pragma_journal_mode} for
-#'   more information.
-#' @param country necessary to define the country due to the different format. Used 
-#'   for obsoul
-#' @param ... Arguments to read functions. Not currently used.
-#'
-#' @return If return_data is TRUE - a list with four data frames - one for synop
-#'   (near surface) observations, one for the units of the synop observations,
-#'   one for the temp (upper air) observations, and one for the units of the
-#'   temp observations.
-#' @export
-#'
-#' @examples
-#' if (requireNamespace("harpData", quietly = TRUE)) {
-#'   read_obs_convert(
-#'     start_date  = 2019021700,
-#'     end_date    = 2019022023,
-#'     by          = "1h",
-#'     obs_path    = system.file("vobs", package = "harpData"),
-#'     return_data = TRUE
-#'   )
-#' }
-
-#'@exmaples
-#'read_obs_convert(
-#' start_date  = 2021061300,
-#'  end_date    = 2021061307,
-#'  by          = "1h",
-#'  obs_format = "obsoul",
-#'  obs_path    = "/path/to/obsoul",
-#'  obsfile_template = "obsoul_1_xxxxxy_sk_{YYYY}{MM}{DD}{HH}",
-#'  country = "sk",
-#'  return_data = TRUE
-#')
-
-
 read_obs_convert <- function(
   start_date,
   end_date,
@@ -100,7 +8,7 @@ read_obs_convert <- function(
   parameter            = NULL,
   sqlite_path          = NULL,
   sqlite_template      = "obstable",
-  return_data          = FALSE,
+  return_data          = NULL,
   country = NULL,
   iterations_per_write = 24,
   sqlite_synchronous   = c("off", "normal", "full", "extra"),
@@ -123,11 +31,15 @@ read_obs_convert <- function(
   if (return_data) {
     function_output <- list()
     list_counter    <- 0
+
   }
 
   sqlite_template <- get_template(sqlite_template)
+ 
+
   obsfile_template <- get_template(obsfile_template)
   
+
 if (obs_format == "vobs"){
   for (i in 1:num_iterations) {
 
@@ -144,6 +56,7 @@ if (obs_format == "vobs"){
       file_template  = obsfile_template,
       filenames_only = FALSE
     )
+ 
 
     read_func <- get(paste("read", obs_format, sep = "_"))
 
@@ -157,6 +70,9 @@ if (obs_format == "vobs"){
         obs         = purrr::map(.data$file_name, read_func, ...),
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       )
+
+
+      
     obs_data <- dplyr::mutate(
       obs_data,
       file_name = purrr::map_chr(
@@ -165,6 +81,8 @@ if (obs_format == "vobs"){
         sqlite_template
       )
     )
+
+    #print(obs_data$obs)
 
     synop_data <- obs_data %>%
       dplyr::transmute(
@@ -276,7 +194,7 @@ for (i in 1:num_iterations) {
 
     read_func <- get(paste("read", obs_format, sep = "_"))
 
-
+print(data_files)
     obs_data  <- data_files %>%
       dplyr::transmute(
         .data$fcdate,
@@ -288,7 +206,7 @@ for (i in 1:num_iterations) {
         region = country,
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       )
-
+print(obs_data)
     obs_data <- dplyr::mutate(
       obs_data,
       file_name = purrr::map_chr(
@@ -297,7 +215,7 @@ for (i in 1:num_iterations) {
         sqlite_template
       )
     )
-
+#print(obs_data)
     synop_data <- obs_data %>%
       dplyr::transmute(
         .data$file_name,

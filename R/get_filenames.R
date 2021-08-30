@@ -217,6 +217,10 @@ get_filenames <- function(
     if (is.null(det_model)) det_model <- NA_character_
     files <- dplyr::mutate(files, det_model = det_model)
   }
+
+
+#add country mode :
+
 if (stringr::str_detect(template, "\\{country\\}")) {
     if (is.null(country)) stop(paste0("country is in template, but not passed to the function\n", template))
     files <- files %>%
@@ -228,6 +232,10 @@ if (stringr::str_detect(template, "\\{country\\}")) {
       files <- tidyr::unnest(files)
     }
   }
+
+
+
+
   if (stringr::str_detect(template, "\\{eps_model\\}")) {
     if (is.null(eps_model)) stop(paste0("eps_model is in template, but not passed to the function\n", template))
     files <- eps_model %>%

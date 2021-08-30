@@ -1,20 +1,3 @@
-# Get File Name Template
-#
-# @param .template The file type to generate the template for. Can be
-#   "harmoneps_grib", "harmeoneps_grib_fp", "harmoneps_grib_sfx", "meps_met",
-#   "meps_smhi", "meps_fmi", "arome_arctic", "harmonie_grib",
-#   "harmonie_grib_fp", "harmone_grib_sfx", "vfld", "vobs", or "fctable". If
-#   anything else is passed, it is returned unmodified. The function is case
-#   insensitive.
-#
-# @return A template that can be interpreted by \code{glue_data} from the
-#   \code{glue} package.
-# Not exported as only for internal use.
-#
-# @examples
-# get_template("harmoneps_grib")
-# get_template("harmonie_grib_fp")
-#
 get_template <- function(.template) {
 
   template <- file_templates() %>%
@@ -275,7 +258,7 @@ file_templates <- function() {
       "{file_path}",
       "vobs{YYYY}{MM}{DD}{HH}"
     ),
-    "obsoul", file.path(
+    "obsoul",file.path(
       "{file_path}",
       "obsoul_1_xxxxxy_{country}_{YYYY}{MM}{DD}{HH}"
     )

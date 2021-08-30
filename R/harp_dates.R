@@ -295,5 +295,3 @@ units_multiplier <- function(x) {
     NA_real_
   )
 }
-
-
