@@ -137,49 +137,66 @@ data <- data %>% select(SID,lat,lon,elev,T2m,RH2m,q,D10m,S10m)
 switch(country,
 
 'hu' = {
-    data$SID <- paste("93",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[HU]")
+    data$SID <- paste("93",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
   
 },
 
 'at' = {
-    data$SID <- paste("90",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[AT]")
+    data$SID <- paste("90",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
      
 },
 
 'cz' = {
-    data$SID <- paste("92",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[CZ]")
+    data$SID <- paste("92",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
     
 },
 
 'cr' = {
-    data$SID <- paste("91",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[CR]")
+    data$SID <- paste("91",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
+    
     
 },
 
 'pl' = {
-    data$SID <- paste("94",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[PL]")
+    data$SID <- paste("94",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
         
 },
 
 'ro' = {
-    data$SID <- paste("95",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[RO]")
+    data$SID <- paste("95",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
     
 },
 
 'si' = {
-    data$SID <- paste("96",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[SI]")
+    data$SID <- paste("96",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
 },
 
 'sk' = {
-    data$SID <- paste("97",data$SID,sep='')
     data$SID <- str_remove_all(data$SID,"[SK]")
+    data$SID <- paste("97",data$SID,sep='')
+    data$SID <- gsub(" ", "", data$SID, fixed = TRUE)
+    
 }
 
 )
