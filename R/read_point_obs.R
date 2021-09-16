@@ -151,7 +151,7 @@ read_point_obs <- function(
       tidyr::drop_na()
   }
 
-  if (gross_error_check) {
+  if (gross_error_check && nrow(obs) > 0) {
     if (is.element("units", colnames(obs))) {
       param_units <- unique(obs$units)
     } else {
@@ -159,14 +159,28 @@ read_point_obs <- function(
     }
     if (is.null(min_allowed)) min_allowed <- get_min_obs_allowed(parameter, param_units)
     if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter, param_units)
-    obs_removed <- dplyr::filter(obs, !dplyr::between(!! obs_param, min_allowed, max_allowed))
+    obs_removed <- dplyr::filter(
+      obs, !dplyr::between(!! obs_param, min_allowed, max_allowed)
+    ) %>%
+      dplyr::mutate(validdate = unix2datetime(.data[["validdate"]]))
     obs         <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
   } else {
-    obs_removed = "No gross error check done."
+    if (nrow(obs) > 0) {
+      obs_removed = "No gross error check done"
+    } else {
+      obs_removed = "No observations found"
+    }
   }
 
   attr(obs, "bad_obs") <- obs_removed
   colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
+
+  if (nrow(obs_removed) > 0) {
+    warning(
+      nrow(obs_removed), " observations removed due to gross error check.",
+      call. = FALSE
+    )
+  }
 
   dplyr::mutate(obs, validdate = unix2datetime(.data[["validdate"]]))
 }
