@@ -26,6 +26,15 @@ write_fctable_to_sqlite <- function(
 
   data <- check_level(data)
 
+  if (member_elev_diff(data)) {
+    stop(
+      "Problem writing to: \n\"", filename, "\"\n",
+      "`model_elevation` is not the same for all members. ",
+      "\nSet `remove_model_elev = TRUE` to write data without model elevation.",
+      call. = FALSE
+    )
+  }
+
   newfile <- FALSE
   if (!file.exists(filename)) {
     newfile <- TRUE
@@ -132,4 +141,19 @@ check_level <- function(df) {
     df <- df[!colnames(df) %in% c("level_type", "level")]
   }
   df
+}
+
+member_elev_diff <- function(df) {
+
+  if (!is.element("model_elevation", colnames(df))) {
+    return(FALSE)
+  }
+
+  num_elevs <- dplyr::group_by(
+    df, .data[["fcdate"]], .data[["leadtime"]], .data[["SID"]]
+  ) %>%
+    dplyr::summarise(ll = length(unique(.data[["model_elevation"]]))) %>%
+    dplyr::pull(ll)
+
+  any(num_elevs > 1)
 }
