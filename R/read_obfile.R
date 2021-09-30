@@ -50,7 +50,6 @@ params_synop <- data.frame(
     )
 
 params_synop    <- data.frame(
-        #parameter =c("TT","RH","QQ","DD","FF"),
         parameter        = v_default_names_obs("obsoul"),
         accum_hours      = 0,
         stringsAsFactors = FALSE
@@ -107,7 +106,7 @@ data <- df %>% select(
                     ifelse(var6_1 == 58,var6_4,
                     ifelse(var7_1 == 58,var7_4,"NA")))))))) %>%
     
-      mutate(q =    ifelse(var1_1 == 7,var1_4,
+      mutate(Q2m =    ifelse(var1_1 == 7,var1_4,
                     ifelse(var2_1 == 7,var2_4,
                     ifelse(var3_1 == 7,var3_4,
                     ifelse(var4_1 == 7,var4_4,
@@ -132,7 +131,7 @@ data <- df %>% select(
                     ifelse(var7_1 == 41,var7_4,"NA")))))))) 
 
 
-data <- data %>% select(SID,lat,lon,elev,T2m,RH2m,q,D10m,S10m)
+data <- data %>% select(SID,lat,lon,elev,T2m,RH2m,Q2m,D10m,S10m)
 
 switch(country,
 
