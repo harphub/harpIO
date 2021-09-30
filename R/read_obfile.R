@@ -106,7 +106,7 @@ data <- df %>% select(
                     ifelse(var6_1 == 58,var6_4,
                     ifelse(var7_1 == 58,var7_4,"NA")))))))) %>%
     
-      mutate(Q2m =    ifelse(var1_1 == 7,var1_4,
+      mutate(Q2m =  ifelse(var1_1 == 7,var1_4,
                     ifelse(var2_1 == 7,var2_4,
                     ifelse(var3_1 == 7,var3_4,
                     ifelse(var4_1 == 7,var4_4,
@@ -114,7 +114,7 @@ data <- df %>% select(
                     ifelse(var6_1 == 7,var6_4,
                     ifelse(var7_1 == 7,var7_4,"NA")))))))) %>%
         
-      mutate(S10m =  ifelse(var1_1 == 41,var1_3,
+      mutate(S10m = ifelse(var1_1 == 41,var1_3,
                     ifelse(var2_1 == 41,var2_3,
                     ifelse(var3_1 == 41,var3_3,
                     ifelse(var4_1 == 41,var4_3,
