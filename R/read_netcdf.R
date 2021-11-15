@@ -1,13 +1,16 @@
 read_netcdf <- function(
   file_name,
   parameter,
+  is_forecast         = TRUE,
+  date_times          = NULL,
   lead_time           = NULL,
   members             = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
   format_opts         = netcdf_opts(),
-  show_progress       = FALSE
+  show_progress       = FALSE,
+  ...
 ) {
 
   if (!requireNamespace("ncdf4", quietly = TRUE)) {
@@ -94,7 +97,11 @@ read_netcdf <- function(
   }
   # Filter the lead times and ensemble members
 
-  nc_info <- mapply(filter_nc, nc_info, param_info, MoreArgs = list(lead_time, members), SIMPLIFY = FALSE)
+  nc_info <- mapply(
+    filter_nc, nc_info, param_info,
+    MoreArgs = list(date_times, lead_time, members, is_forecast),
+    SIMPLIFY = FALSE
+  )
   nc_info <- nc_info[sapply(nc_info, function(x) nrow(x) > 0)]
   if (length(nc_info) < 1) {
     stop("None of the requested data could be read from netcdf file: ", file_name, call. = FALSE)
@@ -258,11 +265,34 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
 # function to filter available netcdf data to requested lead times and ensemble members
 
-filter_nc <- function(nc_info, param_info, lead_times, members) {
+filter_nc <- function(nc_info, param_info, date_times, lead_times, members, is_forecast) {
 
   parameter <- unique(nc_info[["parameter"]])
 
-  if (!is.null(lead_times)) {
+  if (!is.null(date_times)) {
+
+    date_col <- ifelse(is_forecast, "fcdate", "validdate")
+    missing_date_times <- which(!date_times %in% nc_info[[date_col]])
+    if (length(missing_date_times) > 0) {
+      missing_date_times <- date_times[missing_date_times]
+      date_times         <- date_times[-missing_date_times]
+      warning(
+        "date_times: ", paste(missing_date_times, collapse = ","),
+        " for '", parameter, "' not found in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+    }
+    nc_info <- dplyr::filter(nc_info, .data[[date_col]] %in% date_times)
+    if (nrow(nc_info) < 1) {
+      warning(
+        "None of the requested date_times were found for '", parameter, "' in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(nc_info)
+    }
+  }
+
+  if (!is.null(lead_times) && is_forecast) {
     if (is.numeric(lead_times)) { # assume in hours
       lead_times <- paste0(lead_times, "h")
     }

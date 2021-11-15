@@ -8,6 +8,8 @@
 read_grid(
   file_name,
   parameter,
+  is_forecast = TRUE,
+  date_times = NULL,
   file_format = NULL,
   file_format_opts = list(),
   vertical_coordinate = c("pressure", "model", "height", NA),
@@ -29,8 +31,16 @@ read_grid_interpolate(file_name, parameter, file_format = NULL, ...)
 
 \item{parameter}{The parameter to be read.}
 
+\item{is_forecast}{Logical. If TRUE (the default), data are filtered based on
+the forecast initialization time and the lead time. If FALSE, the data are
+filtered on the valid time.}
+
+\item{date_times}{A vector of date time strings of the form YYYYMMDD,
+YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss. For forecast data these would
+be the forecast initialization times.}
+
 \item{file_format}{The file format. Possible values include grib, netcdf, FA,
-hdf5... Whatever the value is, it is suposed to correspond to a function
+hdf5... Whatever the value is, it is supposed to correspond to a function
 "read_XXX" that can deal with the format. If not specified, the format can
 often be guessed correctly from file extension or the first few bytes.}
 

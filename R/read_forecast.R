@@ -11,7 +11,7 @@
 #'   numeric or charcter.
 #' @param end_date Date of the last forecast to be read in. Can be in YYYYMMDD,
 #'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-#'   charcter.
+#'   character.
 #' @param fcst_model The name of the forecast model(s) to read. Can be expressed
 #'   as character vector if more than one model is wanted, or a named list of
 #'   character vectors for a mutlimodel ensemble.
@@ -20,6 +20,10 @@
 #'   \code{\link{show_harp_parameters}}), or in the case of netcdf files can be
 #'   the name of the parameters in the files. If reading from vfld files, set to
 #'   NULL to read all parameters.
+#' @param date_times A vector of date time strings to read. Can be in YYYYMMDD,
+#'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+#'   character. If date_times is not NULL, \code{start_date}, \code{end_date}
+#'   and \code{by} are ignored.
 #' @param lead_time The lead times to read in. If a numeric vector is passed,
 #'   the lead times are assumed to be in hours. Otherwise a character vector may
 #'   be passed with a letter after each value to denote the time units: d =
@@ -105,6 +109,12 @@
 #' @param stop_on_fail Logical. Set to TRUE to make execution stop if there are
 #'   problems reading a file. Missing files are always skipped regardless of
 #'   this setting. The default value is FALSE.
+#' @param is_forecast Logical. When TRUE (the default), data are read on the
+#'   basis if the forecast initialization time (from start_date & end_date, or
+#'   date_times) and lead_times. When FALSE the date-times from start_date &
+#'   end_date, or date_times are used to choose what data to read and lead_times
+#'   is ignored. This is useful for analysis data where many dates are in the
+#'   same file. \code{\link{read_analysis}} also provides this functionality.
 #'
 #' @return When \code{return_date = TRUE}, a harp_fcst object.
 #' @export
@@ -184,6 +194,7 @@ read_forecast <- function(
   end_date,
   fcst_model,
   parameter,
+  date_times           = NULL,
   lead_time            = seq(0, 48, 3),
   members              = NULL,
   members_out          = members,
@@ -200,13 +211,18 @@ read_forecast <- function(
   return_data          = FALSE,
   merge_lags           = TRUE,
   show_progress        = FALSE,
-  stop_on_fail         = FALSE
+  stop_on_fail         = FALSE,
+  is_forecast          = TRUE
 ){
 
   vertical_coordinate <- match.arg(vertical_coordinate)
   transformation      <- match.arg(transformation)
 
-  if(missing(parameter)) parameter <- NULL
+  if (missing(parameter)) parameter <- NULL
+
+  if (!is_forecast) {
+    lead_time <- 0
+  }
 
   # Get a data frame of arguments in preparation for file name generation
 
@@ -233,10 +249,14 @@ read_forecast <- function(
   }
 
   # Loop over forecast times
-  if (is.numeric(by)) {
-    by = paste0(by, "h")
+  if (is.null(date_times)) {
+    if (is.numeric(by)) {
+      by = paste0(by, "h")
+    }
+    fcst_dates <- seq_dates(start_date, end_date, by = by)
+  } else {
+    fcst_dates <- date_times
   }
-  fcst_dates <- seq_dates(start_date, end_date, by = by)
 
   if (return_data) {
     function_output <- list()
@@ -276,6 +296,9 @@ read_forecast <- function(
         )
       )
     )
+    if (!is_forecast) {
+      colnames(files_df)[colnames(files_df) == "fcdate"] <- "validdate"
+    }
     files_df <- suppressMessages(dplyr::inner_join(files_df, args_df))
 
     # Nest by file name and remove rows with missing files
@@ -320,6 +343,8 @@ read_forecast <- function(
       ~read_grid(
         file_name           = .x,
         parameter           = .y[["parameter"]],
+        is_forecast         = is_forecast,
+        date_times          = fcst_date,
         file_format         = unique(.y[["file_format"]]),
         file_format_opts    = file_format_opts,
         vertical_coordinate = vertical_coordinate,
@@ -523,6 +548,12 @@ read_forecast <- function(
     function_output <- dplyr::bind_rows(function_output) %>%
       dplyr::select_if(function(x) !all(is.na(x)))
 
+    if (is.element("lags", colnames(function_output))) {
+      if (all(sapply(function_output[["lags"]], char_to_time) == 0)) {
+        function_output <- dplyr::select(function_output, -.data[["lags"]])
+      }
+    }
+
     if (is.element("lags", colnames(function_output)) && merge_lags) {
       function_output <- dplyr::group_by(function_output,
         .data[["fcdate"]],
@@ -556,10 +587,17 @@ read_forecast <- function(
       function_output[["validdate"]] <- unix2datetime(function_output[["validdate"]])
     }
 
+    if (!is_forecast) {
+      function_output <- dplyr::select(
+        function_output,
+        -dplyr::matches("^lead[[:graph:]]*time$")
+      )
+    }
+
     function_output <- split(function_output, function_output[["fcst_model"]])
     function_output <- lapply(function_output, spread_df)
 
-    add_spatial_class <- function(df) {
+    add_harp_class <- function(df, opts) {
 
       df <- dplyr::ungroup(df)
 
@@ -571,6 +609,14 @@ read_forecast <- function(
             df[[df_col]] <- as_geolist(df[[df_col]])
           }
         }
+        if (all(sapply(df[[df_col]], inherits, "harp_xs"))) {
+          if (!inherits(df[[df_col]], "harp_xs_list")) {
+            df[[df_col]] <- structure(
+              df[[df_col]], class = c("harp_xs_list", class(df[[df_col]]))
+            )
+          }
+        }
+
       }
 
       if (any(sapply(df, function(x) inherits(x, "geolist")))) {
@@ -579,11 +625,20 @@ read_forecast <- function(
         }
       }
 
+      if (any(sapply(df, function(x) inherits(x, "harp_xs_list")))) {
+        if (!inherits(df, "harp_xs_df")) {
+          class(df) <- c("harp_xs_df", class(df))
+        }
+        if (is.null(attr(df, "transformation_opts"))) {
+          attr(df, "transformation_opts") <- opts
+        }
+      }
+
       df
 
     }
 
-    function_output <- lapply(function_output, add_spatial_class)
+    function_output <- lapply(function_output, add_harp_class, transformation_opts)
 
     structure(
       function_output,

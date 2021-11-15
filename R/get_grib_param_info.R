@@ -142,18 +142,18 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
       level_number <-  801
     },
     "t"        = {
-      short_name   <-  if (levtype==105 && level==2) "2t" else "t"
+      short_name   <-  if (levtype == 105 && level == 2) "2t" else "t"
 #      param_number <-  11
       level_type   <-  levtype
       level_number <-  level
     },
     "tmax"     = {
-      short_name   <-  if (levtype==105 && level==2) "mx2t" else "t"
+      short_name   <-  if (levtype == 105 && level == 2) "mx2t" else "t"
       level_type   <-  levtype
       level_number <-  level
     },
     "tmin"     = {
-      short_name   <-  if (levtype==105 && level==2) "mn2t" else "t"
+      short_name   <-  if (levtype == 105 && level == 2) "mn2t" else "t"
       level_type   <-  levtype
       level_number <-  level
     },

@@ -16,10 +16,13 @@ netcdf_opts(
   lat_var = "latitude",
   x_rev = FALSE,
   y_rev = FALSE,
+  dx = NULL,
+  dy = NULL,
   z_var = NA,
   member_var = NA,
   time_var = "time",
-  ref_time_var = NA
+  ref_time_var = NA,
+  force_param_name = FALSE
 )
 }
 \arguments{
@@ -59,6 +62,12 @@ order.}
 \item{y_rev}{Set to \code{TRUE} if data in the y direction are in reverse
 order.}
 
+\item{dx}{The x resolution of the data. This needs to be set if the x
+dimension in the file is not a netcdf dimvar.}
+
+\item{dy}{The y resolution of the data. This needs to be set if the y
+dimension in the file is not a netcdf dimvar.}
+
 \item{z_var}{The name of the z (vertical) dimension.}
 
 \item{member_var}{The name of the ensemble member dimension.}
@@ -68,6 +77,9 @@ order.}
 \item{ref_time_var}{The name of the variable holding the forecast reference
 time. Set to NA if it is to be derived from the first value in the time
 dimension.}
+
+\item{force_param_name}{Logical. Set to TRUE to force harp to look for the
+exact parameter name as passed rather than to use a lookup table.}
 }
 \value{
 A list of options for reading netcdf files.

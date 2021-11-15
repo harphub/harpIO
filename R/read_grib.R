@@ -41,13 +41,16 @@
 read_grib <- function(
   file_name,
   parameter,
+  is_forecast         = TRUE,
+  date_times          = NULL,
   lead_time           = NULL,
   members             = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
   format_opts         = grib_opts(),
-  show_progress       = FALSE
+  show_progress       = FALSE,
+  ...
 ) {
 
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
@@ -131,7 +134,7 @@ read_grib <- function(
   class(grib_info) <- rev(class(grib_info))
   grib_info <- purrr::map2_dfr(
     parameter, param_info, filter_grib_info,
-    grib_info, lead_time, members, format_opts
+    grib_info, date_times, lead_time, members, is_forecast, format_opts
   )
   class(grib_info) <- rev(class(grib_info))
 
@@ -305,7 +308,9 @@ read_grib_interpolate <- function(file_name,
 #####
 
 # Function to get the grib information for parameters
-filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members, opts) {
+filter_grib_info <- function(
+  parameter, param_info, grib_info, date_times, lead_time, members, is_forecast, opts
+) {
   #  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
   #    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
   #  } else {
@@ -370,7 +375,7 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
   }
 
   for (i in seq_along(param_find[["value"]])) {
-    for(j in seq_along(level_find[["value"]])) {
+    for (j in seq_along(level_find[["value"]])) {
 
       if (level_find[["value"]][j] == 255 | level_find[["value"]][j] == "unknown") {
         grib_info_f <- grib_info %>% dplyr::filter(
@@ -451,11 +456,23 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
     grib_edition_level_name(level_type_grib2, 2)
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
-  if (!is.null(lead_time)) {
+  if (!is.null(lead_time) && is_forecast) {
     grib_info <- dplyr::filter(grib_info, .data[["leadtime"]] %in% lead_time)
     if (nrow(grib_info) == 0) {
       warning(
         "'lead_time' [", paste(lead_time, collapse = ", "), "] not found in grib file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(grib_info)
+    }
+  }
+
+  if (!is.null(date_times)) {
+    date_col <- ifelse(is_forecast, "fcdate", "validdate")
+    grib_info <- dplyr::filter(grib_info, .data[[date_col]] %in% date_times)
+    if (nrow(grib_info) == 0) {
+      warning(
+        "'date_times' [", paste(date_times, collapse = ", "), "] not found in grib file.",
         call. = FALSE, immediate. = TRUE
       )
       return(grib_info)

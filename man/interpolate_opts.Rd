@@ -42,7 +42,9 @@ xsection_opts(
   clim_file_opts = NULL,
   clim_param = "sfc_geo",
   method = "bilinear",
-  keep_raw_data = FALSE
+  levels_ascending = TRUE,
+  keep_raw_data = FALSE,
+  ...
 )
 }
 \arguments{
@@ -104,6 +106,11 @@ meters. The default is 2500m.}
 \item{vertical_res}{The vertical grid length of the cross section. For data
 on pressure levels or model levels this should be in hPa. For data on
 height levels this should be in meters. The default is log(10).}
+
+\item{levels_ascending}{The order of the level values. In the output the
+levels are numbered for simple plotting. Set to \code{TRUE} (the default)
+for the levels to be numbered in ascending order of the level values and
+\code{FALSE} for the numbering to be done in descending order.}
 }
 \value{
 A list of options that will be used in the transformation.

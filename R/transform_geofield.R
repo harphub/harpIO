@@ -42,6 +42,12 @@ transform_geofield <- function(data, transformation, opts) {
     fun <- function(x, opts) {
       stopifnot(meteogrid::is.geofield(x))
       x <- meteogrid::point.interp(x, weights = opts[["weights"]])
+      x <- tibble::tibble(
+        distance = seq(
+          0, by = opts[["horizontal_res"]], length.out = length(x)
+        ),
+        value = x
+      )
       attr(x, "point_a") <- opts[["a"]]
       attr(x, "point_b") <- opts[["b"]]
       attr(x, "dx")      <- opts[["horizontal_res"]]

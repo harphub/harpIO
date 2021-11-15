@@ -40,6 +40,10 @@
 #'   order.
 #' @param y_rev Set to \code{TRUE} if data in the y direction are in reverse
 #'   order.
+#' @param dx The x resolution of the data. This needs to be set if the x
+#'   dimension in the file is not a netcdf dimvar.
+#' @param dy The y resolution of the data. This needs to be set if the y
+#'   dimension in the file is not a netcdf dimvar.
 #' @param z_var The name of the z (vertical) dimension.
 #' @param member_var The name of the ensemble member dimension.
 #' @param time_var The name of the time dimension.
@@ -80,6 +84,8 @@ netcdf_opts <- function(
   lat_var          = "latitude",
   x_rev            = FALSE,
   y_rev            = FALSE,
+  dx               = NULL,
+  dy               = NULL,
   z_var            = NA,
   member_var       = NA,
   time_var         = "time",
@@ -155,6 +161,8 @@ netcdf_opts <- function(
     lat_var          = lat_var,
     x_rev            = x_rev,
     y_rev            = y_rev,
+    dx               = dx,
+    dy               = dy,
     z_var            = z_var,
     member_var       = member_var,
     time_var         = time_var,
