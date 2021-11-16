@@ -160,6 +160,13 @@ read_grid <- function(
     NA
   )
 
+  if (
+    transformation == "none" &&
+      is.element("station_data", colnames(gridded_data))
+  ) {
+    data_col <- NA_character_
+  }
+
   if (readable_times) {
 
     if (!is.null(gridded_data[["fcdate"]])) {

@@ -549,7 +549,7 @@ read_forecast <- function(
       dplyr::select_if(function(x) !all(is.na(x)))
 
     if (is.element("lags", colnames(function_output))) {
-      if (all(sapply(function_output[["lags"]], char_to_time) == 0)) {
+      if (all(sapply(unique(function_output[["lags"]]), char_to_time) == 0)) {
         function_output <- dplyr::select(function_output, -.data[["lags"]])
       }
     }
