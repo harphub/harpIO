@@ -134,7 +134,11 @@ read_point_obs <- function(
     vertical_level
   )
 
-  if (parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h") && any(grepl("AccPcp3h|AccPcp6h|AccPcp12h", colnames(obs)))) {
+  if (
+    parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h") &&
+      any(grepl("AccPcp3h|AccPcp6h|AccPcp12h", colnames(obs)))
+    ) {
+
     metadata_cols <- rlang::syms(colnames(obs)[colnames(obs) != parameter])
     message("Deriving 6h precipitation from 12h precipitation")
     obs <- derive_6h_precip(obs, available_files, date_start, date_end, stations)
