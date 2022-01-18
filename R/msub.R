@@ -31,7 +31,7 @@ msub <- function(x, pattern, replacement, ...) {
   }
 
   for (i in seq_along(pattern)) {
-    if (!is.element(pattern[i], x)) {
+    if (!any(grepl(pattern[i], x))) {
       warning("\"", pattern[i], "\" not found in x.")
     }
     x <- gsub(pattern[i], replacement[i], x, ...)
