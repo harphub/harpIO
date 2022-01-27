@@ -5,8 +5,8 @@
 #'
 #' This function is used for reading point observations from files and ouputting
 #' the data to sqlite files. Where observations are stored in files, the time
-#' taken to read in the data can be heavily depndent on the number of files and
-#' the amount of data in them. Therefore, to make the observaton data availble
+#' taken to read in the data can be heavily dependent on the number of files and
+#' the amount of data in them. Therefore, to make the observation data available
 #' more quickly for future use this function should be used to save the
 #' interpolated data in sqlite files.
 #'
@@ -136,7 +136,9 @@ read_obs_convert <- function(
         MM          = substr(.data$fcdate, 5, 6),
         DD          = substr(.data$fcdate, 7, 8),
         HH          = substr(.data$fcdate, 9, 10),
-        obs         = purrr::map(.data$file_name, read_func, ...),
+        obs         = purrr::map(
+          .data$file_name, read_func, .data$fcdate, vfile_opts("vobs")
+        ),
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       )
     obs_data <- dplyr::mutate(

@@ -106,7 +106,7 @@ generate_filenames <- function(
   } else {
 
     if (is.null(end_date)) {
-      stop ("end_date must be passed as well as start_date", call. = FALSE)
+      stop("end_date must be passed as well as start_date", call. = FALSE)
     }
     file_dates <- seq_dates(start_date, end_date, by = by)
     file_dates <- suppressMessages(str_datetime_to_unixtime(file_dates))

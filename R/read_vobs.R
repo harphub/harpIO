@@ -12,7 +12,7 @@
 #
 # @examples
 #
-read_vobs <- function(file_name, missing_value = -99, ...) {
+read_vobs <- function(file_name, date_times, opts, ...) {
 
   empty_data <- empty_data_interpolate(NA, NA, empty_type = "obs")
 
@@ -23,9 +23,27 @@ read_vobs <- function(file_name, missing_value = -99, ...) {
     return(list(synop = empty_data, temp = empty_data))
   }
 
-  v_data <- read_vfile(file_name, v_type = "vobs")
+  v_data <- read_vfile(
+    file_name,
+    v_type        = "vobs",
+    missing_value = opts[["missing_value"]]
+  )
+
   if (is.null(v_data)) {
     return(list(synop = empty_data, temp = empty_data))
+  }
+
+  if (!missing(date_times)) {
+    if (!is.null(v_data[["synop"]]) && nrow(v_data[["synop"]]) > 0) {
+      v_data[["synop"]] <- dplyr::bind_cols(
+        tibble::tibble(validdate = date_times), v_data[["synop"]]
+      )
+    }
+    if (!is.null(v_data[["temp"]]) && nrow(v_data[["temp"]]) > 0) {
+      v_data[["temp"]] <- dplyr::bind_cols(
+        tibble::tibble(validdate = date_times), v_data[["temp"]]
+      )
+    }
   }
 
   v_data
