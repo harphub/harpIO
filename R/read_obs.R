@@ -270,6 +270,10 @@ read_obs <- function(
         } else {
           function_output[[list_counter]][[table_name]] <- table_data[["data"]]
         }
+        function_output[[list_counter]][[table_name]] <- dplyr::mutate(
+          function_output[[list_counter]][[table_name]],
+          validdate = unix2datetime(.data[["validdate"]])
+        )
         function_output[[list_counter]][[param_name]] <- table_params
       }
 
