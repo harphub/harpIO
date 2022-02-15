@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_grib_param_info.R
 \name{get_grib_param_info}
 \alias{get_grib_param_info}
-\title{Get grib paramater information}
+\title{Internal function to get grib parameter information}
 \usage{
 get_grib_param_info(param, vertical_coordinate = NA_character_)
 }
@@ -17,15 +17,8 @@ A list with \code{short_name}, \code{param_number},
   \code{level_type}, \code{level_numbe.r}
 }
 \description{
-Gets the shortname and parameter number for a HarmonEPS grib file. For
+Gets the shortname and parameter number for grib files. For
 surface and screen level parameters the level type and level number are
 assumed. For upper air parameters the level and, optionally, the level type
 must be supplied. The default is for pressure levels.
-}
-\examples{
-get_grib_param_info("pcp")
-get_grib_param_info("t2m")
-get_grib_param_info("t500")
-get_grib_param_info("rh32h")
-
 }

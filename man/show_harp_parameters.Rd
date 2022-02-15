@@ -4,17 +4,18 @@
 \alias{show_harp_parameters}
 \title{Show default harp parameter names}
 \usage{
-show_harp_parameters(cf_name = FALSE)
+show_harp_parameters(file_format = NULL, param_defs = harp_params())
 }
 \arguments{
-\item{cf_name}{Set to TRUE to show CF convention names where available rather
-than description.}
+\item{file_format}{The file format for which to show parameters. If set to
+NULL all parameters are shown with a description}
+
+\item{param_defs}{Parameter definitions list}
 }
 \description{
 Prints a table of default parameter names in harp and their descriptions
 }
 \examples{
 show_harp_parameters()
-show_harp_parameters(cf_name = TRUE)
 
 }
