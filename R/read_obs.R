@@ -265,7 +265,11 @@ read_obs <- function(
       }
 
       if (return_data) {
-        function_output[[list_counter]][[table_name]] <- table_data[["data"]]
+        if (is.null(table_data[["data"]])) {
+          function_output[[list_counter]][[table_name]] <- table_data
+        } else {
+          function_output[[list_counter]][[table_name]] <- table_data[["data"]]
+        }
         function_output[[list_counter]][[param_name]] <- table_params
       }
 
