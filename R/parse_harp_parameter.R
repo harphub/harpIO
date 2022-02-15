@@ -26,7 +26,7 @@ parse_harp_parameter <- function(
 ) {
   # NOTE: - we use level_number -999 to represent "missing" or "all levels"
   #          both contexts mean that you don't filter on level_number
-  #       - level_type should ideally never be NA but "unknown" or such. 
+  #       - level_type should ideally never be NA but "unknown" or such.
   #          but in any case the different file formats (grib, fa...)
   #          may need to modify this. e.g. GRIB uses 255 for missing level_type.
   vertical_coordinate <- match.arg(vertical_coordinate)
@@ -129,6 +129,11 @@ parse_harp_parameter <- function(
          "sst"  = , # surface also includes sea surface
          "tg"   = "surface",
          level_type)
+
+  if (grepl("[[:digit:]]$", level_type)) {
+    level_type <- "unknown"
+    basename   <- fullname
+  }
 
   result <- list(fullname = fullname, basename = basename,
        level = level, level_type = level_type,

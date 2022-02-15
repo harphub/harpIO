@@ -1,0 +1,51 @@
+get_param_info <- function(
+  param, file_format, param_defs = harp_params()
+) {
+
+  param_names <- names(param_defs)
+
+  list_element <- which(param_names == tolower(param[["fullname"]]))
+
+  if (length(list_element) < 1) {
+
+    list_element <- param_from_other_names(tolower(param[["fullname"]]))
+
+  }
+
+  if (length(list_element) < 1) {
+
+    list_element <- which(param_names == tolower(param[["basename"]]))
+
+  }
+
+
+  if (length(list_element) < 1) {
+    warning(
+      param[["fullname"]], " is not a built in harp parameter. Using name as is.",
+      call. = FALSE, immediate. = TRUE
+    )
+    return(
+      list(
+        name = param[["fullname"]]
+      )
+    )
+  }
+
+  list(
+    param_info = param_defs[[list_element]][[file_format]],
+    param_func = get_function(
+      names(param_defs)[[list_element]],
+      file_format,
+      param_defs
+    )
+  )
+
+}
+
+param_from_other_names <- function(param) {
+
+  lapply(param_defs, function(x) x[["other_names"]]) %>%
+    vapply(function(x) any(grepl(tolower(param), x)), TRUE) %>%
+    which()
+
+}

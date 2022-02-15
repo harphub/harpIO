@@ -41,7 +41,7 @@ join_psfc_to_xsection.harp_xs_df <- function(
 
   members <- NULL
 
-  if (length(grep("_mbr[[:digit:]]{3}", colnames(txs$TSSTP))) > 0) {
+  if (length(grep("_mbr[[:digit:]]{3}", colnames(xsection))) > 0) {
     xsection <- harpPoint::gather_members(xsection)
     members <- unique(as.numeric(gsub("[[:alpha:]]", "", xsection$member)))
   }

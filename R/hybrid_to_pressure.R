@@ -95,8 +95,9 @@ xs_to_regular_pressure_levels.data.frame <- function(.df) {
   res <- dplyr::group_by(.df, .data[["distance"]]) %>%
     dplyr::summarize(mm = min(diff(.data[["pressure"]]))) %>%
     dplyr::pull(mm) %>%
-    min() %>%
-    floor()
+    min()
+
+  res <- floor(res)
 
   dplyr::group_by(.df, .data[["distance"]]) %>%
     dplyr::summarise(
@@ -143,15 +144,26 @@ psfc_to_polygon <- function(.df, ...) {
 
 #' @export
 psfc_to_polygon.data.frame <- function(.df, xs_int) {
+
   xs <- dplyr::filter(.df, .data[["level"]] == min(.data[["level"]])) %>%
     dplyr::arrange(.data[["distance"]]) %>%
     dplyr::select(.data[["distance"]], .data[["psfc"]])
+
   dplyr::bind_rows(
-    dplyr::mutate(.df[1, ], psfc = max(max(.df[["psfc"]]), max(xs_int[["pressure"]]))),
+    dplyr::mutate(
+      .df[1, ],
+      psfc = max(max(.df[["psfc"]]), max(xs_int[["pressure"]]))
+    ),
     xs,
-    dplyr::mutate(.df[nrow(xs), ], psfc = max(max(.df[["psfc"]]), max(xs_int[["pressure"]])))
+    dplyr::mutate(
+      .df[nrow(xs), ],
+      psfc = max(max(.df[["psfc"]]), max(xs_int[["pressure"]]))
+    )
   ) %>%
-    dplyr::left_join(dplyr::rename(.df, psfc_line = .data[["psfc"]]), by = "distance")
+    dplyr::left_join(
+      dplyr::rename(.df, psfc_line = .data[["psfc"]]),
+      by = "distance"
+    )
 }
 
 #' @export
@@ -159,7 +171,9 @@ psfc_to_polygon.harp_xs_df <- function(.df, ...) {
   dplyr::mutate(
     .df,
     psfc_polygon = purrr::map2(
-      .data[["xsection_data"]], .data[["xs_reg_p"]], psfc_to_polygon
+      .data[["xsection_data"]],
+      .data[["xs_reg_p"]],
+      psfc_to_polygon
     )
   )
 }
