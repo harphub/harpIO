@@ -28,6 +28,14 @@ show_harp_parameters <- function(file_format = NULL, param_defs = harp_params())
       purrr::map_lgl(~!is.null(.x)) %>%
       select_elements(param_elements)
 
+    if (length(params) < 1) {
+      stop("Nothing found for file format: ", file_format, call. = FALSE)
+    }
+
+    if (file_format == "fa") {
+      stop("Doesn't work FA params yet", call. = FALSE)
+    }
+
     params <- dplyr::arrange(
       tibble::tibble(
         name     = names(params),

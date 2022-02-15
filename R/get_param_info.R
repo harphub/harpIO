@@ -8,7 +8,10 @@ get_param_info <- function(
 
   if (length(list_element) < 1) {
 
-    list_element <- param_from_other_names(tolower(param[["fullname"]]))
+    list_element <- param_from_other_names(
+      tolower(param[["fullname"]]),
+      param_defs
+    )
 
   }
 
@@ -42,7 +45,7 @@ get_param_info <- function(
 
 }
 
-param_from_other_names <- function(param) {
+param_from_other_names <- function(param, param_defs) {
 
   lapply(param_defs, function(x) x[["other_names"]]) %>%
     vapply(function(x) any(grepl(tolower(param), x)), TRUE) %>%
