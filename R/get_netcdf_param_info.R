@@ -27,13 +27,16 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
 
   if (grepl("wrf", opts[["options_set"]])) {
 
-    nc_param_info <- get_param_info(param[["fullname"]], "wrf")
+    nc_param_info <- get_param_info(param, "wrf")
 
   } else {
 
-    nc_param_info <- get_param_info(param[["fullname"]], "netcdf")
+    nc_param_info <- get_param_info(param, "netcdf")
 
   }
+
+  func          <- nc_param_info[["param_func"]]
+  nc_param_info <- nc_param_info[["param_info"]]
 
   if (is.null(nc_param_info[["name"]])) {
     warning(
