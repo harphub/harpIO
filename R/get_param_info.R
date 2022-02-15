@@ -29,7 +29,9 @@ get_param_info <- function(
     )
     return(
       list(
-        name = param[["fullname"]]
+        param_info = list(
+          name = param[["fullname"]]
+        )
       )
     )
   }
