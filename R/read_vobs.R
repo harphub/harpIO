@@ -33,7 +33,7 @@ read_vobs <- function(file_name, date_times, opts, ...) {
     return(list(synop = empty_data, temp = empty_data))
   }
 
-  if (!missing(date_times)) {
+  if (!missing(date_times) && !is.null(date_times)) {
     if (!is.null(v_data[["synop"]]) && nrow(v_data[["synop"]]) > 0) {
       v_data[["synop"]] <- dplyr::bind_cols(
         tibble::tibble(validdate = date_times), v_data[["synop"]]

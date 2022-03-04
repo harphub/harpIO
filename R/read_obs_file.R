@@ -64,14 +64,6 @@ read_obs_file <- function(
     )
   }
 
-  if (file_format == "vfld") {
-    file_format_opts <- do.call(
-      vfile_opts, file_format_opts
-    )
-    file_format                <- "vobs"
-    file_format_opts[["type"]] <- "vobs"
-  }
-
   if (is.na(file_format)) {
     stop(
       paste0(
@@ -83,7 +75,23 @@ read_obs_file <- function(
     )
   }
 
-  read_func <- get(paste0("read_", file_format))
+  if (file_format == "vfld") {
+    file_format_opts <- do.call(
+      vfile_opts, file_format_opts
+    )
+    file_format                <- "vobs"
+    file_format_opts[["type"]] <- "vobs"
+  }
+
+  read_func <- try(get(paste0("read_", file_format)), silent = TRUE)
+
+  if (inherits(read_func, "try-error")) {
+    stop(
+      "Cannot read files of format: `", file_format,
+      "`. There is no `read_", file_format, "()` function.",
+      call. = FALSE
+    )
+  }
 
   read_func(
     file_name  = file_name,

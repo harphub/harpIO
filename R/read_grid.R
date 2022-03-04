@@ -318,7 +318,9 @@ guess_format <- function(file_name) {
     first_line <- try(scan(file_name, nlines = 1, quiet = TRUE))
     if (!inherits(first_line, "try-error")) {
       if (is.numeric(first_line) && length(first_line) > 1 & length(first_line) < 4) {
-        return("vfld")
+        if (nchar(first_line[1]) < 8) {
+          return("vfld")
+        }
       }
     }
   }
