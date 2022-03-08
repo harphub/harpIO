@@ -268,7 +268,9 @@ read_obs <- function(
         if (is.null(table_data[["data"]])) {
           function_output[[list_counter]][[table_name]] <- table_data
         } else {
-          function_output[[list_counter]][[table_name]] <- table_data[["data"]]
+          function_output[[list_counter]][[table_name]] <- dplyr::bind_rows(
+            table_data[["data"]]
+          )
         }
         function_output[[list_counter]][[table_name]] <- dplyr::mutate(
           function_output[[list_counter]][[table_name]],
