@@ -155,6 +155,33 @@ read_obs <- function(
 
     data_files <- dplyr::group_nest(data_files, .data[["file_name"]])
 
+    missing_files <- which(!file.exists(data_files[["file_name"]]))
+    if (length(missing_files) > 0) {
+
+      missing_files <- data_files[["file_name"]][missing_files]
+
+      std_warn_length <- getOption("warning.length")
+      options(warning.length = 8170)
+
+      warning(
+        "Cannot find files:\n",
+        paste(missing_files, collapse = "\n"),
+        "\n",
+        immediate. = TRUE,
+        call. = FALSE
+      )
+      options(warning.length = std_warn_length)
+
+      data_files <- dplyr::filter(
+        data_files,
+        !.data[["file_name"]] %in% missing_files
+      )
+    }
+
+    if (nrow(data_files) < 1) {
+      stop("No files found.", call. = FALSE)
+    }
+
     obs_data <- dplyr::mutate(
       data_files,
       obs = purrr::map2(

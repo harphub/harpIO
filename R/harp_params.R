@@ -55,6 +55,12 @@ harp_params <- function() {
       fa = list(
         name  = pad_string("CLSTEMPERATURE", 16),
         units = "K"
+      ),
+
+      obsoul = list(
+        name      = 39,
+        units     = "K",
+        harp_name = "T2m"
       )
     ),
 
@@ -305,6 +311,13 @@ harp_params <- function() {
         name        = "FF",
         param_units = "m/s",
         type        = "SYNOP"
+      ),
+
+      obsoul = list(
+        name        = 41,
+        units       = "m/s",
+        harp_name   = "S10m",
+        common_name = "wind"
       )
 
     ),
@@ -452,6 +465,13 @@ harp_params <- function() {
         name        = "DD",
         param_units = "degrees",
         type        = "SYNOP"
+      ),
+
+      obsoul = list(
+        name        = 41,
+        units       = "degrees",
+        harp_name   = "D10m",
+        common_name = "wind"
       )
 
     ),
@@ -959,6 +979,12 @@ harp_params <- function() {
       fa = list(
         name  = pad_string("CLSHUMI.SPECIFIQ", 16),
         units = "kg/kg"
+      ),
+
+      obsoul = list(
+        name      = 7,
+        units     = "kg/kg",
+        harp_name = "Q2m"
       )
     ),
 
@@ -1023,6 +1049,12 @@ harp_params <- function() {
       fa = list(
         name  = pad_string("CLSHUMI.RELATIVE", 16),
         units = "fraction"
+      ),
+
+      obsoul = list(
+        name      = 58,
+        units     = "percent",
+        harp_name = "RH2m"
       )
     ),
 
@@ -1417,6 +1449,12 @@ harp_params <- function() {
       fa = list(
         name  = pad_string("MSLPRESSURE", 16),
         units = "Pa"
+      ),
+
+      obsoul = list(
+        name      = 1,
+        units     = "Pa",
+        harp_name = "Pmsl"
       )
     ),
     ###

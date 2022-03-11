@@ -321,6 +321,20 @@ guess_format <- function(file_name) {
         if (nchar(first_line[1]) < 8) {
           return("vfld")
         }
+        if (length(first_line) == 2) {
+          try_date <- try(
+            str_datetime_to_unixtime(
+              paste0(
+                first_line[1],
+                formatC(as.integer(first_line[2]), width = 6, flag = "0")
+              )
+            ),
+            silent = TRUE
+          )
+          if (!inherits(try_date, "try-error")) {
+            return("obsoul")
+          }
+        }
       }
     }
   }
