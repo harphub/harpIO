@@ -50,7 +50,7 @@ read_fa <- function(file_name,
                     transformation="none",
                     transformation_opts=list(),
                     format_opts=fa_opts(),
-                    show_progress=FALSE) {
+                    show_progress=FALSE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
   # ?accumulated fields?
   # wind rotation, maybe with pre-calculated angle...
