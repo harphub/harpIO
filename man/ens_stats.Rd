@@ -13,7 +13,8 @@ ens_stats(
   max = FALSE,
   prob_thresh = NULL,
   prob_inequality = `>=`,
-  nbh_radius = 0
+  nbh_radius = 0,
+  keep_members = TRUE
 )
 }
 \arguments{
@@ -42,6 +43,9 @@ probability. Must be in back ticks. Can be any one of `>=` (the default),
 \item{nbh_radius}{For spatial data the radius of neighbourhoods for which to
 compute the probability in grid lengths. The neigbourhood will be a square
 with sides equal 2 * nbh_radius.}
+
+\item{keep_members}{Logical. Whether to keep the ensemble members after
+computing the statistics. Default is TRUE.}
 }
 \value{
 An object of the same class as .fcst with new columns in the data
