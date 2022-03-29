@@ -104,7 +104,7 @@ read_analysis <- function(
   file_format         = NULL,
   file_template       = "an{YYYY}{MM}{DD}{HH}.grib",
   file_format_opts    = list(),
-  transformation      = c("none", "interpolate", "regrid", "xsection"),
+  transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = NULL,
   output_file_opts    = sqlite_opts(),
   return_data         = TRUE,

@@ -15,7 +15,7 @@ read_grid(
   vertical_coordinate = c("pressure", "model", "height", NA),
   lead_time = NULL,
   members = NULL,
-  transformation = c("none", "interpolate", "regrid", "xsection"),
+  transformation = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = list(),
   show_progress = FALSE,
   data_frame = FALSE,

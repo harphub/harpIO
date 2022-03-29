@@ -20,7 +20,7 @@ read_forecast(
   file_format = NULL,
   file_template = "vfld",
   file_format_opts = list(),
-  transformation = c("none", "interpolate", "regrid", "xsection"),
+  transformation = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = NULL,
   output_file_opts = sqlite_opts(),
   return_data = FALSE,

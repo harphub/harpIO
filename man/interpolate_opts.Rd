@@ -4,6 +4,7 @@
 \alias{interpolate_opts}
 \alias{regrid_opts}
 \alias{xsection_opts}
+\alias{subgrid_opts}
 \title{Generate Transformation Options}
 \usage{
 interpolate_opts(
@@ -46,6 +47,8 @@ xsection_opts(
   keep_raw_data = FALSE,
   ...
 )
+
+subgrid_opts(x1, x2, y1, y2)
 }
 \arguments{
 \item{stations}{A data frame of points to interpolate to. Must have the
@@ -111,6 +114,14 @@ height levels this should be in meters. The default is log(10).}
 levels are numbered for simple plotting. Set to \code{TRUE} (the default)
 for the levels to be numbered in ascending order of the level values and
 \code{FALSE} for the numbering to be done in descending order.}
+
+\item{x1}{left x index of the subdomain}
+
+\item{x2}{right x index of the subdomain}
+
+\item{y1}{bottom y index of the subdomain}
+
+\item{y2}{top y index of the subdomain}
 }
 \value{
 A list of options that will be used in the transformation.

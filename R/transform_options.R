@@ -227,3 +227,15 @@ xsection_opts <- function(
   )
 
 }
+
+#' @rdname interpolate_opts
+#'
+#' @param x1 left x index of the subdomain
+#' @param x2 right x index of the subdomain
+#' @param y1 bottom y index of the subdomain
+#' @param y2 top y index of the subdomain
+#'
+#' @export
+subgrid_opts <- function(x1, x2, y1, y2) {
+  list(x1 = x1, x2 = x2, y1 = y1, y2 = y2)
+}

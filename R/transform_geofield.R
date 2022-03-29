@@ -11,7 +11,8 @@ transform_geofield <- function(data, transformation, opts) {
     "none"        = "gridded_data",
     "interpolate" = "station_data",
     "regrid"      = "regridded_data",
-    "xsection"    = "xsection_data"
+    "xsection"    = "xsection_data",
+    "subgrid"     = "subgrid_data"
   )
 
   if (transformation == "none") {
@@ -25,6 +26,16 @@ transform_geofield <- function(data, transformation, opts) {
         opts[["stations"]][c("SID", "lat", "lon")],
         station_data = meteogrid::point.interp(x, weights = opts[["weights"]])
       )
+    }
+  }
+
+  if (transformation == "subgrid") {
+    fun <- function(x, opts) {
+      stopifnot(meteogrid::is.geofield(x))
+      geofield_info <- attr(x, "info")
+      x <- meteogrid::subgrid(x, opts[["x1"]], opts[["x2"]], opts[["y1"]], opts[["y2"]])
+      attr(x, "info") <- geofield_info
+      x
     }
   }
 

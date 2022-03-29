@@ -93,7 +93,7 @@ get_domain_netcdf <- function(file_name, opts) {
     if (nc_id[["dim"]][[y_dim]][["create_dimvar"]]) {
       y  <- ncdf4::ncvar_get(nc_id, y_dim)
       ny <- length(y)
-      dy <- diff(y[1:2])
+      dy <- abs(diff(y[1:2]))
     } else {
       if (is.null(opts[["dy"]])) {
         stop(
