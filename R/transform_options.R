@@ -236,6 +236,6 @@ xsection_opts <- function(
 #' @param y2 top y index of the subdomain
 #'
 #' @export
-subgrid_opts <- function(x1, x2, y1, y2) {
+subgrid_opts <- function(x1, x2, y1, y2, ...) {
   list(x1 = x1, x2 = x2, y1 = y1, y2 = y2)
 }

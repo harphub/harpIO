@@ -23,10 +23,6 @@ get_param_info <- function(
 
 
   if (length(list_element) < 1) {
-    warning(
-      param[["fullname"]], " is not a built in harp parameter. Using name as is.",
-      call. = FALSE, immediate. = TRUE
-    )
     return(
       list(
         param_info = list(

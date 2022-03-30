@@ -1,6 +1,6 @@
 setup_transformation <- function(trans, opts) {
 
-  if (trans == "none") {
+  if (trans %in% c("none")) {
     return(opts)
   }
 
