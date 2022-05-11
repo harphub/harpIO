@@ -56,6 +56,14 @@ c.geolist <- function(x, ...) {
 
 #' @export
 Math.geolist <- function(x, ...) {
+  if (.Generic == "cumsum") {
+    return(
+      structure(
+        Reduce(`+`, x, accumulate = TRUE),
+        class = class(x)
+      )
+    )
+  }
   structure(
     lapply(x, .Generic, ...),
     class = class(x)

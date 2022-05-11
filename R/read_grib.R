@@ -199,7 +199,7 @@ read_grib <- function(
       func <- func[[1]]
       if (is.null(grib_info[["func_var"]])) {
         result[["gridded_data"]][[1]] <- func(
-          as_geolist(result[["gridded_data"]][[1]])
+          result[["gridded_data"]][[1]]
         )
       } else {
         names(result[["gridded_data"]][[1]]) <- grib_info[["func_var"]]
@@ -274,6 +274,8 @@ filter_grib_info <- function(
     } else {
       param_finds <- list(use_grib_shortName(param_info[["short_name"]]))
     }
+  } else {
+    param_finds <- list(param_finds)
   }
 
   level_find <- opts[["level_find"]][[parameter[["fullname"]]]]
@@ -328,7 +330,7 @@ filter_grib_info <- function(
           )
 
           if (
-            !level_find[["value"]] %in% single_surfaces &&
+            !any(level_find[["value"]] %in% single_surfaces) &&
               level_find[["level"]] != -999
           ) {
             grib_info_f <- dplyr::filter(
