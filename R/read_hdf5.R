@@ -24,6 +24,7 @@ get_hdf5_param_info <- function(param) {
                      "v"   = list(quantity="VWIND", units="m/s"),
                      "s"   = list(quantity="ff", units="mm"),
                      "d"   = list(quantity="dd", units=""),
+                     "ref" = list(quantity="DBHZ", units="dBZ"),
                      list(quantity="unknown", units="unknown"))
   result
 }
