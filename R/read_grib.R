@@ -109,7 +109,7 @@ read_grib <- function(
   print(grib_info[["dataType"]])
   # ecmwf uses local table even for deterministc run. So it includes perturbationNumber=0 for analysis (dataType=2)
   # and determinstic forecast (dataType=9). We want to get rid of it, otherwise HARP assumes it is an ensemble
-  if (grib_info[["dataType"]] != NA && (grib_info[["dataType"]] == 9 || grib_info[["dataType"]] == 2 )) {
+  if (!is.na(grib_info[["dataType"]]) && (grib_info[["dataType"]] == 9 || grib_info[["dataType"]] == 2 )) {
 	 grib_info[["perturbationNumber"]] <- NA
   }
   print("FW: grib_info now?")
