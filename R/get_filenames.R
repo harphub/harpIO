@@ -81,6 +81,7 @@ get_filenames <- function(
   det_model      = NULL,
   eps_model      = NULL,
   sub_model      = NULL,
+  country = NULL,
   lead_time      = seq(0, 48, 3),
   members        = NA_character_,
   file_template  = "fctable_eps",
@@ -217,6 +218,18 @@ get_filenames <- function(
     files <- dplyr::mutate(files, det_model = det_model)
   }
 
+if (stringr::str_detect(template, "\\{country\\}")) {
+    if (is.null(country)) stop(paste0("country is in template, but not passed to the function\n", template))
+    files <- files %>%
+      dplyr::mutate(country = list(country))
+
+    if (tidyr_new_interface()) {
+      files <- tidyr::unnest(files, tidyr::one_of("country"))
+    } else {
+      files <- tidyr::unnest(files)
+    }
+  }
+
   if (stringr::str_detect(template, "\\{eps_model\\}")) {
     if (is.null(eps_model)) stop(paste0("eps_model is in template, but not passed to the function\n", template))
     files <- eps_model %>%
@@ -312,7 +325,7 @@ get_filenames <- function(
 
   if (is.na(eps_model)) {
     if (is.na(sub_model)) {
-      model_cols <- rlang::syms(c("det_model", "fcdate"))
+      model_cols <- rlang::syms(c("det_model", "fcdate","country"))
     } else {
       files <- dplyr::mutate(files, eps_model = .data$sub_model)
       model_cols <- rlang::syms(c("eps_model", "sub_model", "fcdate", "MBR"))
@@ -330,7 +343,7 @@ get_filenames <- function(
     if (tidyr_new_interface()) {
       files <- tidyr::unnest(files, tidyr::one_of("lead_time"))
     } else {
-      files <- tidyr::unnest(files, .data$lead_time, .drop = FALSE)
+      files <- tidyr::unnest(files, .data$lead_time,.data$country, .drop = FALSE)
     }
     files <- dplyr::mutate_at(files, dplyr::vars(.data$lead_time), as.numeric)
   } else {
@@ -354,5 +367,3 @@ get_filenames <- function(
   }
 
 }
-
-
