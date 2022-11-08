@@ -165,10 +165,17 @@ read_point_obs <- function(
     if (is.null(max_allowed)) max_allowed <- get_max_obs_allowed(parameter, param_units)
     obs_removed <- dplyr::filter(
       obs, !dplyr::between(!! obs_param, min_allowed, max_allowed)
-    ) %>%
-      dplyr::mutate(validdate = unix2datetime(.data[["validdate"]]))
-    obs         <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
+    )
+    if (nrow(obs_removed) > 0) {
+      obs_removed <- dplyr::mutate(
+        validdate = unix2datetime(.data[["validdate"]])
+      )
+    }
+
+    obs <- dplyr::filter(obs, dplyr::between(!! obs_param, min_allowed, max_allowed))
+
   } else {
+
     if (nrow(obs) > 0) {
       obs_removed = "No gross error check done"
     } else {
@@ -186,7 +193,17 @@ read_point_obs <- function(
     )
   }
 
-  dplyr::mutate(obs, validdate = unix2datetime(.data[["validdate"]]))
+  if (nrow(obs) > 0) {
+    return(
+      dplyr::mutate(
+        obs,
+        validdate = unix2datetime(.data[["validdate"]])
+      )
+    )
+  }
+
+  obs
+
 }
 
 
