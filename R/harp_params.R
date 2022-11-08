@@ -404,7 +404,11 @@ harp_params <- function() {
         units = "m/s"
       ),
 
-      func = function(u, v) sqrt(u ^ 2 + v ^ 2)
+      func = function(u, v) {
+        res <- sqrt(u ^ 2 + v ^ 2)
+        attr(res, "info")[["name"]] <- "Wind speed"
+        res
+      }
 
     ),
     ###
@@ -1505,7 +1509,8 @@ harp_params <- function() {
       ),
 
       netcdf = list(
-        name = "geopotential"
+        name   = "geopotential",
+        suffix = nc_level_suffixes()
       ),
 
       wrf = list(

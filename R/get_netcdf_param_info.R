@@ -9,7 +9,7 @@
 #' @return A list with the harp parameter name, the netcdf parameter name and
 #'   the netcdf options, that may have been modified.
 
-get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts()) {
+get_netcdf_param_info <- function(param, vc = NA_character_, opts = netcdf_opts()) {
 
   if (!inherits(param, "harp_parameter")) {
     param <- parse_harp_parameter(param, vertical_coordinate = vc)
@@ -20,6 +20,7 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
       list(
         harp_param = param,
         nc_param   = param[["fullname"]],
+        func       = NA,
         opts       = opts
       )
     )
@@ -53,30 +54,45 @@ get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts
     )
   }
 
-  if (opts[["options_set"]] %in% c("met_norway_eps", "met_norway_det"))  {
-    if (grepl("surface", nc_param_info[["name"]])) {
-      opts[["z_var"]] <- "height0"
-    }
-  }
-
-  if (opts[["options_set"]] %in% c("met_norway_ifsens", "met_norway_ifshires"))  {
-    if (grepl("_+[[:digit:]]m$", nc_param_info[["name"]])) {
-      opts[["z_var"]] <- "surface"
-    }
-  }
-
   if (grepl("^met_norway", opts[["options_set"]])) {
-    if (grepl("_pl$", nc_param_info[["name"]])) {
-      opts[["z_var"]] <- "pressure"
-    }
-    if (grepl("_ml$", nc_param_info[["name"]])) {
-      opts[["z_var"]] <- "hybrid"
-    }
+    n_last <- 3
+    suffix <- substr(
+      nc_param_info[["name"]],
+      nchar(nc_param_info[["name"]]) - n_last + 1,
+      nchar(nc_param_info[["name"]])
+    )
+    opts[["z_var"]] <- switch(
+      suffix,
+      "_pl" = "pressure",
+      "_ml" = "hybrid",
+      opts[["z_var"]]
+    )
   }
+  # if (opts[["options_set"]] %in% c("met_norway_eps", "met_norway_det"))  {
+  #   if (grepl("surface", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "height0"
+  #   }
+  # }
+  #
+  # if (opts[["options_set"]] %in% c("met_norway_ifsens", "met_norway_ifshires"))  {
+  #   if (grepl("_+[[:digit:]]m$", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "surface"
+  #   }
+  # }
+  #
+  # if (grepl("^met_norway", opts[["options_set"]])) {
+  #   if (grepl("_pl$", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "pressure"
+  #   }
+  #   if (grepl("_ml$", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "hybrid"
+  #   }
+  # }
 
   list(
     harp_param = param,
     nc_param   = nc_param_info[["name"]],
+    func       = func,
     opts       = opts
   )
 

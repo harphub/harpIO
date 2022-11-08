@@ -191,6 +191,8 @@ read_grib <- function(
       ))
     )
 
+    # Apply any function to the input(s) as taken from param_defs
+
     func <- unique(grib_info[["func"]])
 
     if (is.na(func)) {
