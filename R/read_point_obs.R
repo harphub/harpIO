@@ -168,6 +168,7 @@ read_point_obs <- function(
     )
     if (nrow(obs_removed) > 0) {
       obs_removed <- dplyr::mutate(
+        obs_removed,
         validdate = unix2datetime(.data[["validdate"]])
       )
     }
