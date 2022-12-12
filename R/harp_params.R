@@ -268,7 +268,7 @@ harp_params <- function() {
 
       grib = list(
         name       = "sst",
-        level_type = c("heightAboveSea", "surface"),
+        level_type = c("meanSea", "heightAboveSea", "surface"),
         level      = 0
       ),
 
@@ -1631,6 +1631,25 @@ harp_params <- function() {
       fa = list(
         name  = pad_string("SURFIND.TERREMER", 16),
         units = "1"
+      )
+
+    ),
+    ###
+
+    sea_ice = list(
+
+      description = "Sea ice concentration",
+
+      other_names = c("sea_ice_concentration", "icec"),
+
+      grib = list(
+        name       = "icec",
+        level_type = c("meanSea", "heightAboveSea", "surface"),
+        level      = 0
+      ),
+
+      netcdf = list(
+        name = "ga_icec_102"
       )
 
     ),

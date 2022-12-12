@@ -321,7 +321,8 @@ filter_grib_info <- function(
             level_find[["value"]][j] == "unknown"
         ) {
           grib_info_f <- grib_info %>% dplyr::filter(
-            .data[[param_find[["key"]]]] == param_find[["value"]][i])
+            .data[[param_find[["key"]]]] == param_find[["value"]][i]
+          )
           level_type <- "unknown"
 
         } else {
