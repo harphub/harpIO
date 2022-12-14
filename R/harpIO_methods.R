@@ -104,9 +104,10 @@ Summary.geolist <- function(..., na.rm = FALSE) {
     fun <- function(x, y, na.rm) {
       res <- x + y
       if (na.rm) {
-        NAs <- which(is.na(res), arr.ind = TRUE)
-        if (nrow(NAs) > 0) {
-          res[NAs] <- pmax(x[NAs], y[NAs], na.rm = TRUE)
+        NAs <- which(is.na(res))
+        if (length(NAs) > 0) {
+          res[NAs] <- pmax(x[NAs], y[NAs], na.rm = TRUE) %>%
+            meteogrid::as.geofield(x)
         }
       }
       res
@@ -115,9 +116,10 @@ Summary.geolist <- function(..., na.rm = FALSE) {
     fun <- function(x, y, na.rm) {
       res <- x * y
       if (na.rm) {
-        NAs <- which(is.na(res), arr.ind = TRUE)
-        if (nrow(NAs) > 0) {
-          res[NAs] <- pmax(x[NAs], y[NAs], na.rm = TRUE)
+        NAs <- which(is.na(res))
+        if (length(NAs) > 0) {
+          res[NAs] <- pmax(x[NAs], y[NAs], na.rm = TRUE) %>%
+            meteogrid::as.geofield(x)
         }
       }
       res
@@ -132,7 +134,11 @@ Summary.geolist <- function(..., na.rm = FALSE) {
 
 #' @export
 mean.geolist <- function(x, na.rm = FALSE) {
-  sum(x, na.rm = na.rm) / length(x)
+  dom <- meteogrid::as.geodomain(x[[1]])
+  meteogrid::as.geofield(
+    sum(x, na.rm = na.rm) / sum(as_geolist(lapply(x, function(y) !is.na(y)))),
+    dom
+  )
 }
 
 #' @export
@@ -154,7 +160,11 @@ variance.geolist <- function(x, na.rm = FALSE) {
     class = class(x)
   )
 
-  sum(x, na.rm = na.rm) / (length(x) - 1)
+  dom <- meteogrid::as.geodomain(x_bar)
+  meteogrid::as.geofield(
+    sum(x, na.rm = na.rm) / (sum(as_geolist(lapply(x, function(y) !is.na(y)))) - 1),
+    dom
+  )
 
 }
 
@@ -170,7 +180,7 @@ std_dev.default <- function(x, na.rm = FALSE) {
 
 #' @export
 std_dev.geolist <- function(x, na.rm = FALSE) {
-  sqrt(variance(x))
+  sqrt(variance(x, na.rm = na.rm))
 }
 
 #' @export

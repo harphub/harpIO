@@ -19,6 +19,7 @@
 #'   with sides equal 2 * nbh_radius.
 #' @param keep_members Logical. Whether to keep the ensemble members after
 #'   computing the statistics. Default is TRUE.
+#' @param na.rm Logical. Whether to include missing values. Default is FALSE.
 #'
 #' @return An object of the same class as .fcst with new columns in the data
 #'   frame(s) for the computed values.
@@ -35,7 +36,8 @@ ens_stats <- function(
   prob_thresh     = NULL,
   prob_inequality = `>=`,
   nbh_radius      = 0,
-  keep_members    = TRUE
+  keep_members    = TRUE,
+  na.rm           = FALSE
 ) {
   if (!is.null(prob_thresh)) {
 
@@ -81,6 +83,7 @@ ens_stats.default <- function(
   prob_thresh     = NULL,
   prob_inequality = `>=`,
   keep_members    = TRUE,
+  na.rm           = FALSE,
   ...
 ) {
 
@@ -93,27 +96,27 @@ ens_stats.default <- function(
   member_data <- dplyr::select(.fcst, dplyr::matches("_mbr[[:digit:]]+"))
 
   if (mean) {
-    .fcst[["ens_mean"]] <- rowMeans(member_data)
+    .fcst[["ens_mean"]] <- rowMeans(member_data, na.rm = na.rm)
   }
 
   if (spread) {
-    .fcst[["ens_spread"]] <- matrixStats::rowSds(as.matrix(member_data))
+    .fcst[["ens_spread"]] <- matrixStats::rowSds(as.matrix(member_data), na.rm = na.rm)
   }
 
   if (var) {
     if (is.element("ens_spread", colnames(.fcst))) {
       .fcst[["ens_var"]] <- .fcst[["ens_spread"]] ^ 2
     } else {
-      .fcst[["ens_var"]] <- matrixStats::rowVars(as.matrix(member_data))
+      .fcst[["ens_var"]] <- matrixStats::rowVars(as.matrix(member_data), na.rm = na.rm)
     }
   }
 
   if (min) {
-    .fcst[["ens_min"]] <- matrixStats::rowMins(as.matrix(member_data))
+    .fcst[["ens_min"]] <- matrixStats::rowMins(as.matrix(member_data), na.rm = na.rm)
   }
 
   if (max) {
-    .fcst[["ens_max"]] <- matrixStats::rowMaxs(as.matrix(member_data))
+    .fcst[["ens_max"]] <- matrixStats::rowMaxs(as.matrix(member_data), na.rm = na.rm)
   }
 
   if (!is.null(prob_thresh)) {
@@ -122,7 +125,7 @@ ens_stats.default <- function(
 
       prob_col <- paste("prob", ineq2char(prob_inequality), prob_thresh, sep = "_")
 
-      .fcst[[prob_col]] <- rowSums(prob_inequality(as.matrix(member_data), prob_thresh)) /
+      .fcst[[prob_col]] <- rowSums(prob_inequality(as.matrix(member_data), prob_thresh), na.rm = na.rm) /
         ncol(member_data)
 
     } else {
@@ -130,7 +133,8 @@ ens_stats.default <- function(
       prob_col <- paste("prob_bt", paste(prob_thresh, collapse = "_"), sep = "_")
 
       .fcst[[prob_col]] <- rowMeans(
-        member_data >= min(prob_thresh) & member_data <= max(prob_thresh)
+        member_data >= min(prob_thresh) & member_data <= max(prob_thresh),
+        na.rm = na.rm
       )
 
     }
@@ -158,7 +162,8 @@ ens_stats.harp_spatial_fcst <- function(
   prob_thresh     = NULL,
   prob_inequality = `>=`,
   nbh_radius      = 0,
-  keep_members    = TRUE
+  keep_members    = TRUE,
+  na.rm           = FALSE
 ) {
 
   col_names <- colnames(.fcst)
@@ -173,27 +178,27 @@ ens_stats.harp_spatial_fcst <- function(
   )
 
   if (mean) {
-    .fcst[["ens_mean"]] <- as_geolist(lapply(member_data, mean))
+    .fcst[["ens_mean"]] <- as_geolist(lapply(member_data, mean, na.rm = na.rm))
   }
 
   if (spread) {
-    .fcst[["ens_spread"]] <- as_geolist(lapply(member_data, std_dev))
+    .fcst[["ens_spread"]] <- as_geolist(lapply(member_data, std_dev, na.rm = na.rm))
   }
 
   if (var) {
     if (is.element("ens_spread", colnames(.fcst))) {
       .fcst[["ens_var"]] <- .fcst[["ens_spread"]] ^ 2
     } else {
-      .fcst[["ens_var"]] <- as_geolist(lapply(member_data, variance))
+      .fcst[["ens_var"]] <- as_geolist(lapply(member_data, variance, na.rm = na.rm))
     }
   }
 
   if (min) {
-    .fcst[["ens_min"]] <- as_geolist(lapply(member_data, min))
+    .fcst[["ens_min"]] <- as_geolist(lapply(member_data, min, na.rm = na.rm))
   }
 
   if (max) {
-    .fcst[["ens_max"]] <- as_geolist(lapply(member_data, max))
+    .fcst[["ens_max"]] <- as_geolist(lapply(member_data, max, na.rm = na.rm))
   }
 
   if (!is.null(prob_thresh)) {
@@ -245,7 +250,7 @@ ens_stats.harp_spatial_fcst <- function(
       prob_col <- paste("prob", "bt", paste(prob_thresh, collapse = "_"), sep = "_")
     }
 
-    .fcst[[prob_col]] <- as_geolist(lapply(member_data, mean))
+    .fcst[[prob_col]] <- as_geolist(lapply(member_data, mean, na.rm = na.rm))
 
   }
 
@@ -270,7 +275,8 @@ ens_stats.harp_fcst <- function(
   prob_thresh     = NULL,
   prob_inequality = `>=`,
   nbh_radius      = 0,
-  keep_members    = TRUE
+  keep_members    = TRUE,
+  na.rm           = FALSE
 ) {
 
   structure(
@@ -285,7 +291,8 @@ ens_stats.harp_fcst <- function(
       prob_thresh     = prob_thresh,
       prob_inequality = prob_inequality,
       nbh_radius      = nbh_radius,
-      keep_members    = keep_members
+      keep_members    = keep_members,
+      na.rm           = na.rm
     ),
     class = "harp_fcst"
   )
