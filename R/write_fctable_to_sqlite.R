@@ -26,11 +26,12 @@ write_fctable_to_sqlite <- function(
 
   data <- check_level(data)
 
-  if (member_elev_diff(data)) {
+  if (!remove_model_elev && member_elev_diff(data)) {
     stop(
       "Problem writing to: \n\"", filename, "\"\n",
       "`model_elevation` is not the same for all members. ",
-      "\nSet `remove_model_elev = TRUE` to write data without model elevation.",
+      "\nSet `remove_model_elev = TRUE` in sqlite_opts()",
+      "to write data without model elevation.",
       call. = FALSE
     )
   }
