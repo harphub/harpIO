@@ -32,6 +32,9 @@ read_netcdf <- function(
   }
 
   # Convert parameter name to harp parameter and then to netcdf
+  if (inherits(parameter, "harp_parameter")) {
+    parameter <- list(parameter)
+  }
   parameter  <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info <- lapply(parameter, get_netcdf_param_info, opts = format_opts, vc = vertical_coordinate)
 
