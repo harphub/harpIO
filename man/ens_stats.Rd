@@ -14,7 +14,8 @@ ens_stats(
   prob_thresh = NULL,
   prob_inequality = `>=`,
   nbh_radius = 0,
-  keep_members = TRUE
+  keep_members = TRUE,
+  na.rm = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ with sides equal 2 * nbh_radius.}
 
 \item{keep_members}{Logical. Whether to keep the ensemble members after
 computing the statistics. Default is TRUE.}
+
+\item{na.rm}{Logical. Whether to include missing values. Default is FALSE.}
 }
 \value{
 An object of the same class as .fcst with new columns in the data

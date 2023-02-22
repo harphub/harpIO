@@ -16,6 +16,10 @@
 #'
 #' @param options_set A set of pre-defined options that can be returned.
 #'   Currently only available for data at MET Norway.
+#' @param param_find A list used to map parameter name to the name of the
+#'   variable in in the NetCDF file. The name should be the parameter name
+#'   used in the read function and the element should be the name in the NetCDF
+#'   file.
 #' @param proj4_var The variable that holds the projection information in the
 #'   NetCDF files. Set to 0 if the proj4 string is a global attribute.
 #' @param proj4_att The attribute of \code{proj4_var} that holds the proj4
@@ -75,6 +79,7 @@ netcdf_opts <- function(
     "wrf_u_stagger",
     "wrf_v_stagger"
   ),
+  param_find       = list(),
   proj4_var        = "projection_lambert",
   proj4_att        = "proj4",
   proj4            = NULL,
@@ -152,6 +157,7 @@ netcdf_opts <- function(
 
   list(
     options_set      = options_set,
+    param_find       = param_find,
     proj4_var        = proj4_var,
     proj4_att        = proj4_att,
     proj4            = proj4,

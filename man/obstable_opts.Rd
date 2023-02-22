@@ -30,9 +30,6 @@ information.}
 See \url{https://www.sqlite.org/pragma.html#pragma_journal_mode} for more
 information.}
 }
-\value{
-
-}
 \description{
 OBSTABLE files are sqlite files containing four tables - SYNOP for "synop"
 observations, TEMP for "temp" observations, synop_params for metadata about

@@ -15,9 +15,6 @@ hybrid_to_pressure(
 \arguments{
 \item{psfc_col}{}
 }
-\value{
-
-}
 \description{
 Title
 }

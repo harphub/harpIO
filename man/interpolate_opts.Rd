@@ -48,7 +48,7 @@ xsection_opts(
   ...
 )
 
-subgrid_opts(x1, x2, y1, y2)
+subgrid_opts(x1, x2, y1, y2, ...)
 }
 \arguments{
 \item{stations}{A data frame of points to interpolate to. Must have the

@@ -18,9 +18,6 @@ join_psfc_to_xsection(
 \arguments{
 \item{show_progress}{}
 }
-\value{
-
-}
 \description{
 Title
 }

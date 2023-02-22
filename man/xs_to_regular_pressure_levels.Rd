@@ -9,9 +9,6 @@ xs_to_regular_pressure_levels(.df)
 \arguments{
 \item{.df}{}
 }
-\value{
-
-}
 \description{
 Title
 }

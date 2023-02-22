@@ -9,9 +9,6 @@ psfc_to_polygon(.df, ...)
 \arguments{
 \item{...}{}
 }
-\value{
-
-}
 \description{
 Title
 }

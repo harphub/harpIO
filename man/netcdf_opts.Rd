@@ -7,6 +7,7 @@
 netcdf_opts(
   options_set = c("none", "met_norway_eps", "met_norway_det", "met_norway_ifsens",
     "met_norway_ifshires", "wrf", "wrf_u_stagger", "wrf_v_stagger"),
+  param_find = list(),
   proj4_var = "projection_lambert",
   proj4_att = "proj4",
   proj4 = NULL,
@@ -28,6 +29,11 @@ netcdf_opts(
 \arguments{
 \item{options_set}{A set of pre-defined options that can be returned.
 Currently only available for data at MET Norway.}
+
+\item{param_find}{A list used to map parameter name to the name of the
+variable in in the NetCDF file. The name should be the parameter name
+used in the read function and the element should be the name in the NetCDF
+file.}
 
 \item{proj4_var}{The variable that holds the projection information in the
 NetCDF files. Set to 0 if the proj4 string is a global attribute.}

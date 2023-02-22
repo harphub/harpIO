@@ -15,9 +15,6 @@ modify_opts(opts, ..., add_options = FALSE)
 found in \code{opts} will be added to \code{opts}. The default is FALSE and
 will give a warning for each option not found in \code{opts}}
 }
-\value{
-
-}
 \description{
 harpIO includes a number of functions for creating lists of options for, for
 example, file formats and transformations. \code{modify_opts} allows you to
