@@ -35,6 +35,18 @@ read_netcdf <- function(
   if (inherits(parameter, "harp_parameter")) {
     parameter <- list(parameter)
   }
+  if (length(parameter) == 1 && !is.null(format_opts[["param_find"]])) {
+    if (length(format_opts[["param_find"]]) == 1 && is.null(names(format_opts[["param_find"]]))) {
+      if (!is.list(format_opts[["param_find"]])) {
+        format_opts[["param_find"]] <- list(format_opts[["param_find"]])
+      }
+      if (inherits(parameter, "harp_parameter")) {
+        names(format_opts[["param_find"]]) <- parameter[["fullname"]]
+      } else {
+        names(format_opts[["param_find"]]) <- parameter
+      }
+    }
+  }
   parameter  <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info <- lapply(parameter, get_netcdf_param_info, opts = format_opts, vc = vertical_coordinate)
 
