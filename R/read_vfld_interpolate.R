@@ -43,6 +43,7 @@ read_vfld_interpolate <- function(
   members             = NA_character_,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   init                = list(),
+  format_opts         = vfile_opts(),
   ...
 ) {
 
@@ -67,7 +68,15 @@ read_vfld_interpolate <- function(
   }
 
 
-  vfld_data <- read_vfile(file_name, members = members, lead_time = lead_time, v_type = "vfld")
+  vfld_data <- read_vfile(
+    file_name,
+    members = members,
+    lead_time = lead_time,
+    v_type = "vfld",
+    missing_value = format_opts$missing_value,
+    synop_cols    = format_opts$synop_cols,
+    temp_cols     = format_opts$temp_cols
+  )
 
   if (is.null(vfld_data)) {
     return(
