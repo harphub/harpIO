@@ -267,7 +267,21 @@ read_grid <- function(
   } else {
 
     attr(gridded_data, "transformation_opts") <- transformation_opts
-
+    gridded_data <- dplyr::rename_with(
+      gridded_data,
+      ~gsub("date", "_dttm", .x),
+      dplyr::matches("fcdate|validdate")
+    )
+    gridded_data <- dplyr::rename_with(
+      gridded_data,
+      ~gsub("fc", "fcst", .x),
+      dplyr::matches("^fc_dttm$")
+    )
+    gridded_data <- dplyr::rename_with(
+      gridded_data,
+      ~gsub("leadtime", "lead_time", .x),
+      dplyr::matches("^leadtime$")
+    )
   }
 
   gridded_data

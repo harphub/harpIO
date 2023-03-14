@@ -446,7 +446,7 @@ read_forecast <- function(
       }
     )
 
-    data_df = purrr::map2_dfr(
+    data_df = purrr::map2(
       data_df[["data"]],
       data_df[["forecast_data"]],
       ~ dplyr::inner_join(
@@ -454,6 +454,17 @@ read_forecast <- function(
         by = intersect(colnames(dplyr::select_if(.x, not_lgl)), colnames(.y))
       )
     )
+    # THIS IS A BODGE! (need to work out how to bind data frames with geolist cols using vctrs)
+    data_df <- purrr::map(
+      data_df,
+      ~ as_harp_df(dplyr::mutate(.x, valid_dttm = unixtime_to_dttm(.data$valid_dttm)))
+    )
+    names(data_df) <- letters[1:length(data_df)]
+    data_df <- bind_dfr(as_harp_list(data_df), .id = "temp_col") %>%
+      dplyr::mutate(valid_dttm = as_unixtime(.data$valid_dttm)) %>%
+      dplyr::select(-.data$temp_col)
+    class(data_df) <- grep("harp", class(data_df), value = TRUE, invert = TRUE)
+    # END OF BODGE
 
     # If no members were specified but ensemble members were read,
     # make the data frame consistent
@@ -477,10 +488,10 @@ read_forecast <- function(
       data_df             <- data_df[["data_df"]]
     }
 
-    # Add validdate column
+    # Add valid_dttm column
     data_df <- data_df[!grepl("file", colnames(data_df))]
-    if (!is.element("validdate", colnames(data_df))) {
-      data_df[["validdate"]] <- data_df[["fcdate"]] + data_df[["lead_time"]] * 3600
+    if (!is.element("valid_dttm", colnames(data_df))) {
+      data_df[["valid_dttm"]] <- data_df[["fcst_dttm"]] + data_df[["lead_time"]] * 3600
     }
     if (return_data) function_output[[list_counter]] <- data_df
 
@@ -492,7 +503,7 @@ read_forecast <- function(
 
         # Ensure data frame contains data that were asked for, even if they were not found
         meta_df <- args_df
-        meta_df[["fcdate"]]    <- suppressMessages(
+        meta_df[["fcst_dttm"]]    <- suppressMessages(
           str_datetime_to_unixtime(fcst_date)
         )
         meta_df[["lead_time"]] <- list(lead_time)
@@ -512,7 +523,7 @@ read_forecast <- function(
           colnames(meta_df),
           c(
             "fcst_model", "sub_model", "lags", "members",
-            "members_out", "fcdate", "lead_time", "parameter"
+            "members_out", "fcst_dttm", "lead_time", "parameter"
           )
         )]
 
@@ -545,8 +556,14 @@ read_forecast <- function(
 
   if (return_data) {
 
-    function_output <- dplyr::bind_rows(function_output) %>%
-      dplyr::select_if(function(x) !all(is.na(x)))
+    # ANOTHER BODGE pending working out how to bind data frames with geolist columns
+    function_output <- lapply(function_output, function(x) {class(x) <- c("harp_df", class(x)); x})
+    names(function_output) <- seq_along(function_output)
+    function_output <- as_harp_list(function_output)
+    function_output <- bind_dfr(function_output, .id = "temp_col") %>%
+      dplyr::select_if(function(x) is_geolist(x) || !all(is.na(x))) %>%
+      dplyr::select(-.data$temp_col)
+    # BODGEEND
 
     if (is.element("lags", colnames(function_output))) {
       if (all(sapply(unique(function_output[["lags"]]), char_to_time) == 0)) {
@@ -556,7 +573,7 @@ read_forecast <- function(
 
     if (is.element("lags", colnames(function_output)) && merge_lags) {
       function_output <- dplyr::group_by(function_output,
-        .data[["fcdate"]],
+        .data[["fcst_dttm"]],
         .data[["lead_time"]],
         .data[["lags"]]
       ) %>%
@@ -564,8 +581,8 @@ read_forecast <- function(
 
       lag_seconds <- sapply(function_output[["lags"]], char_to_time, "lags")
       lag_units   <- gsub("[[:digit:]]", "", function_output[["lags"]])
-      if (is.element("fcdate", colnames(function_output))) {
-        function_output[["fcdate"]] <- function_output[["fcdate"]] + lag_seconds
+      if (is.element("fcst_dttm", colnames(function_output))) {
+        function_output[["fcst_dttm"]] <- function_output[["fcst_dttm"]] + lag_seconds
       }
       if (is.element("lead_time", colnames(function_output))) {
         function_output[["lead_time"]] <- function_output[["lead_time"]] -
@@ -576,15 +593,15 @@ read_forecast <- function(
 
     }
 
-    if (is.element("fcdate", colnames(function_output))) {
-      function_output[["fcdate"]]     <- unix2datetime(function_output[["fcdate"]])
+    if (is.element("fcst_dttm", colnames(function_output))) {
+      function_output[["fcst_dttm"]]     <- unix2datetime(function_output[["fcst_dttm"]])
       function_output[["fcst_cycle"]] <- formatC(
-        lubridate::hour(function_output[["fcdate"]]), width = 2, flag = "0"
+        lubridate::hour(function_output[["fcst_dttm"]]), width = 2, flag = "0"
       )
     }
 
-    if (is.element("validdate", colnames(function_output))) {
-      function_output[["validdate"]] <- unix2datetime(function_output[["validdate"]])
+    if (is.element("valid_dttm", colnames(function_output))) {
+      function_output[["valid_dttm"]] <- unix2datetime(function_output[["valid_dttm"]])
     }
 
     if (!is_forecast) {
@@ -638,12 +655,14 @@ read_forecast <- function(
 
     }
 
-    function_output <- lapply(function_output, add_harp_class, transformation_opts)
-
-    structure(
-      function_output,
-      class = "harp_fcst"
+    #function_output <- lapply(function_output, add_harp_class, transformation_opts)
+    as_harp_list(
+      lapply(function_output, as_harp_df)
     )
+    #structure(
+    #  function_output,
+    #  class = "harp_fcst"
+    #)
 
   } else {
 
