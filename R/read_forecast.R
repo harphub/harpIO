@@ -607,7 +607,8 @@ read_forecast <- function(
     if (!is_forecast) {
       function_output <- dplyr::select(
         function_output,
-        -dplyr::matches("^lead[[:graph:]]*time$")
+        -dplyr::matches("^lead[[:graph:]]*time$"),
+        -dplyr::any_of(c("fcst_dttm", "fcst_cycle"))
       )
     }
 
@@ -656,9 +657,28 @@ read_forecast <- function(
     }
 
     #function_output <- lapply(function_output, add_harp_class, transformation_opts)
-    as_harp_list(
-      lapply(function_output, as_harp_df)
+    function_output <- as_harp_list(
+      mapply(
+        function(x, y) {
+          dplyr::relocate(
+            dplyr::mutate(
+              as_harp_df(x),
+              fcst_model = y
+            ),
+            dplyr::all_of("fcst_model")
+          )
+        },
+        function_output,
+        names(function_output),
+        SIMPLIFY = FALSE
+      )
     )
+
+    if (length(function_output) == 1) {
+      return(function_output[[1]])
+    }
+
+    function_output
     #structure(
     #  function_output,
     #  class = "harp_fcst"

@@ -52,7 +52,7 @@ accumulate.harp_spatial_fcst <- function(.fcst, accum_time, .fcst_name = "") {
 
   if (length(lt_res) > 1) {
     .fcst <- dplyr::full_join(
-      .fcst, data.frame(lead_time = seq(0, max_lt, min(lt_res)))
+      .fcst, purrr::map_dfr(unique(.fcst$fcdate), ~data.frame(fcdate = .x, lead_time = seq(min(lead_times), max_lt, min(lt_res))))
     )
   }
 
@@ -84,7 +84,7 @@ accumulate.harp_spatial_fcst <- function(.fcst, accum_time, .fcst_name = "") {
     dplyr::group_by(.fcst, .data[["fcdate"]]) %>%
       accum_func(fcst_cols, lag_rows) %>%
       dplyr::ungroup() %>%
-      dplyr::filter_at(fcst_cols, function(x) !is.na(x)) %>%
+      dplyr::filter(dplyr::if_any(dplyr::where(is.list), ~map_lgl(.x, ~!is.null(.x)))) %>%
       dplyr::arrange(.data[["fcdate"]]),
      class = class(.fcst)
    )

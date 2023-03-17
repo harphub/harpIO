@@ -137,20 +137,24 @@ read_analysis <- function(
     is_forecast         = FALSE
   )
 
-  structure(
-    purrr::map(analysis, fix_analysis_df),
-    class = "harp_analysis"
+  if (is.data.frame(analysis)) {
+    return(fix_analysis_df(analysis))
+  }
+  as_harp_list(
+    lapply(analysis, fix_analysis_df)
   )
 }
 
 fix_analysis_df <- function(.df) {
-  .df <- dplyr::rename_with(.df, ~gsub("_det$", "", .x))
+  .df <- dplyr::rename(
+    .df, anl = dplyr::all_of("fcst"), anl_model = dplyr::all_of("fcst_model")
+  )
   if (nrow(.df) == 1) {
-    if (is.na(.df[["validdate"]]) && length(date_times) == 1) {
-      .df[["validdate"]] <- date_times
+    if (is.na(.df[["valid_dttm"]]) && length(date_times) == 1) {
+      .df[["valid_dttm"]] <- date_times
     }
   }
-  .df
+  as_harp_df(.df)
 }
 
 
