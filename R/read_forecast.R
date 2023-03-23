@@ -557,7 +557,16 @@ read_forecast <- function(
   if (return_data) {
 
     # ANOTHER BODGE pending working out how to bind data frames with geolist columns
-    function_output <- lapply(function_output, function(x) {class(x) <- c("harp_df", class(x)); x})
+    function_output <- lapply(
+      function_output,
+      function(x) {
+        if (!is.null(x)) {
+          class(x) <- c("harp_df", class(x))
+        }
+        x
+      }
+    )
+    function_output <- function_output[sapply(function_output, function(x) !is.null(x))]
     names(function_output) <- seq_along(function_output)
     function_output <- as_harp_list(function_output)
     function_output <- bind_dfr(function_output, .id = "temp_col") %>%
