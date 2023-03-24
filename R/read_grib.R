@@ -100,16 +100,16 @@ read_grib <- function(
   grib_info <- Rgrib2::Gopen(
     file_name,
     IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel", "paramId", "dataType"),
-    StrPar = "typeOfLevel",
+    StrPar = c("typeOfLevel", "stepRange"),
     multi = format_opts[["multi"]]
   )
 
   # ecmwf uses local table even for deterministc run. So it includes perturbationNumber=0 for analysis (dataType=2)
   # and determinstic forecast (dataType=9). We want to get rid of it, otherwise HARP assumes it is an ensemble.
   # Additional check for dataType is necessary since some local gribfiles do not set dataType.
-  if (!is.na(grib_info[["dataType"]]) && (grib_info[["dataType"]] == 9 || grib_info[["dataType"]] == 2 )) {
-	 grib_info[["perturbationNumber"]] <- NA
-  }
+  grib_info[["perturbationNumber"]][
+    grib_info[["dataType"]] == 9 | grib_info[["dataType"]] == 2
+  ] <- NA
 
   grib_file <- grib_info
 
