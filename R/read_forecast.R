@@ -556,6 +556,11 @@ read_forecast <- function(
 
   if (return_data) {
 
+    if (length(function_output) < 1) {
+      warning("No data to return.", call. = FALSE, immediate. = TRUE)
+      return(invisible(NULL))
+    }
+
     # ANOTHER BODGE pending working out how to bind data frames with geolist columns
     function_output <- lapply(
       function_output,
