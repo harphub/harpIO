@@ -461,6 +461,13 @@ filter_grib_info <- function(
     }
   }
 
+  # If parameter name didn't come from harp_params() it doesn't have a func column
+  # Should fix this to supply own function via grib_opts()
+
+  if (!is.element("func", colnames(grib_info))) {
+    grib_info[["func"]] <- NA
+  }
+
   row_id <- dplyr::pull(
     dplyr::mutate(
       dplyr::group_by(
