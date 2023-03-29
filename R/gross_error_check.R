@@ -30,7 +30,7 @@ get_min_obs_allowed <- function(parameter, param_units = "") {
     "t"         = 173,
     -Inf
   )
-  if (tolower(parameter) %in% c("t2m", "td2m", "t") && param_units == "degC") {
+  if (tolower(parameter) %in% c("t2m", "td2m", "t", "tmax", "tmin") && param_units == "degC") {
     min_val <- min_val - 273.15
   }
   if (tolower(parameter) %in% c("pmsl", "ps") && param_units == "hPa") {

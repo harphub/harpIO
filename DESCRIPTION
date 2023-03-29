@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions and data wrangling for harp
-Version: 0.0.0.9185
+Version: 0.0.0.9186
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -14,10 +14,10 @@ Depends:
 License: Apache License (>= 2.0)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.1.2
 Imports: 
     DBI (>= 0.5),
-    dplyr,
+    dplyr (>= 1.0.0),
     glue,
     lubridate,
     magrittr,
@@ -28,13 +28,13 @@ Imports:
     RSQLite,
     stringr,
     tibble,
-    tidyr,
+    tidyr (>= 1.0.0),
     tools,
     utils,
     dbplyr,
     stats,
     cli,
-    tidyselect
+    tidyselect (>= 1.0.0)
 Suggests:
     ncdf4,
     Rgrib2 (>= 1.4.0),

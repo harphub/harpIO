@@ -118,7 +118,8 @@ read_vfld_interpolate <- function(
   } else { # Get all parameters from the file
 
     synop_parameters <- vfld_data$synop %>%
-      dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation) %>%
+      dplyr::select(-dplyr::any_of(c("SID", "lat", "lon", "model_elevation"))) %>%
+      #dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation) %>%
       colnames() %>%
       purrr::map(parse_harp_parameter)
 
@@ -126,7 +127,7 @@ read_vfld_interpolate <- function(
       temp_parameters <- NULL
     } else {
       temp_parameters <- vfld_data$temp %>%
-        dplyr::select(-.data$SID, -.data$lat, -.data$lon, -.data$model_elevation, -.data$p) %>%
+        dplyr::select(-dplyr::any_of(c("SID", "lat", "lon", "model_elevation", "p"))) %>%
         colnames() %>%
         purrr::map(parse_harp_parameter, vertical_coordinate)
     }
@@ -143,7 +144,8 @@ read_vfld_interpolate <- function(
     } else {
       param_cols_out  <- rlang::syms(synop_parameter)
       vfld_data$synop      <- vfld_data$synop %>%
-        dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
+        dplyr::select(dplyr::any_of(c("SID", "lat", "lon", "model_elevation")), !!!param_cols_out) %>%
+        #dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
         tidyr::gather(key = parameter, value = forecast, !!!param_cols_out) %>%
         dplyr::mutate(
           member    = members,
@@ -173,7 +175,8 @@ read_vfld_interpolate <- function(
       temp_parameter_full <- purrr::map_chr(temp_parameters, "fullname")
       param_cols_out      <- rlang::syms(temp_parameter_full)
       vfld_data$temp <- vfld_data$temp %>%
-        dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
+        dplyr::select(dplyr::any_of(c("SID", "lat", "lon", "model_elevation", "p")), !!!param_cols_in) %>%
+        #dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
         tidyr::gather(key = parameter, value = forecast, !!!param_cols_in) %>%
         dplyr::mutate(
           member    = members,
