@@ -16,6 +16,10 @@
 #'
 #' @param options_set A set of pre-defined options that can be returned.
 #'   Currently only available for data at MET Norway.
+#' @param param_find A list used to map parameter name to the name of the
+#'   variable in in the NetCDF file. The name should be the parameter name
+#'   used in the read function and the element should be the name in the NetCDF
+#'   file.
 #' @param proj4_var The variable that holds the projection information in the
 #'   NetCDF files. Set to 0 if the proj4 string is a global attribute.
 #' @param proj4_att The attribute of \code{proj4_var} that holds the proj4
@@ -40,6 +44,10 @@
 #'   order.
 #' @param y_rev Set to \code{TRUE} if data in the y direction are in reverse
 #'   order.
+#' @param dx The x resolution of the data. This needs to be set if the x
+#'   dimension in the file is not a netcdf dimvar.
+#' @param dy The y resolution of the data. This needs to be set if the y
+#'   dimension in the file is not a netcdf dimvar.
 #' @param z_var The name of the z (vertical) dimension.
 #' @param member_var The name of the ensemble member dimension.
 #' @param time_var The name of the time dimension.
@@ -71,6 +79,7 @@ netcdf_opts <- function(
     "wrf_u_stagger",
     "wrf_v_stagger"
   ),
+  param_find       = list(),
   proj4_var        = "projection_lambert",
   proj4_att        = "proj4",
   proj4            = NULL,
@@ -80,6 +89,8 @@ netcdf_opts <- function(
   lat_var          = "latitude",
   x_rev            = FALSE,
   y_rev            = FALSE,
+  dx               = NULL,
+  dy               = NULL,
   z_var            = NA,
   member_var       = NA,
   time_var         = "time",
@@ -146,6 +157,7 @@ netcdf_opts <- function(
 
   list(
     options_set      = options_set,
+    param_find       = param_find,
     proj4_var        = proj4_var,
     proj4_att        = proj4_att,
     proj4            = proj4,
@@ -155,6 +167,8 @@ netcdf_opts <- function(
     lat_var          = lat_var,
     x_rev            = x_rev,
     y_rev            = y_rev,
+    dx               = dx,
+    dy               = dy,
     z_var            = z_var,
     member_var       = member_var,
     time_var         = time_var,

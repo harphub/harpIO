@@ -80,8 +80,8 @@ data to sqlite files.
 \details{
 This function is used for reading point observations from files and ouputting
 the data to sqlite files. Where observations are stored in files, the time
-taken to read in the data can be heavily depndent on the number of files and
-the amount of data in them. Therefore, to make the observaton data availble
+taken to read in the data can be heavily dependent on the number of files and
+the amount of data in them. Therefore, to make the observation data available
 more quickly for future use this function should be used to save the
 interpolated data in sqlite files.
 

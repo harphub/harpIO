@@ -401,13 +401,20 @@ db_clean_and_write <- function(
 # Generate a WHERE sql statement from a list
 ###############################################################
 generate_where <- function(where_list) {
+  paste_query <- function(x, y) {
+    if (is.character(y)) {
+      paste0(x, " IN ('", paste(y, collapse = "','"), "')")
+    } else {
+      paste0(x, " IN (", paste(y, collapse = ","), ")")
+    }
+  }
   paste(
     "WHERE",
     paste(
       purrr::map2_chr(
         names(where_list),
         where_list,
-        ~ paste0(.x, " IN (", paste(.y, collapse = ","), ")")
+        paste_query
       ),
       collapse = " AND "
     )

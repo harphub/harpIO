@@ -1,13 +1,16 @@
 read_netcdf <- function(
-  file_name,
+    file_name,
   parameter,
+  is_forecast         = TRUE,
+  date_times          = NULL,
   lead_time           = NULL,
   members             = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
   format_opts         = netcdf_opts(),
-  show_progress       = FALSE
+  show_progress       = FALSE,
+  ...
 ) {
 
   if (!requireNamespace("ncdf4", quietly = TRUE)) {
@@ -29,6 +32,21 @@ read_netcdf <- function(
   }
 
   # Convert parameter name to harp parameter and then to netcdf
+  if (inherits(parameter, "harp_parameter")) {
+    parameter <- list(parameter)
+  }
+  if (length(parameter) == 1 && !is.null(format_opts[["param_find"]])) {
+    if (length(format_opts[["param_find"]]) == 1 && is.null(names(format_opts[["param_find"]]))) {
+      if (!is.list(format_opts[["param_find"]])) {
+        format_opts[["param_find"]] <- list(format_opts[["param_find"]])
+      }
+      if (inherits(parameter, "harp_parameter")) {
+        names(format_opts[["param_find"]]) <- parameter[["fullname"]]
+      } else {
+        names(format_opts[["param_find"]]) <- parameter
+      }
+    }
+  }
   parameter  <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
   param_info <- lapply(parameter, get_netcdf_param_info, opts = format_opts, vc = vertical_coordinate)
 
@@ -39,7 +57,7 @@ read_netcdf <- function(
 
   # Check for variables in the file
   nc_vars        <- names(nc_id$var)
-  requested_vars <- sapply(param_info, function(x) x[["nc_param"]])
+  requested_vars <- unlist(lapply(param_info, function(x) x[["nc_param"]]))
   missing_vars   <- setdiff(requested_vars, nc_vars)
   warning_func   <- function(x) {
     index      <- which(requested_vars == x)
@@ -62,7 +80,7 @@ read_netcdf <- function(
   }
 
   nc_vars    <- intersect(nc_vars, requested_vars)
-  param_info <- param_info[sapply(param_info, function(x) x[["nc_param"]] %in% nc_vars)]
+  param_info <- param_info[sapply(param_info, function(x) all(unlist(x[["nc_param"]]) %in% nc_vars))]
 
   nc_dims        <- names(nc_id$dim)
   requested_dims <- unique(stats::na.omit(unlist(lapply(
@@ -94,7 +112,11 @@ read_netcdf <- function(
   }
   # Filter the lead times and ensemble members
 
-  nc_info <- mapply(filter_nc, nc_info, param_info, MoreArgs = list(lead_time, members), SIMPLIFY = FALSE)
+  nc_info <- mapply(
+    filter_nc, nc_info, param_info,
+    MoreArgs = list(date_times, lead_time, members, is_forecast),
+    SIMPLIFY = FALSE
+  )
   nc_info <- nc_info[sapply(nc_info, function(x) nrow(x) > 0)]
   if (length(nc_info) < 1) {
     stop("None of the requested data could be read from netcdf file: ", file_name, call. = FALSE)
@@ -145,7 +167,7 @@ read_netcdf <- function(
         "",
         as.character(
           factor(result[["lead_time"]], levels = data_leads, labels = names(data_leads)))
-        )
+      )
     )
   }
 
@@ -165,6 +187,31 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
   nc_param    <- param[["nc_param"]]
   harp_param  <- param[["harp_param"]]
+
+  nc_info_for_param <- lapply(nc_param, get_nc_info, param, nc_id, info_df)
+
+  if (is.null(names(nc_param))) {
+    return(nc_info_for_param[[1]])
+  }
+
+  nc_info_for_param <- mapply(
+    function(x, y) {
+      x[[1]][["func_var"]] = y
+      x
+    },
+    na_param,
+    names(nc_param)
+  )
+
+  list(
+    purrr::map_dfr(nc_info_for_param, 1),
+    lapply(nc_param_info, function(x) x[[2]])
+  )
+
+}
+
+# Function to get nc info for a harp parameter
+get_nc_info <- function(nc_param, param, nc_id, info_df) {
   nc_dims_raw <- sapply(nc_id[["var"]][[nc_param]][["dim"]], function(x) x[["name"]])
   nc_dims     <- sort(nc_dims_raw)
   opts_dims   <- sort(stats::na.omit(unlist(
@@ -204,8 +251,8 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
     }
     if (warn_dims) {
       warning(
-        "Requested dimensions do not match for '", harp_param[["fullname"]],
-        "' in ", file_name, ".\n",
+        "Requested dimensions do not match for '", param[["harp_param"]][["fullname"]],
+        "' in ", nc_id[["filename"]], ".\n",
         "Requested dimensions: (", paste(opts_dims, collapse = ", "), ")\n",
         "Dimensions in file: (", paste(nc_dims, collapse = ", "), ").",
         call. = FALSE, immediate. = TRUE
@@ -222,7 +269,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
       if (length(z_levels) < 1) {
         warning(
           param[["opts"]][["z_var"]], " == ", param[["harp_param"]][["level"]],
-          "not found in file: ", file_name,
+          "not found in file: ", nc_id[["filename"]],
           call. = FALSE, immediate. = TRUE
         )
         return(NULL)
@@ -254,15 +301,39 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
   list(info_df, param)
 }
 
+
 ###
 
 # function to filter available netcdf data to requested lead times and ensemble members
 
-filter_nc <- function(nc_info, param_info, lead_times, members) {
+filter_nc <- function(nc_info, param_info, date_times, lead_times, members, is_forecast) {
 
   parameter <- unique(nc_info[["parameter"]])
 
-  if (!is.null(lead_times)) {
+  if (!is.null(date_times)) {
+
+    date_col <- ifelse(is_forecast, "fcdate", "validdate")
+    missing_date_times <- which(!date_times %in% nc_info[[date_col]])
+    if (length(missing_date_times) > 0) {
+      missing_date_times <- date_times[missing_date_times]
+      date_times         <- date_times[-missing_date_times]
+      warning(
+        "date_times: ", paste(missing_date_times, collapse = ","),
+        " for '", parameter, "' not found in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+    }
+    nc_info <- dplyr::filter(nc_info, .data[[date_col]] %in% date_times)
+    if (nrow(nc_info) < 1) {
+      warning(
+        "None of the requested date_times were found for '", parameter, "' in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(nc_info)
+    }
+  }
+
+  if (!is.null(lead_times) && is_forecast) {
     if (is.numeric(lead_times)) { # assume in hours
       lead_times <- paste0(lead_times, "h")
     }
@@ -351,7 +422,7 @@ filter_nc <- function(nc_info, param_info, lead_times, members) {
 # Function to read and transform netcdf data
 
 read_and_transform_netcdf <- function(
-  nc_info, param_info, nc_id, nc_domain, transformation, opts, first_only, show_progress
+    nc_info, param_info, nc_id, nc_domain, transformation, opts, first_only, show_progress
 ) {
 
   func <- function(x, nc_id, nc_info, nc_opts, nc_domain, transformation = "none", opts = list(), show_progress) {

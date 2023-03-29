@@ -2,53 +2,57 @@
 #'
 #' Prints a table of default parameter names in harp and their descriptions
 #'
-#' @param cf_name Set to TRUE to show CF convention names where available rather
-#'   than description.
+#' @param file_format The file format for which to show parameters. If set to
+#'   NULL all parameters are shown with a description
+#' @param param_defs Parameter definitions list
 #'
 #' @export
 #' @examples
 #' show_harp_parameters()
-#' show_harp_parameters(cf_name = TRUE)
 #'
-show_harp_parameters <- function(cf_name = FALSE) {
+show_harp_parameters <- function(file_format = NULL, param_defs = harp_params()) {
+  if (is.null(file_format)) {
+    params <- dplyr::arrange(
+      tibble::tibble(
+        name = names(param_defs),
+        description = sapply(param_defs, function(x) x[["description"]])
+      ),
+      .data[["name"]]
+    )
 
-  harp_params <- tibble::tribble(
-    ~harp_parameter_name, ~description,
-    "AccPcp12h" , "Accumulated precipitation over e.g. 12 hours",
-    "CCtot"     , "Total cloud cover",
-    "CClow"     , "Low level cloud cover",
-    "CCmed"     , "Medium level cloud cover",
-    "CChigh"    , "High level cloud cover",
-    "Cbase"     , "Height of cloud base",
-    "D10m"      , "10m wind direction",
-    "G10m"      , "10m wind gust - period depends on input data",
-    "Gmax"      , "10m maximum wind gust - period depends on input data",
-    "Pcp"       , "Precipitation direct from model - usually accumulated from start time",
-    "Pmsl"      , "Pressure at mean sea level",
-    "Ps"        , "Pressure at surface",
-    "Q2m"       , "2m specific humidity",
-    "RH2m"      , "2m relative humidity",
-    "T2m"       , "2m temperature",
-    "Td2m"      , "2m dewpoint temperature",
-    "Tmin"      , "Minimum 2m temperature",
-    "Tmax"      , "Maximum 2m temperature",
-    "S10m"      , "10m wind speed",
-    "Smax"      , "Maximum 10m wind speed - period depends on input data",
-    "vis"       , "Horizontal visibility"
-  )
+  } else {
 
-  if (cf_name) {
-    harp_params <- dplyr::transmute(
-      harp_params,
-      .data$harp_parameter_name,
-      cf_name = sapply(lapply(.data$harp_parameter_name, get_netcdf_param_info), function(x) x[["nc_param"]])
+    param_elements <- purrr::map(param_defs, file_format)
+
+    params <- param_elements %>%
+      purrr::map_lgl(~!is.null(.x)) %>%
+      select_elements(param_elements)
+
+    if (length(params) < 1) {
+      stop("Nothing found for file format: ", file_format, call. = FALSE)
+    }
+
+    if (file_format == "fa") {
+      stop("Doesn't work FA params yet", call. = FALSE)
+    }
+
+    params <- dplyr::arrange(
+      tibble::tibble(
+        name     = names(params),
+        fmt_name = vapply(
+          params,
+          function(x) gsub("\"", "", deparse(x[["name"]])),
+          "a",
+          USE.NAMES = FALSE
+        )
+      ),
+      .data[["name"]]
+    )
+    colnames(params)[colnames(params) == "fmt_name"] <- paste0(
+      file_format, "_name"
     )
   }
 
-  print(dplyr::arrange(harp_params, .data$harp_parameter_name), n = nrow(harp_params))
-  cat(
-    "\n",
-    "For upper air parameters, Z, T, RH, D, S, Q, and Td are available. Follow the\n",
-    "letter with a number to denote pressure level, e.g. T850, S925, Z300 etc.\n"
-  )
+  print(params, n = Inf)
+
 }

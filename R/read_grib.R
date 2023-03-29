@@ -41,13 +41,16 @@
 read_grib <- function(
   file_name,
   parameter,
+  is_forecast         = TRUE,
+  date_times          = NULL,
   lead_time           = NULL,
   members             = NULL,
   vertical_coordinate = NA_character_,
   transformation      = "none",
   transformation_opts = list(),
   format_opts         = grib_opts(),
-  show_progress       = FALSE
+  show_progress       = FALSE,
+  ...
 ) {
 
   if (!requireNamespace("Rgrib2", quietly = TRUE)) {
@@ -96,10 +99,17 @@ read_grib <- function(
 
   grib_info <- Rgrib2::Gopen(
     file_name,
-    IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel", "paramId"),
-    StrPar = "typeOfLevel",
+    IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel", "paramId", "dataType"),
+    StrPar = c("typeOfLevel", "stepRange"),
     multi = format_opts[["multi"]]
   )
+
+  # ecmwf uses local table even for deterministc run. So it includes perturbationNumber=0 for analysis (dataType=2)
+  # and determinstic forecast (dataType=9). We want to get rid of it, otherwise HARP assumes it is an ensemble.
+  # Additional check for dataType is necessary since some local gribfiles do not set dataType.
+  grib_info[["perturbationNumber"]][
+    grib_info[["dataType"]] == 9 | grib_info[["dataType"]] == 2
+  ] <- NA
 
   grib_file <- grib_info
 
@@ -127,11 +137,12 @@ read_grib <- function(
   colnames(grib_info)[colnames(grib_info) == "perturbationNumber"] <- "member"
 
   # filter_grib_info function defined at end of file
-  # For dplyr methods in filter_grib_info the new class has to be after
+  # For dplyr methods in filter_grib_info the "GRIBlist" class
+  # has to come before the "data.frame" class
   class(grib_info) <- rev(class(grib_info))
   grib_info <- purrr::map2_dfr(
     parameter, param_info, filter_grib_info,
-    grib_info, lead_time, members, format_opts
+    grib_info, date_times, lead_time, members, is_forecast, format_opts
   )
   class(grib_info) <- rev(class(grib_info))
 
@@ -159,9 +170,8 @@ read_grib <- function(
   # This function should also include calls to interpolate, regrid and xsection so
   # that no more data is kept in memory than is necessary.
   read_and_transform_grib <- function(
-    row_num,
-    file_name,
     grib_info,
+    file_name,
     format_opts,
     transformation = "none",
     opts           = list(),
@@ -169,23 +179,51 @@ read_grib <- function(
   ) {
 
     result <- tibble::tibble(
-      fcdate       = grib_info$fcdate[row_num],
-      validdate    = grib_info$validdate[row_num],
-      lead_time    = grib_info$leadtime[row_num],
-      parameter    = grib_info$parameter[row_num],
-      members      = grib_info$member[row_num],
-      level_type   = grib_info$level_type[row_num], #FIXME: this is grib-1 specific
-      level        = grib_info$level[row_num],
-      units        = grib_units_to_harp_units(grib_info$units[row_num]),
-      gridded_data = list(
-        Rgrib2::Gdec(
+      fcdate       = unique(grib_info[["fcdate"]]),
+      validdate    = unique(grib_info[["validdate"]]),
+      lead_time    = unique(grib_info[["leadtime"]]),
+      parameter    = unique(grib_info[["parameter"]]),
+      members      = unique(grib_info[["member"]]),
+      level_type   = unique(grib_info[["level_type"]]),
+      level        = unique(grib_info[["level"]]),
+      units        = grib_units_to_harp_units(unique(grib_info[["units"]])),
+      gridded_data = list(lapply(
+        grib_info[["position"]],
+        function(x) Rgrib2::Gdec(
           file_name,
-          grib_info$position[row_num],
+          x,
           get.meta  = format_opts[["meta"]],
           multi     = format_opts[["multi"]]
         )
-      )
+      ))
     )
+
+    # Apply any function to the input(s) as taken from param_defs
+
+    func <- unique(grib_info[["func"]])
+
+    if (is.na(func)) {
+      result[["gridded_data"]][[1]] <- result[["gridded_data"]][[1]][[1]]
+    } else {
+      func <- func[[1]]
+      if (is.null(grib_info[["func_var"]])) {
+        result[["gridded_data"]][[1]] <- func(
+          result[["gridded_data"]][[1]]
+        )
+      } else {
+        names(result[["gridded_data"]][[1]]) <- grib_info[["func_var"]]
+        result[["gridded_data"]][[1]] <- do.call(
+          func, result[["gridded_data"]][[1]]
+        )
+      }
+
+      if (!meteogrid::is.geofield(result[["gridded_data"]][[1]])) {
+        stop(
+          "`func` must return a single geofield", call. = FALSE
+        )
+      }
+
+    }
 
     result <- transform_geofield(result, transformation, opts)
 
@@ -195,17 +233,20 @@ read_grib <- function(
 
   }
 
+  grib_info <- split(
+    grib_info, paste(grib_info[["parameter"]], grib_info[["id"]])
+  )
+
   if (show_progress) {
     pb <- progress::progress_bar$new(
-      format = "[:bar] :percent eta: :eta", total = nrow(grib_info)
+      format = "[:bar] :percent eta: :eta", total = length(grib_info)
     )
   }
 
   grib_data <- purrr::map_dfr(
-    1:nrow(grib_info),
+    grib_info,
     read_and_transform_grib,
     grib_file,
-    grib_info,
     format_opts,
     transformation,
     transformation_opts,
@@ -225,237 +266,184 @@ read_grib <- function(
 
 }
 
-# Read a field from a grib file & interpolate
-#
-# @param file_name The grib file name.
-# @param parameter The parameter to read. Standard HARP names are used.
-# @param lead_time lead time
-# @param members ens members
-# @param vertical_coordinate The vertical coordinate for upper air parameters
-# @param init Initialisation for interpolation. A list that contains
-#    station locations and (possibly) pre-calculated interpolation weights etc.
-# @param method Interpolation method (only necessary if the weights are not yet initialised)
-# @param use_mask If TRUE, use land/sea mask in interpolation
-# @param meta If TRUE, also read all meta data (domain, time properties).
-#
-# @return A tibble
-# NOT exported. Used internally.
-read_grib_interpolate <- function(file_name,
-  parameter,
-  lead_time           = NA_real_,
-  members             = NA_character_,
-  vertical_coordinate = NA_character_,
-  init                = list(),
-  method              = "closest",
-  use_mask            = FALSE,
-  show_progress       = FALSE
-) {
-  # FIXME: grib2 files can contain multiple ensemble members!
-  #stop("Grib support for interpolation is not properly implemented yet.", call. = FALSE)
-
-  if (!requireNamespace("Rgrib2", quietly = TRUE)) {
-    stop(
-      "read_grib requires the Rgrib2 package. Install with the following command:\n",
-      "remotes::install_github(\"harphub/Rgrib2\")",
-      call. = FALSE
-    )
-  }
-
-  if (!file.exists(file_name)) {
-    warning("File not found: ", file_name, "\n", call. = FALSE, immediate. = TRUE)
-    empty_data <- empty_data_interpolate(members, lead_time, empty_type = "fcst")
-    return(empty_data)
-  }
-
-  fcst_data <- read_grib(
-    file_name,
-    parameter,
-    vertical_coordinate = vertical_coordinate,
-    transformation      = "interpolate",
-    transformation_opts = list(
-      stations = init$stations,
-      method   = method,
-      use_mask = use_mask,
-      weights  = init$weights
-    ),
-    show_progress = show_progress
-  )
-
-  list(
-    fcst_data = dplyr::transmute(
-      fcst_data,
-      .data$SID,
-      .data$lat,
-      .data$lon,
-      .data$parameter,
-      forecast  = .data$station_data,
-      member    = members,
-      lead_time = .data$lead_time,
-      p         = dplyr::case_when(
-        .data$level_type == "pressure" ~ .data$level,
-        TRUE                     ~ NA_integer_,
-      )
-    ),
-    units = dplyr::distinct(dplyr::select(fcst_data, .data$parameter, .data$units))
-  )
-
-}
-
 
 #####
 
 # Function to get the grib information for parameters
-filter_grib_info <- function(parameter, param_info, grib_info, lead_time, members, opts) {
-  #  if (grepl("(?:^mn|^mx|^)[[:digit:]]+[[:alpha:]]", param_info$short_name)) {
-  #    grib_info_f <- dplyr::filter(grib_info, .data$shortName == param_info$short_name)
-  #  } else {
-  # Some parameters may be encoded in two different ways, so we may need a second try
-  #  e.g. precip can be on "surface" or "0m above ground")
-  # 10m wind speed can be "ws" or "10si" (or even "SP_10M" in DWD files)
-  # TODO: for "unknown" shortNames we could try to use parameter number?
-  #       that would be useful when we need a local "grib_override"
-  # TODO: what if we need 2 component-fields followed by transformation (e.g. wind speed from u & v)
-  #       that should be part of the "transformation", but it requires 2 fields, not one.
+filter_grib_info <- function(
+  parameter, param_info, grib_info, date_times,
+  lead_time, members, is_forecast, opts
+) {
 
-  param_find <- opts[["param_find"]][[parameter[["fullname"]]]]
+  param_finds <- opts[["param_find"]][[parameter[["fullname"]]]]
 
-  if (is.null(param_find)) {
-    param_find <- use_grib_shortName(param_info[["short_name"]])
+  if (is.null(param_finds)) {
+    if (is.list(param_info[["short_name"]])) {
+      param_finds <- lapply(param_info[["short_name"]], use_grib_shortName)
+    } else {
+      param_finds <- list(use_grib_shortName(param_info[["short_name"]]))
+    }
+  } else {
+    param_finds <- list(param_finds)
   }
 
   level_find <- opts[["level_find"]][[parameter[["fullname"]]]]
 
   if (is.null(level_find)) {
 
-    level_find_grib1 <- use_grib_key_level(
-      "levelType",
+    level_find <- use_grib_key_level(
+      "typeOfLevel",
       param_info[["level_type"]],
       param_info[["level_number"]]
     )
 
-    level_find_grib2 <- use_grib_key_level(
-      "levelType",
-      param_info[["level_type_2"]],
-      param_info[["level_number"]]
-    )
-
-    level_find <- level_find_grib1
-
-  } else {
-
-    level_find_grib1 <- level_find
-    level_find_grib2 <- level_find
-
   }
 
-  if (!is.element(param_find[["key"]], colnames(grib_info))) {
-    stop(
-      "`", param_find[["key"]], "` not found in grib keys for file.",
-      call. = FALSE
+  get_grib_info_df <- function(param_find) {
+
+    if (!is.element(param_find[["key"]], colnames(grib_info))) {
+      stop(
+        "`", param_find[["key"]], "` not found in grib keys for file.",
+        call. = FALSE
+      )
+    }
+
+    if (!is.element(level_find[["key"]], colnames(grib_info))) {
+      stop(
+        "`", level_find[["key"]], "` not found in grib keys for file.",
+        call. = FALSE
+      )
+    }
+
+    single_surfaces <- c(
+      "surface", "meanSea", "isothermZero", "tropopause", "cloudBase",
+      "cloudTop", "entireAtmosphere"
     )
-  }
 
-  if (!is.element(level_find_grib1[["key"]], colnames(grib_info))) {
-    stop(
-      "`", level_find_grib1[["key"]], "` not found in grib keys for file.",
-      call. = FALSE
-    )
-  }
+    for (i in seq_along(param_find[["value"]])) {
+      for (j in seq_along(level_find[["value"]])) {
 
-  if (!is.element(level_find_grib2[["key"]], colnames(grib_info))) {
-    stop(
-      "`", level_find_grib2[["key"]], "` not found in grib keys for file.",
-      call. = FALSE
-    )
-  }
+        if (
+          level_find[["value"]][j] == 255 |
+            level_find[["value"]][j] == "unknown"
+        ) {
+          grib_info_f <- grib_info %>% dplyr::filter(
+            .data[[param_find[["key"]]]] == param_find[["value"]][i]
+          )
+          level_type <- "unknown"
 
-  for (i in seq_along(param_find[["value"]])) {
-    for(j in seq_along(level_find[["value"]])) {
+        } else {
 
-      if (level_find[["value"]][j] == 255 | level_find[["value"]][j] == "unknown") {
-        grib_info_f <- grib_info %>% dplyr::filter(
-          .data[[param_find[["key"]]]] == param_find[["value"]][i])
-        level_type_grib1 <- "unknown"
-        level_type_grib2 <- "unknown"
+          grib_info_f <- grib_info %>% dplyr::filter(
+            .data[[param_find[["key"]]]] == param_find[["value"]][i] &
+              .data[[level_find[["key"]]]] == level_find[["value"]][j]
+          )
 
-      } else {
+          if (
+            !any(level_find[["value"]] %in% single_surfaces) &&
+              level_find[["level"]] != -999
+          ) {
+            grib_info_f <- dplyr::filter(
+              grib_info_f, .data[["level"]] %in% level_find[["level"]]
+            )
+          }
+        }
 
-        grib_info_f <- grib_info %>% dplyr::filter(
-          .data[[param_find[["key"]]]] == param_find[["value"]][i] &
-            ((
-              .data$editionNumber == 1 &
-                .data[[level_find_grib1[["key"]]]] == level_find_grib1[["value"]][j]
-            ) | (
-              .data$editionNumber == 2 &
-                .data[[level_find_grib2[["key"]]]] == level_find_grib2[["value"]][j]
-            ))
-        )
+        if (nrow(grib_info_f) >= 1) {
+          level_type <- level_find[["value"]][j]
+          break
+        }
 
       }
 
       if (nrow(grib_info_f) >= 1) {
-        level_type_grib1 <- level_find_grib1[["value"]][j]
-        level_type_grib2 <- level_find_grib2[["value"]][j]
         break
       }
 
     }
 
-    if (nrow(grib_info_f) >= 1) {
-      break
+    grib_info <- grib_info_f
+
+    if (nrow(grib_info) == 0) {
+
+      warning(
+        "Parameter \"", parameter[["fullname"]], "\" ",
+        "(", param_find[["key"]], ": \"",
+        paste(
+          param_find[["value"]], collapse = "\" / \""
+        ),
+        "\", ", level_find[["key"]], ": \"",
+        paste(
+          level_find[["value"]], collapse = "\" / \""
+        ),
+        "\" for level(s) ",
+        paste(
+          level_find[["level"]], collapse = ","
+        ),
+        ") not found in grib file.",
+        call. = FALSE, immediate. = TRUE
+      )
+
     }
 
-  }
-
-  if (
-    length(level_find[["value"]]) > 1 ||
-      level_find[["value"]] != 255 &&
-      level_find[["value"]] != "unknown" &&
-      level_find[["level"]] != -999
-  ) {
-
-    grib_info_f <- dplyr::filter(
-      grib_info_f, .data[["level"]] %in% level_find[["level"]]
+    list(
+      grib_info = grib_info, level_type = level_type
     )
 
   }
 
-  grib_info <- grib_info_f
+  grib_info  <- purrr::map(param_finds, get_grib_info_df)
+  level_type <- unique(purrr::map_chr(grib_info, "level_type"))
 
-  if (nrow(grib_info) == 0) {
+  if (is.null(names(grib_info))) {
+    grib_info <- purrr::map_dfr(grib_info, "grib_info")
+  } else {
+    grib_info <- purrr::map_dfr(grib_info, "grib_info", .id = "func_var")
+  }
 
-    warning(
-      "Parameter \"", parameter[["fullname"]], "\" ",
-      "(", param_find[["key"]], ": \"",
-      paste(
-        param_find[["value"]], collapse = "\" / \""
-      ),
-      "\", ", level_find[["key"]], ": \"",
-      paste(
-        level_find[["value"]], collapse = "\" / \""
-      ),
-      "\" for level(s) ",
-      paste(
-        level_find[["level"]], collapse = ","
-      ),
-      ") not found in grib file.",
-      call. = FALSE, immediate. = TRUE
-    )
-
+  if (nrow(grib_info) < 1) {
     return(grib_info)
-
   }
-  # AD: this should depend on gribEdition, and be careful for length
-  grib_info[["level_type"]] <- grib_edition_level_name(level_type_grib1, 1)
-  grib_info[["level_type"]][grib_info[["editionNumber"]] == 2] <-
-    grib_edition_level_name(level_type_grib2, 2)
+
+  if (level_type == "unknown") {
+    level_type <- paste(unique(grib_info[["typeOfLevel"]]), collapse = ",")
+  }
+  if (nchar(level_type) < 1) {
+    level_type <- "unknown"
+  }
+  level_type <- names(grib_level_types())[grib_level_types() == level_type]
+  if (length(level_type) < 1) {
+    level_type <- "unknown"
+  }
+  grib_info[["level_type"]] <- level_type[1]
+
+
+
   grib_info[["parameter"]]  <- parameter[["fullname"]]
 
-  if (!is.null(lead_time)) {
+  if (is.function(param_info[["func"]])) {
+    grib_info[["func"]] <- list(param_info[["func"]])
+  } else {
+    grib_info[["func"]] <- param_info[["func"]]
+  }
+
+  if (!is.null(lead_time) && is_forecast) {
     grib_info <- dplyr::filter(grib_info, .data[["leadtime"]] %in% lead_time)
     if (nrow(grib_info) == 0) {
       warning(
         "'lead_time' [", paste(lead_time, collapse = ", "), "] not found in grib file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(grib_info)
+    }
+  }
+
+  if (!is.null(date_times)) {
+    date_col <- ifelse(is_forecast, "fcdate", "validdate")
+    grib_info <- dplyr::filter(grib_info, .data[[date_col]] %in% date_times)
+    if (nrow(grib_info) == 0) {
+      warning(
+        "'date_times' [", paste(date_times, collapse = ", "), "] not found in grib file.",
         call. = FALSE, immediate. = TRUE
       )
       return(grib_info)
@@ -473,8 +461,30 @@ filter_grib_info <- function(parameter, param_info, grib_info, lead_time, member
     }
   }
 
-  grib_info
+  # If parameter name didn't come from harp_params() it doesn't have a func column
+  # Should fix this to supply own function via grib_opts()
 
+  if (!is.element("func", colnames(grib_info))) {
+    grib_info[["func"]] <- NA
+  }
+
+  row_id <- dplyr::pull(
+    dplyr::mutate(
+      dplyr::group_by(
+        grib_info,
+        dplyr::across(
+          dplyr::matches("date|time|level|member")
+        ),
+        .data[["func"]]
+      ),
+      id = dplyr::cur_group_id()
+    ),
+    .data[["id"]]
+  )
+
+  grib_info[["id"]] <- row_id
+
+  grib_info
 }
 
 get_domain_grib <- function(file_name, opts) {
@@ -484,71 +494,12 @@ get_domain_grib <- function(file_name, opts) {
 grib_units_to_harp_units <- function(x) {
   switch(
     x,
-    "m s**-1" = "m/s",
-    "(0 - 1)" = "fraction",
-    "kg m**-2" = "kg/m^2",
+    "m s**-1"    = "m/s",
+    "m**2 s**-2" = "m^2/s^2",
+    "(0 - 1)"    = "fraction",
+    "kg m**-2"   = "kg/m^2",
     x
   )
 }
 
-grib_edition_level_name <- function(id, edition) {
 
-  if (edition == 1) {
-    level_name <- sapply(id, function(x) switch(
-      as.character(x),
-      "sfc"               = ,
-      "surface"           = ,
-      "1"                 = "surface",
-      "isobaricInhPa"     = ,
-      "100"               = "pressure",
-      "102"               = ,
-      "meanSea"           = ,
-      "msl"               = "MSL",
-      "103"               = ,
-      "heightAboveSea"    = "ASL",
-      "105"               = ,
-      "heightAboveGround" = "height",
-      "107"               = ,
-      "sigma"             = "sigma",
-      "109"               = ,
-      "hybrid"            = "model",
-      "4"                 = ,
-      "isothermZero"      = "isotherm_zero",
-      "20"                = ,
-      "isotherm"          = "isotherm",
-      "unknown"
-    ))
-
-  }
-
-  if (edition == 2) {
-    level_name <- sapply(id, function(x) switch(
-      as.character(x),
-      "sfc"               = ,
-      "surface"           = ,
-      "1"                 = "surface",
-      "isobaricInhPa"     = ,
-      "100"               = "pressure",
-      "101"               = ,
-      "meanSea"           = ,
-      "msl"               = "MSL",
-      "102"               = ,
-      "heightAboveSea"    = "ASL",
-      "103"               = ,
-      "heightAboveGround" = "height",
-      "104"               = ,
-      "sigma"             = "sigma",
-      "105"               = ,
-      "hybrid"            = "model",
-      "4"                 = ,
-      "isothermZero"      = "isotherm_zero",
-      "20"                = ,
-      "isotherm"          = "isotherm",
-      "unknown"
-    ))
-
-  }
-
-  level_name
-
-}

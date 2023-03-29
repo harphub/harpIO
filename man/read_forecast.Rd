@@ -9,6 +9,7 @@ read_forecast(
   end_date,
   fcst_model,
   parameter,
+  date_times = NULL,
   lead_time = seq(0, 48, 3),
   members = NULL,
   members_out = members,
@@ -19,13 +20,14 @@ read_forecast(
   file_format = NULL,
   file_template = "vfld",
   file_format_opts = list(),
-  transformation = c("none", "interpolate", "regrid", "xsection"),
+  transformation = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = NULL,
   output_file_opts = sqlite_opts(),
   return_data = FALSE,
   merge_lags = TRUE,
   show_progress = FALSE,
-  stop_on_fail = FALSE
+  stop_on_fail = FALSE,
+  is_forecast = TRUE
 )
 }
 \arguments{
@@ -35,7 +37,7 @@ numeric or charcter.}
 
 \item{end_date}{Date of the last forecast to be read in. Can be in YYYYMMDD,
 YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-charcter.}
+character.}
 
 \item{fcst_model}{The name of the forecast model(s) to read. Can be expressed
 as character vector if more than one model is wanted, or a named list of
@@ -46,6 +48,11 @@ files. Should either be harp parameter names (see
 \code{\link{show_harp_parameters}}), or in the case of netcdf files can be
 the name of the parameters in the files. If reading from vfld files, set to
 NULL to read all parameters.}
+
+\item{date_times}{A vector of date time strings to read. Can be in YYYYMMDD,
+YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+character. If date_times is not NULL, \code{start_date}, \code{end_date}
+and \code{by} are ignored.}
 
 \item{lead_time}{The lead times to read in. If a numeric vector is passed,
 the lead times are assumed to be in hours. Otherwise a character vector may
@@ -148,6 +155,13 @@ show progress when reading these files.}
 \item{stop_on_fail}{Logical. Set to TRUE to make execution stop if there are
 problems reading a file. Missing files are always skipped regardless of
 this setting. The default value is FALSE.}
+
+\item{is_forecast}{Logical. When TRUE (the default), data are read on the
+basis if the forecast initialization time (from start_date & end_date, or
+date_times) and lead_times. When FALSE the date-times from start_date &
+end_date, or date_times are used to choose what data to read and lead_times
+is ignored. This is useful for analysis data where many dates are in the
+same file. \code{\link{read_analysis}} also provides this functionality.}
 }
 \value{
 When \code{return_date = TRUE}, a harp_fcst object.

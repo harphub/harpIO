@@ -7,7 +7,8 @@ write_obstable_to_sqlite <- function(
   primary_key  = c("validdate", "SID"),
   params_table = NULL,
   synchronous  = "off",
-  journal_mode = "delete"
+  journal_mode = "delete",
+  ...
 ) {
 
   obs_data <- dplyr::filter(obs_data, !is.na(.data[["SID"]]))

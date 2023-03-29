@@ -75,12 +75,36 @@ get_domain_netcdf <- function(file_name, opts) {
       stop("'lat_var' must be passed for WRF files.", call. = FALSE)
     }
   } else {
-    x  <- ncdf4::ncvar_get(nc_id, x_dim)
-    y  <- ncdf4::ncvar_get(nc_id, y_dim)
-    nx <- length(x)
-    ny <- length(y)
-    dx <- diff(x[1:2])
-    dy <- diff(y[1:2])
+    if (nc_id[["dim"]][[x_dim]][["create_dimvar"]]) {
+      x  <- ncdf4::ncvar_get(nc_id, x_dim)
+      nx <- length(x)
+      dx <- diff(x[1:2])
+    } else {
+      if (is.null(opts[["dx"]])) {
+        stop(
+          "`", x_dim, "` is only a dimension and not a variable.\n",
+          "You need to include `dx` in netcdf_opts.", call. = FALSE
+        )
+      }
+      nx <- nc_id[["dim"]][[x_dim]][["len"]]
+      dx <- opts[["dx"]]
+      x  <- seq(0, by = dx, length.out = nx)
+    }
+    if (nc_id[["dim"]][[y_dim]][["create_dimvar"]]) {
+      y  <- ncdf4::ncvar_get(nc_id, y_dim)
+      ny <- length(y)
+      dy <- abs(diff(y[1:2]))
+    } else {
+      if (is.null(opts[["dy"]])) {
+        stop(
+          "`", y_dim, "` is only a dimension and not a variable.\n",
+          "You need to include `dy` in netcdf_opts.", call. = FALSE
+        )
+      }
+      ny <- nc_id[["dim"]][[y_dim]][["len"]]
+      dy <- opts[["dy"]]
+      y  <- seq(0, by = dy, length.out = ny)
+    }
   }
 
   proj4 <- meteogrid::proj4.str2list(proj4)
