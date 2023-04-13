@@ -154,7 +154,7 @@ fix_analysis_df <- function(.df) {
       .df[["valid_dttm"]] <- date_times
     }
   }
-  as_harp_df(.df)
+  harpCore::as_harp_df(.df)
 }
 
 

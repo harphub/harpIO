@@ -457,7 +457,7 @@ read_forecast <- function(
     # THIS IS A BODGE! (need to work out how to bind data frames with geolist cols using vctrs)
     data_df <- purrr::map(
       data_df,
-      ~ as_harp_df(dplyr::mutate(.x, valid_dttm = unixtime_to_dttm(.data$valid_dttm)))
+      ~ harpCore::as_harp_df(dplyr::mutate(.x, valid_dttm = unixtime_to_dttm(.data$valid_dttm)))
     )
     names(data_df) <- letters[1:length(data_df)]
     data_df <- bind_dfr(as_harp_list(data_df), .id = "temp_col") %>%
@@ -676,7 +676,7 @@ read_forecast <- function(
         function(x, y) {
           dplyr::relocate(
             dplyr::mutate(
-              as_harp_df(x),
+              harpCore::as_harp_df(x),
               fcst_model = y
             ),
             dplyr::all_of("fcst_model")
