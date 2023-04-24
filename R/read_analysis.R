@@ -93,7 +93,7 @@
 #' @return When \code{return_date = TRUE}, a harp_analysis object.
 #' @export
 read_analysis <- function(
-  date_times,
+    dttm,
   analysis_model,
   parameter,
   members             = NULL,
@@ -109,16 +109,29 @@ read_analysis <- function(
   output_file_opts    = sqlite_opts(),
   return_data         = TRUE,
   merge_lags          = TRUE,
-  show_progress       = FALSE
+  show_progress       = FALSE,
+  start_date          = NULL,
+  end_date            = NULL,
+  by                  = "6h"
 ) {
+
+  if (missing(dttm)) {
+    if (any(sapply(list(start_date, end_date, by), is.null))) {
+      stop(
+        "If `dttm` is not passed, `start_date`, `end_date` ",
+        "and `by` must be passed."
+      )
+    }
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+  }
 
   vertical_coordinate <- match.arg(vertical_coordinate)
   transformation      <- match.arg(transformation)
 
   analysis <- read_forecast(
+    dttm                = dttm,
     fcst_model          = analysis_model,
     parameter           = parameter,
-    date_times          = date_times,
     lead_time           = 0,
     members             = members,
     members_out         = members_out,
@@ -137,21 +150,34 @@ read_analysis <- function(
     is_forecast         = FALSE
   )
 
+  num_members <- length(members)
+
   if (is.data.frame(analysis)) {
-    return(fix_analysis_df(analysis))
+    return(fix_analysis_df(analysis, num_members))
   }
-  as_harp_list(
-    lapply(analysis, fix_analysis_df)
+  harpCore::as_harp_list(
+    lapply(analysis, fix_analysis_df, num_members)
   )
 }
 
-fix_analysis_df <- function(.df) {
-  .df <- dplyr::rename(
-    .df, anl = dplyr::all_of("fcst"), anl_model = dplyr::all_of("fcst_model")
-  )
+fix_analysis_df <- function(.df, num_members) {
+  if (num_members < 2) {
+    colnames(.df) <- suppressWarnings(harpCore::psub(
+      colnames(.df),
+      c("fcst_model", "fcst", "[[:graph:]]*_mbr[[:digit:]]{3}", "_lag"),
+      c("anl_model", "anl", "anl", "")
+    ))
+  } else {
+    colnames(.df) <- suppressWarnings(harpCore::psub(
+      colnames(.df),
+      c("^fcst_model$", "^fcst$", "[[:graph:]]*(?=_mbr[[:digit:]]{3})", "_lag"),
+      c("anl_model", "anl", "anl", ""),
+      exact = FALSE, perl = TRUE
+    ))
+  }
   if (nrow(.df) == 1) {
-    if (is.na(.df[["valid_dttm"]]) && length(date_times) == 1) {
-      .df[["valid_dttm"]] <- date_times
+    if (is.na(.df[["valid_dttm"]]) && length(dttm) == 1) {
+      .df[["valid_dttm"]] <- dttm
     }
   }
   harpCore::as_harp_df(.df)

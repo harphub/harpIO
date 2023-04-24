@@ -38,8 +38,8 @@ If a length 2 vector is passed, the probability for between those two
 values (inclusive) will be computed.}
 
 \item{prob_inequality}{The inequality to use in the calculation for the
-probability. Must be in back ticks. Can be any one of `>=` (the default),
-`>`, `<=`, `<`, `==`, or `!=`.}
+probability. Must be in back ticks. Can be any one of \code{>=} (the default),
+\code{>}, \code{<=}, \code{<}, \code{==}, or \code{!=}.}
 
 \item{nbh_radius}{For spatial data the radius of neighbourhoods for which to
 compute the probability in grid lengths. The neigbourhood will be a square
@@ -52,7 +52,7 @@ computing the statistics. Default is TRUE.}
 }
 \value{
 An object of the same class as .fcst with new columns in the data
-  frame(s) for the computed values.
+frame(s) for the computed values.
 }
 \description{
 Get ensemble statistics

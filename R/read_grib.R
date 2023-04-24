@@ -336,7 +336,7 @@ filter_grib_info <- function(
 
           grib_info_f <- grib_info %>% dplyr::filter(
             .data[[param_find[["key"]]]] == param_find[["value"]][i] &
-              .data[[level_find[["key"]]]] == level_find[["value"]][j]
+              .data[[level_find[["key"]]]] %in% glue::glue(level_find[["value"]][j])
           )
 
           if (
@@ -386,6 +386,10 @@ filter_grib_info <- function(
 
     }
 
+    if (!exists("level_type")) {
+      level_type <- ""
+    }
+
     list(
       grib_info = grib_info, level_type = level_type
     )
@@ -393,7 +397,7 @@ filter_grib_info <- function(
   }
 
   grib_info  <- purrr::map(param_finds, get_grib_info_df)
-  level_type <- unique(purrr::map_chr(grib_info, "level_type"))
+  level_type <- unique(purrr::map_chr(grib_info, ~as.character(.x[["level_type"]])))
 
   if (is.null(names(grib_info))) {
     grib_info <- purrr::map_dfr(grib_info, "grib_info")

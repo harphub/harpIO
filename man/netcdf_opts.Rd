@@ -100,7 +100,7 @@ order of the dimensions.
 \details{
 Note that the order of the dimensions is "Fortran order" rather than "C"
 order. This means that the order of the dimensions is obtained by reading
-from right to left in the output of ncdump -h <filename>.
+from right to left in the output of ncdump -h \if{html}{\out{<filename>}}.
 
 The default options can be seen by running \code{netcdf_opts()}, but there
 are also some options sets that can be selected, currently only those for

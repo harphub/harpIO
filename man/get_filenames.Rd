@@ -83,12 +83,13 @@ names. Set to FALSE to return a detailed data frame.}
 }
 \value{
 If filenames_only is TRUE, a vector of unique file names. If
-  filenames_only is FALSE, a tibble with columns eps_model, sub_model,
-  fcdate, file_name, lead_time and member.
+filenames_only is FALSE, a tibble with columns eps_model, sub_model,
+fcdate, file_name, lead_time and member.
 }
 \description{
-Given a path, a date or start date and end date, a template and other inputs
-(see Arguments) a vector of filenames is returned.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+This function was deprecated as \link{generate_filenames} is superior.
 }
 \examples{
 get_filenames("/my/path", eps_model = "my_eps", parameter = "T2m")
@@ -110,3 +111,4 @@ lead_time = seq(0, 24, 6), file_template =
 "{eps_model}/{YYYY}{MM}{DD}{HH}_mbr{MBR2}+{LDT}h")
 
 }
+\keyword{internal}

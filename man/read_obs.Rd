@@ -5,7 +5,7 @@
 \title{Read point observations from multiple files}
 \usage{
 read_obs(
-  date_times,
+  dttm,
   parameter,
   stations = NULL,
   file_path = getwd(),
@@ -23,13 +23,6 @@ read_obs(
 )
 }
 \arguments{
-\item{date_times}{A vector of date time strings to read. Can be in YYYYMMDD,
-YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-character. A vector of date-times can be generated using \link{seq_dates}.
-If \code{date_times} is missing or set to NULL, the date-times to read will
-be generated from the \code{start_date}, \code{end_date} and \code{by}
-arguments.}
-
 \item{parameter}{The names of the parameters to read. By default this is
 NULL, meaning that all parameters are read from the observations files.}
 
@@ -76,18 +69,10 @@ data.}
 calling environment. Due to the potential for large volumes of data, this
 is set to FALSE by default.}
 
-\item{start_date}{If \code{date_times} is not set, the start date-time for a
-sequence of dates to read. Can be in YYYYMMDD, YYYYMMDDhh, YYYYMMDDhhmm, or
-YYYYMMDDhhmmss format.}
-
-\item{end_date}{If \code{date_times} is not set, the end date-time for a
-sequence of dates to read. Can be in YYYYMMDD, YYYYMMDDhh, YYYYMMDDhhmm, or
-YYYYMMDDhhmmss format.}
-
-\item{by}{If \code{date_times} is not set, the time step for a sequence of
-dates to read. If numeric, it is assumed to be in hours, otherwise the the
-suffixes "d", "h", "m", "s", for days, hours, minutes and seconds
-respectively.}
+\item{start_date, end_date, by}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The use of
+\code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
+with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+spaced date-times.}
 
 \item{reads_per_write}{The number of files to read before writing out the
 data to new files. Set this to a low number to reduce memory usage. The
@@ -99,10 +84,17 @@ setting might be important to prevent data from being overwritten.}
 
 \item{...}{Other arguments to \code{generate_filenames} for getting the names
 of files to read.}
+
+\item{date_times}{A vector of date time strings to read. Can be in YYYYMMDD,
+YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+character. A vector of date-times can be generated using \link{seq_dates}.
+If \code{date_times} is missing or set to NULL, the date-times to read will
+be generated from the \code{start_date}, \code{end_date} and \code{by}
+arguments.}
 }
 \value{
 If \code{return_data = TRUE}, a list with data frames of
-  observations.
+observations.
 }
 \description{
 \code{read_obs} generates file names, based on the arguments given and reads

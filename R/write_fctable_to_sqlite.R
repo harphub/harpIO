@@ -16,7 +16,7 @@ write_fctable_to_sqlite <- function(
   data,
   filename,
   tablename         = "FC",
-  primary_key       = c("fcdate", "leadtime", "SID"),
+  primary_key       = c("fcst_dttm", "lead_time", "SID"),
   synchronous       = "off",
   journal_mode      = "delete",
   remove_model_elev = FALSE
@@ -151,7 +151,7 @@ member_elev_diff <- function(df) {
   }
 
   num_elevs <- dplyr::group_by(
-    df, .data[["fcdate"]], .data[["leadtime"]], .data[["SID"]]
+    df, .data[["fcst_dttm"]], .data[["lead_time"]], .data[["SID"]]
   ) %>%
     dplyr::summarise(ll = length(unique(.data[["model_elevation"]]))) %>%
     dplyr::pull(ll)

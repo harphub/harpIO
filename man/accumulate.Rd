@@ -19,8 +19,8 @@ classes.}
 }
 \value{
 An object of the same class as .fcst with the accumulations computed.
-  Rows for lead times for which it is not possible to compute the
-  accumulation are dropped.
+Rows for lead times for which it is not possible to compute the
+accumulation are dropped.
 }
 \description{
 For data with equally spaced lead times, the difference between, or

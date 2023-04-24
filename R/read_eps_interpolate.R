@@ -1,58 +1,9 @@
 #' Read ensemble forecast files and interpolate to stations.
 #'
-#' \code{read_eps_interpolate} should be used to read the output from ensemble
-#' NWP models, interpolate the data to specified stations, and optionally output
-#' the interpolated data either to sqlite files suitable for use in the harp
-#' ecosystem, or to the calling environment.
+#' @description
+#' `r lifecycle::badge("deprecated")`
 #'
-#' Raw output from NWP models can be slow to read and interpolate. This is due
-#' to a combination of the number of files and the interpolation process.
-#' Therefore, to make the interpolated data availble more quickly for future use
-#' this function should be used to save the interpolated data in sqlite files.
-#'
-#' Sqlite is a portable file based database solution with the ability to query
-#' sqlite files using SQL syntax. This makes accessing data fast, and ensures
-#' that you only read the data that you need.
-#'
-#' To output the data to sqlite files, a path to where you want the files to be
-#' written must be given in the \code{sqlite_path} argument. To return the data
-#' to the calling environment you must set \code{return_data = TRUE} - by
-#' default no data are returned. This is because \code{read_det_interpolate}
-#' could be processing large volumes of data and returning those data to the
-#' environment could result in exceeding memory capacity. If you set neither
-#' \code{sqlite_path}, nor \code{return_data} explicitly, it can appear that
-#' this function does nothing.
-#'
-#' For ensemble forecasts, the default is to create one sqlite file for each
-#' month, for each parameter, for each forecast cycle, for each lead time. This
-#' is for consistency with older implementations of harp, but this can be
-#' changed making use of the \code{sqlite_template} argument to specify how the
-#' data are separated. In many cases it is probably more sensible to combine all
-#' lead times into a single file, which can be done using the
-#' "fctable_eps_all_leads" template.
-#'
-#' The locations to interpolate to are taken from a data frame supplied in the
-#' \code{stations} argument, which must have columns "SID", "lat" and "lon". If
-#' no stations data frame is supplied by the user, the interpolation is done to
-#' a defult list of WMO stations - this list can be found in the built data
-#' frame, \code{station_list}. For vfld format files, which are text files with
-#' data already interpolated to stations, output by HIRLAM implementations of
-#' the HARMONIE model, all locations in the vfld file are taken - this is
-#' because stations are identified by ID numbers rather than location and there
-#' may be a mismatch between those ID numbers in the vfld files and those
-#' specified by the user.
-#'
-#' For grib and fa files it may be useful to supply a \code{clim_file}. This
-#' file should have the same domain spcification as the flies for the NWP model
-#' data and contain the model orography (in the form of surface geopotential)
-#' and optionally a land-sea mask.
-#'
-#' For 2m temperature, corrections of the model temperature to be reflictive of
-#' the observation elevation is done using a simple lapse rate corrrection.
-#'
-#' The ensemble NWP model may also use a lagging strategy. In which case the
-#' function needs to know which files are available at which time and for which
-#' ensemble member. This can be done through the \code{lags} argument.
+#' This function was deprecated as \link{read_forecast} is much more flexible.
 #'
 #' @param start_date Date of the first forecast to be read in. Should be in
 #'   YYYYMMDDhh format. Can be numeric or charcter.
@@ -181,6 +132,12 @@ read_eps_interpolate <- function(
   return_data          = FALSE,
   ...
 ){
+
+  lifecycle::deprecate_warn(
+    "0.1.0",
+    "read_eps_interpolate()",
+    "read_forecast()"
+  )
 
   if (any(is.na(vertical_coordinate))) vertical_coordinate <- as.character(vertical_coordinate)
   vertical_coordinate <- match.arg(vertical_coordinate)

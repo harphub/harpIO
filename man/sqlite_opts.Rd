@@ -7,7 +7,7 @@
 sqlite_opts(
   path = NULL,
   template = "fctable_det",
-  index_cols = c("fcdate", "leadtime", "SID"),
+  index_cols = c("fcst_dttm", "lead_time", "SID"),
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
   remove_model_elev = FALSE

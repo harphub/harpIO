@@ -15,7 +15,7 @@ raster_to_geofield(x)
 }
 \value{
 A raster for \code{geofield_to_raster}, or a geofield for
-  \code{raster_to_geofield}.
+\code{raster_to_geofield}.
 }
 \description{
 If you wish to work with the raster package, you can convert geofield objects

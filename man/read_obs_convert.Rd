@@ -69,37 +69,14 @@ more information.}
 }
 \value{
 If return_data is TRUE - a list with four data frames - one for synop
-  (near surface) observations, one for the units of the synop observations,
-  one for the temp (upper air) observations, and one for the units of the
-  temp observations.
+(near surface) observations, one for the units of the synop observations,
+one for the temp (upper air) observations, and one for the units of the
+temp observations.
 }
 \description{
-Read observations from any source (currently only vobs...) and output the
-data to sqlite files.
-}
-\details{
-This function is used for reading point observations from files and ouputting
-the data to sqlite files. Where observations are stored in files, the time
-taken to read in the data can be heavily dependent on the number of files and
-the amount of data in them. Therefore, to make the observation data available
-more quickly for future use this function should be used to save the
-interpolated data in sqlite files.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 
-Sqlite is a portable file based database solution with the ability to query
-sqlite files using SQL syntax. This makes accessing data fast, and ensures
-that you only read the data that you need.
-
-To output the data to sqlite files, a path to where you want the files to be
-written must be given in the \code{sqlite_path} argument. To return the data
-to the calling environment you must set \code{return_data = TRUE} - by
-default no data are returned. This is because \code{read_det_interpolate}
-could be processing large volumes of data and returning those data to the
-environment could result in exceeding memory capacity. If you set neither
-\code{sqlite_path}, nor \code{return_data} explicitly, it can appear that
-this function does nothing.
-
-For observations already stored in databases, it may be better to read
-directly from the database.
+This function was deprecated as \link{read_obs} is much more flexible.
 }
 \examples{
 if (requireNamespace("harpData", quietly = TRUE)) {

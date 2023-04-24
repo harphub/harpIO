@@ -1,11 +1,12 @@
 #' Multiple pattern matching and replacement
 #'
-#' \code{msub} calls \link[base]{gsub} for each pattern / replacement pair.
-#' Where a pattern is not found, nothing is replaced for that pattern /
-#' replacement pair.
+#' @description
+#'  `r lifecycle::badge("deprecated")`
 #'
-#' When regex is set to FALSE strings in \code{pattern} are matched exactly.
-#' This means that only full strings are matched and not substrings.
+#' This function was deprecated as it is replaced by
+#' \link[harpCore]{psub}
+#'
+#' @keywords internal
 #'
 #' @param x A character vector.
 #' @param pattern A character vector of patterns to replace.
@@ -31,6 +32,8 @@
 # strings rather than just patterns within strings.
 
 msub <- function(x, pattern, replacement, regex = FALSE, ...) {
+
+  lifecycle::deprecate_warn("0.1.0", "msub()", "psub()")
 
   stopifnot(is.character(x))
   stopifnot(is.character(pattern))
