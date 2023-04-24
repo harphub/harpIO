@@ -1,7 +1,11 @@
 #' Get filename(s) for meteorological data
 #'
-#' Given a path, a date or start date and end date, a template and other inputs
-#' (see Arguments) a vector of filenames is returned.
+#' @description
+#' `r lifecycle::badge("deprecated")`
+#'
+#' This function was deprecated as \link{generate_filenames} is superior.
+#'
+#' @keywords internal
 #'
 #' @param file_path The static path to the data.
 #' @param file_date A single date - may be YYYYMMDD, YYYYMMDDHH, YYYYMMDDHHmm.
@@ -87,6 +91,8 @@ get_filenames <- function(
   filenames_only = TRUE,
   ...
 ) {
+
+  lifecycle::deprecate_warn("0.1.0", "get_filenames()", "generate_filenames()")
 
   add_zeros <- function(x) {
     switch(as.character(nchar(x)),

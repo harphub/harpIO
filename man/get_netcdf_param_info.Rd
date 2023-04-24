@@ -18,7 +18,7 @@ options may be modified depending on the parameter.}
 }
 \value{
 A list with the harp parameter name, the netcdf parameter name and
-  the netcdf options, that may have been modified.
+the netcdf options, that may have been modified.
 }
 \description{
 Internal function to get NetCDF parameter name from a HARP parameter name

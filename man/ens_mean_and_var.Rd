@@ -33,7 +33,7 @@ named list with the names corresponding to names in the harp_fcst object.}
 }
 \value{
 A \code{harp_fcst} object with columns ens_mean and ens_var added to
-  the forecast tables.
+the forecast tables.
 }
 \description{
 The ensemble mean and variance are computed and added as columns to tables in

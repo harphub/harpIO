@@ -14,7 +14,7 @@ get_grib_param_info(param, vertical_coordinate = NA_character_)
 }
 \value{
 A list with \code{short_name}, \code{param_number},
-  \code{level_type}, \code{level_numbe.r}
+\code{level_type}, \code{level_numbe.r}
 }
 \description{
 Gets the shortname and parameter number for grib files. For

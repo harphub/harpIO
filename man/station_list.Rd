@@ -6,10 +6,10 @@
 \title{List of Weather Stations}
 \format{
 A data frame with 13417 rows and 5 variables: \describe{
-  \item{SID}{station ID number} \item{lat}{latitude of the station, in
-  decimal degrees} \item{lon}{longitude of the station, in decimal degrees}
-  \item{elev}{elevation of the station, in metres} \item{name}{the name of
-  the station}}
+\item{SID}{station ID number} \item{lat}{latitude of the station, in
+decimal degrees} \item{lon}{longitude of the station, in decimal degrees}
+\item{elev}{elevation of the station, in metres} \item{name}{the name of
+the station}}
 }
 \source{
 HIRLAM station list

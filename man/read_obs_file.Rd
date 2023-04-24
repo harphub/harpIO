@@ -34,11 +34,11 @@ extracted from the file.}
 }
 \value{
 A named list with up to four elements \itemize{ \item synop - a data
- frame of observations at a single vertical level. \item temp - a data frame
- of observations at multiple vertical levels. \item synop_params - a data
- frame of the units and accumulation times of the parameters in synop. \item
- temp_params - a data frame of units and accumulation times of the parameters
- in temp.}
+frame of observations at a single vertical level. \item temp - a data frame
+of observations at multiple vertical levels. \item synop_params - a data
+frame of the units and accumulation times of the parameters in synop. \item
+temp_params - a data frame of units and accumulation times of the parameters
+in temp.}
 }
 \description{
 This function is for reading from an observations file. The data should be at

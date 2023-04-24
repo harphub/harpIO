@@ -5,8 +5,7 @@
 \title{Read point observations from OBSTABLE files}
 \usage{
 read_point_obs(
-  start_date,
-  end_date,
+  dttm,
   parameter,
   obs_path = ".",
   obsfile_template = "obstable",
@@ -14,15 +13,21 @@ read_point_obs(
   min_allowed = NULL,
   max_allowed = NULL,
   stations = NULL,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
+  start_date = NULL,
+  end_date = NULL,
+  by = "1h"
 )
 }
 \arguments{
-\item{start_date}{The start date of the observations to read.}
+\item{dttm}{A vector of date time strings to read. Can be in YYYYMMDD,
+YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
+vector of equally spaced date-time strings. Alternatively valid date-times
+can be extracted from a forecast data frame or \code{harp_list} of
+forecast data frames using \cde{\link[harpCore]{unique_valid_dttm}}.}
 
-\item{end_date}{The end date of the observations to read.}
-
-\item{parameter}{Which parameter to read. This will normally be a harp3
+\item{parameter}{Which parameter to read. This will normally be a harp
 parameter name.}
 
 \item{obs_path}{The path to the OBSTABLE files}
@@ -44,9 +49,14 @@ vector of station ID numbers. Set to NULL to retrieve all stations.}
 the vertical coordinate of the data is given here. The default is
 "pressure", but can also be "model" for model levels, or "height" for
 height above ground /sea level.}
+
+\item{start_date, end_date, by}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The use of
+\code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
+with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+spaced date-times.}
 }
 \value{
-A tibble with columns for validdate, SID and the parameter.
+A tibble with columns for valid_dttm, SID and the parameter.
 }
 \description{
 Data are read directly from OBSTABLE files with no modification except in the
@@ -57,16 +67,14 @@ observations for other accumulation times, either by subtraction or addition.
 \examples{
 if (requireNamespace("harpData", quietly = TRUE)) {
   read_point_obs(
-    2019021700,
-    2019022023,
+    seq_dttm(2019021700, 2019022023),
     "T2m",
     obs_path = system.file("OBSTABLE", package = "harpData")
   )
 
   # stations can be specified using a vector of station ID numbers
   read_point_obs(
-    2019021700,
-    2019022023,
+    seq_dttm(2019021700, 2019022023),
     "T2m",
     obs_path = system.file("OBSTABLE", package = "harpData"),
     stations = c(1001, 1010)
@@ -75,8 +83,7 @@ if (requireNamespace("harpData", quietly = TRUE)) {
   # Gross error checks are done automatically but the allowable values
   # can be changed with min_allowed and max_allowed.
   obs <- read_point_obs(
-    2019021700,
-    2019022023,
+    seq_dttm(2019021700, 2019022023),
     "T2m",
     obs_path = system.file("OBSTABLE", package = "harpData"),
     min_allowed = 260,
@@ -88,8 +95,7 @@ if (requireNamespace("harpData", quietly = TRUE)) {
 
   # For vertical profiles, the vertical coordinate must be specified
   read_point_obs(
-    2019021700,
-    2019022023,
+    seq_dttm(2019021700, 2019022023),
     "Z",
     obs_path            = system.file("OBSTABLE", package = "harpData"),
     vertical_coordinate = "pressure"

@@ -6,12 +6,10 @@
 #' may be read from the files. Optionally, the read data can be returned to the
 #' calling environment, and / or written to files.
 #'
-#' @param start_date Date of the first forecast to be read in. Can be in
-#'   YYYYMMDD, YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be
-#'   numeric or charcter.
-#' @param end_date Date of the last forecast to be read in. Can be in YYYYMMDD,
+#' @param dttm A vector of date time strings to read. Can be in YYYYMMDD,
 #'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-#'   character.
+#'   character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
+#'   vector of equally spaced date-time strings.
 #' @param fcst_model The name of the forecast model(s) to read. Can be expressed
 #'   as character vector if more than one model is wanted, or a named list of
 #'   character vectors for a mutlimodel ensemble.
@@ -20,10 +18,6 @@
 #'   \code{\link{show_harp_parameters}}), or in the case of netcdf files can be
 #'   the name of the parameters in the files. If reading from vfld files, set to
 #'   NULL to read all parameters.
-#' @param date_times A vector of date time strings to read. Can be in YYYYMMDD,
-#'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-#'   character. If date_times is not NULL, \code{start_date}, \code{end_date}
-#'   and \code{by} are ignored.
 #' @param lead_time The lead times to read in. If a numeric vector is passed,
 #'   the lead times are assumed to be in hours. Otherwise a character vector may
 #'   be passed with a letter after each value to denote the time units: d =
@@ -50,11 +44,6 @@
 #'   example a lag of 1 hour will generate a file name with a date-time 1 hour
 #'   earlier than the date-time in the sequence \code{(start_data, end_date, by
 #'   = by)} and a lead time 1 hour longer.
-#' @param by The time between new forecasts. If numeric, it is assumed to be in
-#'   hours, but the time units may be given by a letter after the number where d
-#'   = days, h = hours, m = minutes and s = seconds. A sequence of forecasts
-#'   dates is generated from \code{start_date} to \code{end_date} every
-#'   \code{by}.
 #' @param vertical_coordinate For upper air data to be read the vertical
 #'   coordinate in the files must be given. By default, this is "pressure", but
 #'   may also be "height" or "model" for model levels. If reading from vfld
@@ -115,6 +104,10 @@
 #'   end_date, or date_times are used to choose what data to read and lead_times
 #'   is ignored. This is useful for analysis data where many dates are in the
 #'   same file. \code{\link{read_analysis}} also provides this functionality.
+#' @param start_date,end_date,by `r lifecycle::badge("deprecated")` The use of
+#'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
+#'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+#'   spaced date-times.
 #'
 #' @return When \code{return_date = TRUE}, a harp_fcst object.
 #' @export
@@ -190,16 +183,13 @@
 #'   )
 #' }
 read_forecast <- function(
-  start_date,
-  end_date,
+  dttm,
   fcst_model,
   parameter,
-  date_times           = NULL,
   lead_time            = seq(0, 48, 3),
   members              = NULL,
   members_out          = members,
   lags                 = NULL,
-  by                   = "6h",
   vertical_coordinate  = c("pressure", "model", "height", NA),
   file_path            = getwd(),
   file_format          = NULL,
@@ -212,8 +202,30 @@ read_forecast <- function(
   merge_lags           = TRUE,
   show_progress        = FALSE,
   stop_on_fail         = FALSE,
-  is_forecast          = TRUE
+  is_forecast          = TRUE,
+  start_date           = NULL,
+  end_date             = NULL,
+  by                   = "6h"
+
 ){
+
+  if (missing(dttm)) {
+    if (any(sapply(list(start_date, end_date, by), is.null))) {
+      stop(
+        "If `dttm` is not passed, `start_date`, `end_date` ",
+        "and `by` must be passed."
+      )
+    }
+    lifecycle::deprecate_warn(
+      "0.1.0",
+      I(paste(
+        "The use of `start_date`, `end_date`, and `by`",
+        "arguments of `read_forecast()`"
+      )),
+      "read_forecast(dttm)"
+    )
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+  }
 
   vertical_coordinate <- match.arg(vertical_coordinate)
   transformation      <- match.arg(transformation)
@@ -248,16 +260,6 @@ read_forecast <- function(
     transformation_opts <- setup_transformation(transformation, transformation_opts)
   }
 
-  # Loop over forecast times
-  if (is.null(date_times)) {
-    if (is.numeric(by)) {
-      by = paste0(by, "h")
-    }
-    fcst_dates <- seq_dates(start_date, end_date, by = by)
-  } else {
-    fcst_dates <- date_times
-  }
-
   if (return_data) {
     function_output <- list()
     list_counter    <- 0
@@ -266,7 +268,7 @@ read_forecast <- function(
   failure_message <- list("There were problems reading:")
   failure_count   <- 0
 
-  for (fcst_date in fcst_dates) {
+  for (fcst_dttm in dttm) {
 
     if (return_data) list_counter <- list_counter + 1
 
@@ -291,7 +293,7 @@ read_forecast <- function(
             lead_time      = lead_time,
             parameter      = parameter,
             filenames_only = FALSE,
-            file_date      = fcst_date
+            file_date      = fcst_dttm
           )
         )
       )
@@ -313,7 +315,7 @@ read_forecast <- function(
 
     if (length(missing_files) > 0) {
       warning(
-        "Files not found for ", fcst_date, ". Missing files:\n",
+        "Files not found for ", fcst_dttm, ". Missing files:\n",
         paste(missing_files, collapse = "\n"),
         call.      = FALSE,
         immediate. = TRUE
@@ -322,7 +324,7 @@ read_forecast <- function(
 
     data_df <- dplyr::filter(data_df, !.data[["file_name"]] %in% missing_files)
     if (nrow(data_df) < 1) {
-      warning("No files found for ", fcst_date, ".", call. = FALSE, immediate. = TRUE)
+      warning("No files found for ", fcst_dttm, ".", call. = FALSE, immediate. = TRUE)
       if (return_data) function_output[[list_counter]] <- NULL
       next()
     }
@@ -344,7 +346,7 @@ read_forecast <- function(
         file_name           = .x,
         parameter           = .y[["parameter"]],
         is_forecast         = is_forecast,
-        date_times          = fcst_date,
+        date_times          = fcst_dttm,
         file_format         = unique(.y[["file_format"]]),
         file_format_opts    = file_format_opts,
         vertical_coordinate = vertical_coordinate,
@@ -391,7 +393,7 @@ read_forecast <- function(
     }
 
     if (nrow(data_df) < 1) {
-      warning("No data found for ", fcst_date, ".", call. = FALSE, immediate. = TRUE)
+      warning("No data found for ", fcst_dttm, ".", call. = FALSE, immediate. = TRUE)
       if (return_data) function_output[[list_counter]] <- NULL
       next()
     }
@@ -457,12 +459,21 @@ read_forecast <- function(
     # THIS IS A BODGE! (need to work out how to bind data frames with geolist cols using vctrs)
     data_df <- purrr::map(
       data_df,
-      ~ harpCore::as_harp_df(dplyr::mutate(.x, valid_dttm = unixtime_to_dttm(.data$valid_dttm)))
+      function(x) {
+        if (!is.element("valid_dttm", colnames(x))) {
+          x[["valid_dttm"]] <- x[["fcst_dttm"]] + x[["lead_time"]] * 3600
+        }
+        harpCore::as_harp_df(
+          dplyr::mutate(
+            x, dplyr::across(dplyr::any_of("valid_dttm"), ~harpCore::unixtime_to_dttm(.x))
+          )
+        )
+      }
     )
     names(data_df) <- letters[1:length(data_df)]
-    data_df <- bind_dfr(as_harp_list(data_df), .id = "temp_col") %>%
-      dplyr::mutate(valid_dttm = as_unixtime(.data$valid_dttm)) %>%
-      dplyr::select(-.data$temp_col)
+    data_df <- harpCore::bind_dfr(harpCore::as_harp_list(data_df), .id = "temp_col") %>%
+      dplyr::select(-.data$temp_col) %>%
+      dplyr::mutate(valid_dttm = harpCore::as_unixtime(.data$valid_dttm))
     class(data_df) <- grep("harp", class(data_df), value = TRUE, invert = TRUE)
     # END OF BODGE
 
@@ -490,9 +501,6 @@ read_forecast <- function(
 
     # Add valid_dttm column
     data_df <- data_df[!grepl("file", colnames(data_df))]
-    if (!is.element("valid_dttm", colnames(data_df))) {
-      data_df[["valid_dttm"]] <- data_df[["fcst_dttm"]] + data_df[["lead_time"]] * 3600
-    }
     if (return_data) function_output[[list_counter]] <- data_df
 
     # If a file path is given in output_file_opts then write out the data - only
@@ -504,7 +512,7 @@ read_forecast <- function(
         # Ensure data frame contains data that were asked for, even if they were not found
         meta_df <- args_df
         meta_df[["fcst_dttm"]]    <- suppressMessages(
-          str_datetime_to_unixtime(fcst_date)
+          harpCore::as_unixtime(fcst_dttm)
         )
         meta_df[["lead_time"]] <- list(lead_time)
         meta_df[["parameter"]] <- list(parameter)
@@ -548,7 +556,7 @@ read_forecast <- function(
 
     }
 
-  } # End loop over fcst_dates
+  } # End loop over dttm
 
   if (failure_count > 0) {
     warning(Reduce(function(x, y) paste(x, y, sep = "\n "), failure_message), call. = FALSE)
@@ -573,14 +581,17 @@ read_forecast <- function(
     )
     function_output <- function_output[sapply(function_output, function(x) !is.null(x))]
     names(function_output) <- seq_along(function_output)
-    function_output <- as_harp_list(function_output)
-    function_output <- bind_dfr(function_output, .id = "temp_col") %>%
-      dplyr::select_if(function(x) is_geolist(x) || !all(is.na(x))) %>%
+    function_output <- harpCore::as_harp_list(function_output)
+    function_output <- harpCore::bind_dfr(function_output, .id = "temp_col") %>%
+      dplyr::select_if(function(x) harpCore::is_geolist(x) || !all(is.na(x))) %>%
       dplyr::select(-.data$temp_col)
+    class(function_output) <- grep(
+      "harp_", class(function_output), value = TRUE, invert = TRUE
+    )
     # BODGEEND
 
     if (is.element("lags", colnames(function_output))) {
-      if (all(sapply(unique(function_output[["lags"]]), char_to_time) == 0)) {
+      if (all(harpCore:::to_seconds(unique(function_output[["lags"]])) == 0)) {
         function_output <- dplyr::select(function_output, -.data[["lags"]])
       }
     }
@@ -604,18 +615,17 @@ read_forecast <- function(
       }
 
       function_output <- tidyr::unnest(function_output, .data[["data"]])
+      function_output <- dplyr::ungroup(function_output)
 
     }
 
     if (is.element("fcst_dttm", colnames(function_output))) {
-      function_output[["fcst_dttm"]]     <- unix2datetime(function_output[["fcst_dttm"]])
-      function_output[["fcst_cycle"]] <- formatC(
-        lubridate::hour(function_output[["fcst_dttm"]]), width = 2, flag = "0"
-      )
+      function_output[["fcst_dttm"]]     <- harpCore::unixtime_to_dttm(function_output[["fcst_dttm"]])
+      function_output[["fcst_cycle"]] <- format(function_output[["fcst_dttm"]], "%H")
     }
 
     if (is.element("valid_dttm", colnames(function_output))) {
-      function_output[["valid_dttm"]] <- unix2datetime(function_output[["valid_dttm"]])
+      function_output[["valid_dttm"]] <- harpCore::unixtime_to_dttm(function_output[["valid_dttm"]])
     }
 
     if (!is_forecast) {
@@ -671,7 +681,7 @@ read_forecast <- function(
     }
 
     #function_output <- lapply(function_output, add_harp_class, transformation_opts)
-    function_output <- as_harp_list(
+    function_output <- harpCore::as_harp_list(
       mapply(
         function(x, y) {
           dplyr::relocate(

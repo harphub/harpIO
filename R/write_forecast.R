@@ -9,7 +9,7 @@ write_forecast <- function(df, opts) {
   )
 
   # Make sure fcdate and parameter have a value where there are no data
-  missing_dates <- df[is.na(df[["fcdate"]]), ]
+  missing_dates <- df[is.na(df[["fcst_dttm"]]), ]
   if (nrow(missing_dates) > 0) {
     add_col <- function(.df, col_name, col_data) {
       .df[[col_name]] <- list(col_data)
@@ -21,7 +21,7 @@ write_forecast <- function(df, opts) {
       .df
     }
     data_for_missing <- lapply(
-      as.list(df[c("fcdate", "parameter", "lead_time")]),
+      as.list(df[c("fcst_dttm", "parameter", "lead_time")]),
       function(x) as.vector(stats::na.omit(unique(x)))
     )
     missing_dates <- purrr::map_dfr(
@@ -34,7 +34,7 @@ write_forecast <- function(df, opts) {
         res
       }
     )
-    df <- dplyr::bind_rows(df[!is.na(df[["fcdate"]]), ], missing_dates)
+    df <- dplyr::bind_rows(df[!is.na(df[["fcst_dttm"]]), ], missing_dates)
   }
 
   # Get the correct column names
@@ -45,7 +45,7 @@ write_forecast <- function(df, opts) {
   )
   template_subs <- setdiff(template_subs, unused_subs)
 
-  df[["file_date"]]    <- unixtime_to_str_datetime(df[["fcdate"]], YMDhms)
+  df[["file_date"]]    <- harpCore::as_YMDhms(df[["fcst_dttm"]])
   df[["lags"]]         <- NULL
 
   df <- replace_colname(df, "station_data", "forecast")
@@ -101,7 +101,7 @@ write_forecast <- function(df, opts) {
 
   df <- suppressMessages(dplyr::inner_join(df, df_filenames[colnames(df_filenames) != "lags"]))
 
-  df <- replace_colname(df, "lead_time", "leadtime")
+  #df <- replace_colname(df, "lead_time", "leadtime")
   df <- replace_colname(df, "members_out", "member")
 
   if (!is.element("member", colnames(df))) {
@@ -128,12 +128,12 @@ write_forecast <- function(df, opts) {
     )
   }
 
-  df[["leadtime"]]  <- as.integer(df[["leadtime"]])
-  df[["fcdate"]]    <- as.integer(df[["fcdate"]])
-  df[["validdate"]] <- as.integer(df[["validdate"]])
+  df[["lead_time"]]  <- as.integer(df[["lead_time"]])
+  df[["fcst_dttm"]]    <- as.integer(df[["fcst_dttm"]])
+  df[["valid_dttm"]] <- as.integer(df[["valid_dttm"]])
 
   possible_cols <- c(
-    "file_name", "fcdate", "validdate",  "leadtime", "SID", "lat", "lon",
+    "file_name", "fcst_dttm", "valid_dttm",  "lead_time", "SID", "lat", "lon",
     "model_elevation", "p", "ml", "z", "member", "parameter", "units", "forecast",
     "level_type", "level"
   )

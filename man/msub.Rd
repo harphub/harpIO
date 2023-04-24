@@ -24,13 +24,10 @@ FALSE so strings in \code{pattern} are matched exactly.}
 A character vector of the same length as x
 }
 \description{
-\code{msub} calls \link[base]{gsub} for each pattern / replacement pair.
-Where a pattern is not found, nothing is replaced for that pattern /
-replacement pair.
-}
-\details{
-When regex is set to FALSE strings in \code{pattern} are matched exactly.
-This means that only full strings are matched and not substrings.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+This function was deprecated as it is replaced by
+\link[harpCore]{psub}
 }
 \examples{
 msub(letters[1:10], c("a", "c", "e"), c("A", "C", "E"))
@@ -40,3 +37,4 @@ msub(c("a", "b", "ac", "ad"), c("a", "ac"), c("A", "AC"))
 msub(c("a", "b", "ac", "ad"), c("a", "ac"), c("A", "AC"), regex = TRUE)
 }
 }
+\keyword{internal}

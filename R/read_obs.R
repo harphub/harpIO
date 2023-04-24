@@ -52,16 +52,10 @@
 #' @param return_data Logical - whether to return the data read in to the
 #'   calling environment. Due to the potential for large volumes of data, this
 #'   is set to FALSE by default.
-#' @param start_date If \code{date_times} is not set, the start date-time for a
-#'   sequence of dates to read. Can be in YYYYMMDD, YYYYMMDDhh, YYYYMMDDhhmm, or
-#'   YYYYMMDDhhmmss format.
-#' @param end_date If \code{date_times} is not set, the end date-time for a
-#'   sequence of dates to read. Can be in YYYYMMDD, YYYYMMDDhh, YYYYMMDDhhmm, or
-#'   YYYYMMDDhhmmss format.
-#' @param by If \code{date_times} is not set, the time step for a sequence of
-#'   dates to read. If numeric, it is assumed to be in hours, otherwise the the
-#'   suffixes "d", "h", "m", "s", for days, hours, minutes and seconds
-#'   respectively.
+#' @param start_date,end_date,by `r lifecycle::badge("deprecated")` The use of
+#'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
+#'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+#'   spaced date-times.
 #' @param reads_per_write The number of files to read before writing out the
 #'   data to new files. Set this to a low number to reduce memory usage. The
 #'   default is 24 based on the assumption that there are observations files
@@ -78,7 +72,7 @@
 #'
 #' @examples
 read_obs <- function(
-  date_times,
+  dttm,
   parameter,
   stations           = NULL,
   file_path          = getwd(),
@@ -99,24 +93,23 @@ read_obs <- function(
 
   if (missing(parameter)) parameter <- NULL
 
-  if (missing(date_times) || is.null(date_times)) {
-
-    if (is.numeric(by)) {
-      by = paste0(by, "h")
-    }
-
-    if (is.null(start_date)) {
+  if (missing(dttm)) {
+    if (any(sapply(list(start_date, end_date, by), is.null))) {
       stop(
-        paste(
-          "If `date_times` is not passed `start_date` and `end_date`",
-          "must be passed."
-        ),
-        call. = FALSE
+        "If `dttm` is not passed, `start_date`, `end_date` ",
+        "and `by` must be passed."
       )
     }
+    lifecycle::deprecate_warn(
+      "0.1.0",
+      I(paste(
+        "The use of `start_date`, `end_date`, and `by`",
+        "arguments of `read_obs()`"
+      )),
+      "read_obs(dttm)"
+    )
 
-    date_times <- seq_dates(start_date, end_date, by = by)
-
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
   }
 
   if (return_data) {
@@ -124,12 +117,12 @@ read_obs <- function(
     list_counter    <- 0
   }
 
-  date_times <- split(
-    date_times,
-    (seq_along(date_times) - 1) %/% reads_per_write
+  dttm <- split(
+    dttm,
+    (seq_along(dttm) - 1) %/% reads_per_write
   )
 
-  for (iter_date_times in date_times) {
+  for (iter_dttm in dttm) {
 
     if (return_data) {
       list_counter <- list_counter + 1
@@ -138,17 +131,17 @@ read_obs <- function(
 
     data_files <- generate_filenames(
       file_path      = file_path,
-      file_date      = iter_date_times,
+      file_date      = iter_dttm,
       parameter      = parameter,
       file_template  = file_template,
       filenames_only = FALSE,
       ...
     )
 
-    names(data_files)[names(data_files) == "fcdate"] <- "date_times"
+    names(data_files)[names(data_files) == "fcdate"] <- "dttm"
 
-    data_files[["date_times"]] <- unixtime_to_str_datetime(
-      data_files[["date_times"]], YMDhms
+    data_files[["dttm"]] <- unixtime_to_str_datetime(
+      data_files[["dttm"]], YMDhms
     )
 
     data_files <- data_files[colnames(data_files) != "lags"]
