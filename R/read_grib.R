@@ -517,6 +517,7 @@ grib_units_to_harp_units <- function(x) {
     "m**2 s**-2" = "m^2/s^2",
     "(0 - 1)"    = "fraction",
     "kg m**-2"   = "kg/m^2",
+    "W m**-2"    = "W/m^2",
     x
   )
 }

@@ -10,7 +10,7 @@
 #'   character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
 #'   vector of equally spaced date-time strings. Alternatively valid date-times
 #'   can be extracted from a forecast data frame or \code{harp_list} of
-#'   forecast data frames using \cde{\link[harpCore]{unique_valid_dttm}}.
+#'   forecast data frames using \code{\link[harpCore]{unique_valid_dttm}}.
 #' @param parameter Which parameter to read. This will normally be a harp
 #'   parameter name.
 #' @param obs_path The path to the OBSTABLE files
