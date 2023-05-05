@@ -47,7 +47,14 @@
 #'   level, "value" is the value of the grib key and "level" is the value of the
 #'   level. Set level = -999 to select all available levels. The default is
 #'   NULL, which means to attempt to automatically find the level.
-#' @param ...  Any other options that may exist in future Rgrib2 versions.
+#' @param step_find A named list with names being the parameters to find in the
+#'   grib files. Each element of the named list is a list with names "key",
+#'   "value" and "level". Here "key" is the grib key to be used to find the
+#'   step, "value" is the value of the grib key. \code{step_find} would typically
+#'   be used to find the filter the data by the stepRange grib key - the
+#'   helper function \code{use_grib_stepRange()} will automatically use the
+#'   stepRange key.
+#' @param ... Any other options that may exist in future Rgrib2 versions.
 #'
 #' @return A list of options for reading grib files.
 #' @export
