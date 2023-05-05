@@ -182,6 +182,7 @@ read_grib <- function(
       fcdate       = unique(grib_info[["fcdate"]]),
       validdate    = unique(grib_info[["validdate"]]),
       lead_time    = unique(grib_info[["leadtime"]]),
+      step_range   = unique(grib_info[["stepRange"]]),
       parameter    = unique(grib_info[["parameter"]]),
       members      = unique(grib_info[["member"]]),
       level_type   = unique(grib_info[["level_type"]]),
@@ -288,6 +289,7 @@ filter_grib_info <- function(
   }
 
   level_find <- opts[["level_find"]][[parameter[["fullname"]]]]
+  step_find  <- opts[["step_find"]][[parameter[["fullname"]]]]
 
   if (is.null(level_find)) {
 
@@ -311,6 +313,13 @@ filter_grib_info <- function(
     if (!is.element(level_find[["key"]], colnames(grib_info))) {
       stop(
         "`", level_find[["key"]], "` not found in grib keys for file.",
+        call. = FALSE
+      )
+    }
+
+    if (!is.null(step_find) && !is.element(level_find[["key"]], colnames(grib_info))) {
+      stop(
+        "`", step_find[["key"]], "` not found in grib keys for file.",
         call. = FALSE
       )
     }
@@ -363,6 +372,12 @@ filter_grib_info <- function(
     }
 
     grib_info <- grib_info_f
+    if (!is.null(step_find)) {
+      grib_info <- dplyr::filter(
+        grib_info,
+        .data[[step_find[["key"]]]] %in% step_find[["value"]]
+      )
+    }
 
     if (nrow(grib_info) == 0) {
 
@@ -477,7 +492,7 @@ filter_grib_info <- function(
       dplyr::group_by(
         grib_info,
         dplyr::across(
-          dplyr::matches("date|time|level|member")
+          dplyr::matches("date|time|level|member|step")
         ),
         .data[["func"]]
       ),

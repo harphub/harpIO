@@ -66,6 +66,7 @@ grib_opts <- function(
   multi      = FALSE,
   param_find = NULL,
   level_find = NULL,
+  step_find  = NULL,
   ...
 ) {
 
@@ -85,7 +86,7 @@ grib_opts <- function(
         )
       }
 
-      if (arg_name == "param_find") {
+      if (arg_name %in% c("param_find", "step_find")) {
         list_names  <- "keyvalue"
         error_names <- "`key` and `value`."
       } else {
@@ -116,11 +117,12 @@ grib_opts <- function(
 
   check_inputs(param_find, "param_find")
   check_inputs(level_find, "level_find")
+  check_inputs(step_find, "step_find")
 
   list(
     meta = meta, multi = multi,
     param_find = param_find, level_find = level_find,
-    ...
+    step_find = step_find, ...
   )
 
 }
@@ -149,6 +151,13 @@ use_grib_key = function(key, value) {
 use_grib_indicatorOfParameter = function(value) {
   stopifnot(is.numeric(value))
   use_grib_key("indicatorOfParameter", value)
+}
+
+#' @rdname grib_opts
+#' @export
+use_grib_parameterNumber = function(value) {
+  stopifnot(is.numeric(value))
+  use_grib_key("parameterNumber", value)
 }
 
 #' @rdname grib_opts
@@ -228,4 +237,12 @@ use_grib_meanSea <- function() {
   use_grib_key_level("typeOfLevel", "meanSea", -999)
 }
 
-
+#' @rdname grib_opts
+#' @export
+use_grib_stepRange = function(value) {
+  if (is.numeric(value)) {
+    value <- as.character(value)
+  }
+  stopifnot(is.character(value))
+  use_grib_key("stepRange", value)
+}
