@@ -582,7 +582,7 @@ read_point_forecast <- function(
       dplyr::mutate(
         dplyr::rename_with(
           .x,
-          ~suppressWarnings(harpCore::psub(
+          ~suppressWarnings(psub(
             .x,
             c("fcdate", "leadtime", "validdate"),
             c("fcst_dttm", "lead_time", "valid_dttm")
@@ -605,16 +605,15 @@ read_point_forecast <- function(
       dplyr::transmute(
         dplyr::across(where(~!all(is.na(.x))))
       ) %>%
-      harpCore::as_harp_df()
+      as_harp_df()
   )
 
   attr(fcst, "missing_files") <- missing_files
-  fcst <- harpCore::as_harp_list(fcst)
+  fcst <- as_harp_list(fcst)
 
   if (length(fcst) == 1) {
     return(fcst[[1]])
   }
-  fcst
 
 }
 

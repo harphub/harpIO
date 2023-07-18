@@ -190,7 +190,7 @@ read_grid <- function(
   list_cols <- which(sapply(gridded_data, typeof) == "list")
   for (df_col in list_cols) {
     if (all(sapply(gridded_data[[df_col]], meteogrid::is.geofield))) {
-      class(gridded_data[[df_col]]) <- c("geolist", class(gridded_data[[df_col]]))
+      gridded_data[[df_col]] <- geolist(gridded_data[[df_col]])
     }
   }
 

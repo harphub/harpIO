@@ -456,26 +456,30 @@ read_forecast <- function(
         by = intersect(colnames(dplyr::select_if(.x, not_lgl)), colnames(.y))
       )
     )
+
+    # Don't need bodge anymore?
+    data_df <- dplyr::bind_rows(data_df)
     # THIS IS A BODGE! (need to work out how to bind data frames with geolist cols using vctrs)
-    data_df <- purrr::map(
-      data_df,
-      function(x) {
-        if (!is.element("valid_dttm", colnames(x))) {
-          x[["valid_dttm"]] <- x[["fcst_dttm"]] + x[["lead_time"]] * 3600
-        }
-        harpCore::as_harp_df(
-          dplyr::mutate(
-            x, dplyr::across(dplyr::any_of("valid_dttm"), ~harpCore::unixtime_to_dttm(.x))
-          )
-        )
-      }
-    )
-    names(data_df) <- letters[1:length(data_df)]
-    data_df <- harpCore::bind_dfr(harpCore::as_harp_list(data_df), .id = "temp_col") %>%
-      dplyr::select(-.data$temp_col) %>%
-      dplyr::mutate(valid_dttm = harpCore::as_unixtime(.data$valid_dttm))
-    class(data_df) <- grep("harp", class(data_df), value = TRUE, invert = TRUE)
+    # data_df <- purrr::map(
+    #   data_df,
+    #   function(x) {
+    #     if (!is.element("valid_dttm", colnames(x))) {
+    #       x[["valid_dttm"]] <- x[["fcst_dttm"]] + x[["lead_time"]] * 3600
+    #     }
+    #     harpCore::as_harp_df(
+    #       dplyr::mutate(
+    #         x, dplyr::across(dplyr::any_of("valid_dttm"), ~harpCore::unixtime_to_dttm(.x))
+    #       )
+    #     )
+    #   }
+    # )
+    # names(data_df) <- letters[1:length(data_df)]
+    # data_df <- harpCore::bind(harpCore::as_harp_list(data_df), .id = "temp_col") %>%
+    #   dplyr::select(-.data$temp_col) %>%
+    #   dplyr::mutate(valid_dttm = harpCore::as_unixtime(.data$valid_dttm))
+    # class(data_df) <- grep("harp", class(data_df), value = TRUE, invert = TRUE)
     # END OF BODGE
+
 
     # If no members were specified but ensemble members were read,
     # make the data frame consistent
@@ -501,6 +505,15 @@ read_forecast <- function(
 
     # Add valid_dttm column
     data_df <- data_df[!grepl("file", colnames(data_df))]
+    if (
+      !is.element("valid_dttm", colnames(data_df)) &&
+      is.element("fcst_dttm", colnames(data_df)) &&
+      is.element("lead_time", colnames(data_df))
+    ) {
+      data_df[["valid_dttm"]] <- data_df[["fcst_dttm"]] +
+        harpCore:::to_seconds(data_df[["lead_time"]])
+    }
+
     if (return_data) function_output[[list_counter]] <- data_df
 
     # If a file path is given in output_file_opts then write out the data - only
@@ -569,25 +582,28 @@ read_forecast <- function(
       return(invisible(NULL))
     }
 
+    # Don't need the bodge anymore?
+    function_output <- dplyr::bind_rows(function_output)
+
     # ANOTHER BODGE pending working out how to bind data frames with geolist columns
-    function_output <- lapply(
-      function_output,
-      function(x) {
-        if (!is.null(x)) {
-          class(x) <- c("harp_df", class(x))
-        }
-        x
-      }
-    )
-    function_output <- function_output[sapply(function_output, function(x) !is.null(x))]
-    names(function_output) <- seq_along(function_output)
-    function_output <- harpCore::as_harp_list(function_output)
-    function_output <- harpCore::bind_dfr(function_output, .id = "temp_col") %>%
-      dplyr::select_if(function(x) harpCore::is_geolist(x) || !all(is.na(x))) %>%
-      dplyr::select(-.data$temp_col)
-    class(function_output) <- grep(
-      "harp_", class(function_output), value = TRUE, invert = TRUE
-    )
+    # function_output <- lapply(
+    #   function_output,
+    #   function(x) {
+    #     if (!is.null(x)) {
+    #       class(x) <- c("harp_df", class(x))
+    #     }
+    #     x
+    #   }
+    # )
+    # function_output <- function_output[sapply(function_output, function(x) !is.null(x))]
+    # names(function_output) <- seq_along(function_output)
+    # function_output <- harpCore::as_harp_list(function_output)
+    # function_output <- harpCore::bind(function_output, .id = "temp_col") %>%
+    #   dplyr::select_if(function(x) harpCore::is_geolist(x) || !all(is.na(x))) %>%
+    #   dplyr::select(-.data$temp_col)
+    # class(function_output) <- grep(
+    #   "harp_", class(function_output), value = TRUE, invert = TRUE
+    # )
     # BODGEEND
 
     if (is.element("lags", colnames(function_output))) {
@@ -627,6 +643,7 @@ read_forecast <- function(
     if (is.element("valid_dttm", colnames(function_output))) {
       function_output[["valid_dttm"]] <- harpCore::unixtime_to_dttm(function_output[["valid_dttm"]])
     }
+
 
     if (!is_forecast) {
       function_output <- dplyr::select(
@@ -745,8 +762,14 @@ spread_df <- function(df) {
       df[["members_out"]][lag_rows], df[["lags"]][lag_rows], sep = "_lag"
     )
 
-    df <- df[!colnames(df) %in% c("fcst_model", "sub_model", "members", "lags", "model_elevation")]
-    df <- tidyr::spread(df, key = .data[["members_out"]], value = .data[[data_col]])
+    df <- df[
+      !colnames(df) %in% c(
+        "fcst_model", "sub_model", "members", "lags", "model_elevation"
+      )
+    ]
+    df <- tidyr::pivot_wider(
+      df, names_from = "members_out", values_from = dplyr::all_of(data_col)
+    )
 
   } else {
 
@@ -757,7 +780,7 @@ spread_df <- function(df) {
 
   }
 
-  df
+  as_harp_df(df)
 
 }
 
