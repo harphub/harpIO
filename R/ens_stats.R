@@ -1,32 +1,31 @@
-#' Get ensemble statistics
-#'
-#' @param .fcst A harp_fcst list or a harp_point_fcst or harp_spatial_fcst data
-#'   frame.
-#' @param mean Logical. Set to TRUE (the default) to compute the ensemble mean.
-#' @param spread Logical. Set to TRUE (the default) to compute the ensemble
-#'   spread.
-#' @param var Logical. Set to TRUE to compute the ensemble variance.
-#' @param min Logical. Set to TRUE to compute the ensemble minimum.
-#' @param max Logical. Set to TRUE to compute the ensemble maximum.
-#' @param prob_thresh A numeric threshold for which to compute the probability.
-#'   If a length 2 vector is passed, the probability for between those two
-#'   values (inclusive) will be computed.
-#' @param prob_inequality The inequality to use in the calculation for the
-#'   probability. Must be in back ticks. Can be any one of `>=` (the default),
-#'   `>`, `<=`, `<`, `==`, or `!=`.
-#' @param nbh_radius For spatial data the radius of neighbourhoods for which to
-#'   compute the probability in grid lengths. The neigbourhood will be a square
-#'   with sides equal 2 * nbh_radius.
-#' @param keep_members Logical. Whether to keep the ensemble members after
-#'   computing the statistics. Default is TRUE.
-#' @param na.rm Logical. Whether to include missing values. Default is FALSE.
-#'
-#' @return An object of the same class as .fcst with new columns in the data
-#'   frame(s) for the computed values.
-#' @export
-#'
-#' @examples
-ens_stats <- function(
+### ' Get ensemble statistics
+### '
+### ' @param .fcst A harp_fcst list or a harp_point_fcst or harp_spatial_fcst data
+### '   frame.
+### ' @param mean Logical. Set to TRUE (the default) to compute the ensemble mean.
+### ' @param spread Logical. Set to TRUE (the default) to compute the ensemble
+### '   spread.
+### ' @param var Logical. Set to TRUE to compute the ensemble variance.
+### ' @param min Logical. Set to TRUE to compute the ensemble minimum.
+### ' @param max Logical. Set to TRUE to compute the ensemble maximum.
+### ' @param prob_thresh A numeric threshold for which to compute the probability.
+### '   If a length 2 vector is passed, the probability for between those two
+### '   values (inclusive) will be computed.
+### ' @param prob_inequality The inequality to use in the calculation for the
+### '   probability. Must be in back ticks. Can be any one of `>=` (the default),
+### '   `>`, `<=`, `<`, `==`, or `!=`.
+### ' @param nbh_radius For spatial data the radius of neighbourhoods for which to
+### '   compute the probability in grid lengths. The neigbourhood will be a square
+### '   with sides equal 2 * nbh_radius.
+### ' @param keep_members Logical. Whether to keep the ensemble members after
+### '   computing the statistics. Default is TRUE.
+### ' @param na.rm Logical. Whether to include missing values. Default is FALSE.
+### '
+### ' @return An object of the same class as .fcst with new columns in the data
+### '   frame(s) for the computed values.
+### '
+### ' @examples
+harpIO_ens_stats <- function(
   .fcst,
   mean            = TRUE,
   spread          = TRUE,
@@ -72,8 +71,7 @@ ens_stats <- function(
 
 }
 
-#' @export
-ens_stats.default <- function(
+harpIO_ens_stats.default <- function(
   .fcst,
   mean            = TRUE,
   spread          = TRUE,
@@ -151,8 +149,7 @@ ens_stats.default <- function(
 
 }
 
-#' @export
-ens_stats.harp_spatial_fcst <- function(
+harpIO_ens_stats.harp_spatial_fcst <- function(
   .fcst,
   mean            = TRUE,
   spread          = TRUE,
@@ -264,8 +261,7 @@ ens_stats.harp_spatial_fcst <- function(
 
 }
 
-#' @export
-ens_stats.harp_fcst <- function(
+harpIO_ens_stats.harp_fcst <- function(
   .fcst,
   mean            = TRUE,
   spread          = TRUE,
