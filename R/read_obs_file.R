@@ -34,7 +34,7 @@
 read_obs_file <- function(
   file_name,
   parameter,
-  date_times       = NULL,
+  dttm             = NULL,
   stations         = NULL,
   file_format      = NULL,
   file_format_opts = list(),
@@ -43,8 +43,8 @@ read_obs_file <- function(
 
   if (missing(parameter)) parameter <- NULL
 
-  if (!is.null(date_times)) {
-    date_times <- suppressMessages(str_datetime_to_unixtime(date_times))
+  if (!is.null(dttm)) {
+    dttm <- as_unixtime(dttm)
   }
 
   file_format <- check_for_na(file_format)
@@ -96,7 +96,7 @@ read_obs_file <- function(
   read_func(
     file_name  = file_name,
     parameter  = parameter,
-    date_times = date_times,
+    dttm       = dttm,
     stations   = stations,
     opts       = file_format_opts
   )

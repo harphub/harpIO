@@ -615,6 +615,8 @@ read_point_forecast <- function(
     return(fcst[[1]])
   }
 
+  fcst
+
 }
 
 parse_accum <- function(prm) {

@@ -12,7 +12,7 @@
 #
 # @examples
 #
-read_vobs <- function(file_name, date_times, opts, ...) {
+read_vobs <- function(file_name, dttm, opts, ...) {
 
   empty_data <- empty_data_interpolate(NA, NA, empty_type = "obs")
 
@@ -33,15 +33,15 @@ read_vobs <- function(file_name, date_times, opts, ...) {
     return(list(synop = empty_data, temp = empty_data))
   }
 
-  if (!missing(date_times) && !is.null(date_times)) {
+  if (!missing(dttm) && !is.null(dttm)) {
     if (!is.null(v_data[["synop"]]) && nrow(v_data[["synop"]]) > 0) {
       v_data[["synop"]] <- dplyr::bind_cols(
-        tibble::tibble(validdate = date_times), v_data[["synop"]]
+        tibble::tibble(valid_dttm = dttm), v_data[["synop"]]
       )
     }
     if (!is.null(v_data[["temp"]]) && nrow(v_data[["temp"]]) > 0) {
       v_data[["temp"]] <- dplyr::bind_cols(
-        tibble::tibble(validdate = date_times), v_data[["temp"]]
+        tibble::tibble(valid_dttm = dttm), v_data[["temp"]]
       )
     }
   }

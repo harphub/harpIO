@@ -23,6 +23,11 @@ read_obs(
 )
 }
 \arguments{
+\item{dttm}{A vector of date time strings to read. Can be in YYYYMMDD,
+YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+character. A vector of date-times can be generated using
+\link[harpCore]{seq_dttm}.}
+
 \item{parameter}{The names of the parameters to read. By default this is
 NULL, meaning that all parameters are read from the observations files.}
 
@@ -84,13 +89,6 @@ setting might be important to prevent data from being overwritten.}
 
 \item{...}{Other arguments to \code{generate_filenames} for getting the names
 of files to read.}
-
-\item{date_times}{A vector of date time strings to read. Can be in YYYYMMDD,
-YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-character. A vector of date-times can be generated using \link{seq_dates}.
-If \code{date_times} is missing or set to NULL, the date-times to read will
-be generated from the \code{start_date}, \code{end_date} and \code{by}
-arguments.}
 }
 \value{
 If \code{return_data = TRUE}, a list with data frames of

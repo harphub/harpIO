@@ -9,12 +9,10 @@
 #' \code{read_obs} is not intended to be used for reading gridded observations.
 #' For this use \link{read_analysis} instead.
 #'
-#' @param date_times A vector of date time strings to read. Can be in YYYYMMDD,
+#' @param dttm A vector of date time strings to read. Can be in YYYYMMDD,
 #'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
-#'   character. A vector of date-times can be generated using \link{seq_dates}.
-#'   If \code{date_times} is missing or set to NULL, the date-times to read will
-#'   be generated from the \code{start_date}, \code{end_date} and \code{by}
-#'   arguments.
+#'   character. A vector of date-times can be generated using
+#'   \link[harpCore]{seq_dttm}.
 #' @param parameter The names of the parameters to read. By default this is
 #'   NULL, meaning that all parameters are read from the observations files.
 #' @param stations The IDs of the stations to read from the files. By default
@@ -138,11 +136,9 @@ read_obs <- function(
       ...
     )
 
-    names(data_files)[names(data_files) == "fcdate"] <- "dttm"
+    names(data_files)[names(data_files) == "fcst_dttm"] <- "dttm"
 
-    data_files[["dttm"]] <- unixtime_to_str_datetime(
-      data_files[["dttm"]], YMDhms
-    )
+    data_files[["dttm"]] <- unixtime_to_str_dttm(data_files[["dttm"]])
 
     data_files <- data_files[colnames(data_files) != "lags"]
 
@@ -224,13 +220,11 @@ read_obs <- function(
               dplyr::select(
                 dplyr::mutate(
                   table_data,
-                  file_date = unixtime_to_str_datetime(
-                    .data[["validdate"]], YMDhms
-                  )
+                  file_date = unixtime_to_str_dttm(.data[["valid_dttm"]])
                 ),
                 -dplyr::any_of(
                   c(
-                    "SID", "lat", "lon", "elev", "validdate",
+                    "SID", "lat", "lon", "elev", "valid_dttm",
                     table_params[["parameter"]]
                   )
                 )
@@ -242,7 +236,7 @@ read_obs <- function(
 
         table_data <- suppressMessages(dplyr::inner_join(
           table_data,
-          dplyr::rename(file_names, validdate = .data[["fcdate"]])
+          dplyr::rename(file_names, valid_dttm = .data[["fcst_dttm"]])
         )) %>%
           dplyr::group_nest(.data[["file_name"]])
 
@@ -251,7 +245,7 @@ read_obs <- function(
             output_format_opts[["index_cols"]][1] == "auto"
         ) {
           output_format_opts[["index_cols"]] <- intersect(
-            c("validdate", "SID", "p", "h", "m"),
+            c("valid_dttm", "SID", "p", "h", "m"),
             unique(unlist(lapply(table_data[["data"]], colnames)))
           )
         }
@@ -294,7 +288,7 @@ read_obs <- function(
         }
         function_output[[list_counter]][[table_name]] <- dplyr::mutate(
           function_output[[list_counter]][[table_name]],
-          validdate = unix2datetime(.data[["validdate"]])
+          valid_dttm = unixtime_to_dttm(.data[["valid_dttm"]])
         )
         function_output[[list_counter]][[param_name]] <- table_params
       }

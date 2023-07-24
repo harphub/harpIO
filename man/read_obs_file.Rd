@@ -7,7 +7,7 @@
 read_obs_file(
   file_name,
   parameter,
-  date_times = NULL,
+  dttm = NULL,
   stations = NULL,
   file_format = NULL,
   file_format_opts = list(),
@@ -20,9 +20,6 @@ read_obs_file(
 \item{parameter}{Parameters to extract from the file. If missing or NULL, all
 parameters are extracted from the file.}
 
-\item{date_times}{The date times to extract from the file. If NULL, all date
-times are extracted from the file.}
-
 \item{stations}{Station IDs to extract from file. If NULL, all station IDs are
 extracted from the file.}
 
@@ -31,6 +28,9 @@ extracted from the file.}
 \item{file_format_opts}{Options specific to the file format as a named list.}
 
 \item{...}{Not used - absorbs other arguments from calling environment.}
+
+\item{date_times}{The date times to extract from the file. If NULL, all date
+times are extracted from the file.}
 }
 \value{
 A named list with up to four elements \itemize{ \item synop - a data
