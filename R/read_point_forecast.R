@@ -527,6 +527,16 @@ read_point_forecast <- function(
         )
       ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
 
+      no_data_for_accum <- which(vapply(fcst_lead_time_accum, nrow, numeric(1)) < 1)
+
+      if (any(no_data_for_accum)) {
+        missing_leads <- unique(unlist(lead_time_accum))
+        cli::cli_abort(c(
+          "Unable to find data to compute accumulations.",
+          "x" = "Cannot find lead times: {missing_leads} in sqlite files."
+        ))
+      }
+
       fcst[unread_leads]       <- purrr::map2(fcst[unread_leads], fcst_lead_time_accum, dplyr::bind_rows)
       fcst_accum[unread_leads] <- purrr::map(
         fcst[unread_leads],

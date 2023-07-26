@@ -25,7 +25,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
   fcst_cols  <- colnames(.fcst)
   fcst_lead  <- intersect(c("lead_time", "leadtime"), fcst_cols)
   fcst_dttm  <- intersect(c("fcst_dttm", "fcdate"), fcst_cols)
-  valid_dttm <- intersect(c("valid_dttm", "validdate", fcst_cols))
+  valid_dttm <- intersect(c("valid_dttm", "validdate"), fcst_cols)
 
   lead_times          <- sort(unique(.fcst[[fcst_lead]]))
   required_lead_times <- union((lead_times - accumulation_time), lead_times)
