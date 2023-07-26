@@ -1,12 +1,20 @@
 #' Options for Writing SQLite files
 #'
+#' Generate a list for passing to the \code{output_format_opts} argument of
+#' \link{read_forecast} and \link{read_obs}. \code{sqlite_opts} is the general
+#' set of options, also suitable for forecast data, and \code{fctable_opts} and
+#' \code{obstable_opts} have specific defaults to be used with
+#' \link{read_forecast} and \link{read_obs} respectively.
+#'
 #' @param path If not NULL, sqlite files are generated and written to the
 #'   directory specified here.
 #' @param template The template for the filenames of the sqlite files. See
 #'   \code{\link{show_file_templates}} for available built in templates - for
 #'   point forecast sqlite files, these are templates beginning "fctable_". The
 #'   default is "fctable_det".
-#' @param index_cols The columns to index by
+#' @param index_cols The columns to index by. In the case of
+#'   \code{obstable_opts}, setting index cols to "auto" (the default) will
+#'   automatically assign the index columns.
 #' @param synchronous The synchronus setting for sqlite files. The defualt is
 #'   "off", but could also be "normal", "full", or "extra". See
 #'   \url{https://www.sqlite.org/pragma.html#pragma_synchronous} for more
@@ -51,3 +59,54 @@ sqlite_opts <- function(
   )
 
 }
+
+
+#' @rdname sqlite_opts
+#' @export
+fctable_opts <- function(
+    path              = NULL,
+    template          = "fctable",
+    index_cols        = c("fcst_dttm", "lead_time", "SID"),
+    synchronous       = c("off", "normal", "full", "extra"),
+    journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
+    remove_model_elev = FALSE
+) {
+
+  synchronous  <- match.arg(synchronous)
+  journal_mode <- match.arg(journal_mode)
+
+  list(
+    path              = path,
+    template          = template,
+    index_cols        = index_cols,
+    synchronous       = synchronous,
+    journal_mode      = journal_mode,
+    remove_model_elev = remove_model_elev
+  )
+
+}
+
+#' @rdname sqlite_opts
+#' @export
+obstable_opts <- function(
+    path              = NULL,
+    template          = "obstable",
+    index_cols        = "auto",
+    synchronous       = c("off", "normal", "full", "extra"),
+    journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off")
+) {
+
+  synchronous  <- match.arg(synchronous)
+  journal_mode <- match.arg(journal_mode)
+
+  list(
+    path              = path,
+    template          = template,
+    index_cols        = index_cols,
+    synchronous       = synchronous,
+    journal_mode      = journal_mode
+  )
+
+}
+
+

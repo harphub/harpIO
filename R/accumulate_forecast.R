@@ -22,16 +22,21 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
 
   message("Accumulating forecast for ", accumulation_time, accumulation_unit, " accumulations")
 
-  lead_times          <- sort(unique(.fcst$leadtime))
+  fcst_cols  <- colnames(.fcst)
+  fcst_lead  <- intersect(c("lead_time", "leadtime"), fcst_cols)
+  fcst_dttm  <- intersect(c("fcst_dttm", "fcdate"), fcst_cols)
+  valid_dttm <- intersect(c("valid_dttm", "validdate", fcst_cols))
+
+  lead_times          <- sort(unique(.fcst[[fcst_lead]]))
   required_lead_times <- union((lead_times - accumulation_time), lead_times)
   missing_lead_times  <- setdiff(required_lead_times, lead_times)
   missing_lead_times  <- missing_lead_times[missing_lead_times > 0]
 
 
   if (any(lead_times == accumulation_time) && !any(lead_times == 0)) {
-    first_accum_fcst <- dplyr::filter(.fcst, .data$leadtime == accumulation_time)
+    first_accum_fcst <- dplyr::filter(.fcst, .data[[fcst_lead]] == accumulation_time)
   } else {
-    first_accum_fcst <- dplyr::filter(.fcst, .data$leadtime < min(lead_times))
+    first_accum_fcst <- dplyr::filter(.fcst, .data[[fcst_lead]] < min(lead_times))
   }
 
   if (length(missing_lead_times) > 0 && check_leads) {
@@ -50,26 +55,28 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
     warning("Lead times are not equally spaced. Accumulating could take some time\n", immediate. = TRUE, call. = FALSE)
 
     .fcst <- .fcst %>%
-      dplyr::mutate(lead_acc = .data$leadtime + accumulation_time)
+      dplyr::mutate(lead_acc = .data[[fcst_lead]] + accumulation_time)
 
     if (nrow(.fcst) > 0) {
+
+      fcst_lead_sym <- rlang::sym(fcst_lead)
 
       .fcst <- dplyr::inner_join(
         .fcst,
         dplyr::select(
-          dplyr::filter(.fcst, .data$leadtime >= accumulation_time),
+          dplyr::filter(.fcst, .data[[fcst_lead]] >= accumulation_time),
           .data$SID,
-          .data$fcdate,
-          lead_acc = .data$leadtime,
+          .data[[fcst_dttm]],
+          lead_acc = .data[[fcst_lead]],
           fcst_acc = .data$forecast,
           .data$member
         ),
-        by = c("SID", "fcdate", "lead_acc", "member")
+        by = c("SID", fcst_dttm, "lead_acc", "member")
       ) %>%
         dplyr::mutate(
           forecast = .data$fcst_acc - .data$forecast,
           forecast = dplyr::case_when(.data$forecast < 0 ~ 0, TRUE ~ .data$forecast),
-          leadtime = .data$lead_acc
+          !!fcst_lead_sym := .data$lead_acc
         )
 
     }
@@ -81,15 +88,15 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
     lag_step <- accumulation_time / lead_times_res
 
     if (tidyr_new_interface()) {
-      .fcst <- tidyr::nest(.fcst, data = -tidyr::one_of("leadtime"))
+      .fcst <- tidyr::nest(.fcst, data = -tidyr::one_of(fcst_lead))
     } else {
     .fcst <- .fcst %>%
-      dplyr::group_by(.data$leadtime) %>%
+      dplyr::group_by(.data[[fcst_lead]]) %>%
       tidyr::nest()
     }
     .fcst <- .fcst %>%
       dplyr::mutate(
-        lagged_data = dplyr::lag(.data$data, lag_step, order_by = .data$leadtime),
+        lagged_data = dplyr::lag(.data$data, lag_step, order_by = .data[[fcst_lead]]),
         type = purrr::map_lgl(.data$lagged_data, tibble::is_tibble)
       ) %>%
       dplyr::filter(.data$type) %>%
@@ -130,7 +137,7 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
       bad_data_lagged <- dplyr::rename(bad_data_lagged, forecast1 = .data$forecast)
 
       join_cols <- intersect(
-        c("leadtime", "SID", "fcdate", "fcst_cycle", "member", "units", "parameter", "model_elevation"),
+        c(fcst_lead, "SID", fcst_dttm, "fcst_cycle", "member", "units", "parameter", "model_elevation"),
         names(bad_data)
       )
       bad_data <- bad_data %>%
@@ -139,13 +146,14 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
           by = join_cols
         )
 
+      valid_dttm_sym <- rlang::sym(valid_dttm)
       bad_data <- bad_data %>%
         dplyr::mutate(forecast = .data$forecast - .data$forecast1) %>%
-        dplyr::rename(validdate = .data$validdate.x) %>%
+        dplyr::rename(!!valid_dttm_sym := .data[[paste0(valid_dttm, ".x")]]) %>%
         dplyr::select(-dplyr::starts_with("type"), -dplyr::ends_with(".y"), -dplyr::ends_with(".x"), -.data$forecast1)
       if (nrow(.fcst) > 0) {
         .fcst <- dplyr::bind_rows(.fcst, bad_data) %>%
-          dplyr::arrange(.data$leadtime)
+          dplyr::arrange(.data[[fcst_lead]])
       } else {
         .fcst <- bad_data
       }
