@@ -1887,6 +1887,52 @@ modify_param_def <- function(
   param_defs
 }
 
+#' @rdname parameter_definitions
+#' @param param The name of a parameter to extract from \code{param_defs}
+#' @param file_format The file format for which to get the parameter definition
+#' @export
+#' @examples
+#'
+#' # Get parameter definition for topography
+#' get_param_def("topo")
+#'
+#' # For grib files
+#' get_param_def("topo", "grib")
+#'
+#' # Aliases also work - stored in the \code{other_names} entry
+#' get_param_def("terrain")
+get_param_def <- function(
+  param, file_format = NULL, param_defs = get("harp_params")
+) {
+
+  res <- param_defs[[param]]
+  if (length(res) < 1) {
+    idx <- param_from_other_names(param, param_defs)
+    if (length(idx) < 1) {
+      cli::cli_abort(c(
+        "{.arg param} not found in {.arg param_defs}.",
+        "x" = "param = {.var {param}} not found."
+      ))
+    }
+    res <- param_defs[[idx]]
+  }
+
+  if (is.null(file_format)) {
+    return(res)
+  }
+
+  res <- res[[file_format]]
+  if (length(res) < 1) {
+    cli::cli_abort(c(
+      "{.arg file_format} not found for {.arg param} in {.arg param_defs}.",
+      "x" = "file_format = {.var {file_format}} not found for {.var {param}}."
+    ))
+  }
+
+  res
+
+}
+
 #' Make a parameter definition list for a file format
 #'
 #' These functions are to be used together with \link{add_param_def} and

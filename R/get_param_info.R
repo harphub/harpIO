@@ -45,8 +45,9 @@ get_param_info <- function(
 
 param_from_other_names <- function(param, param_defs) {
 
+  param <- paste0("^", tolower(param), "$")
   lapply(param_defs, function(x) x[["other_names"]]) %>%
-    vapply(function(x) any(grepl(tolower(param), x)), TRUE) %>%
+    vapply(function(x) any(grepl(param, x)), TRUE) %>%
     which()
 
 }

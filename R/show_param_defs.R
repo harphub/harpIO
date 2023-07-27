@@ -4,6 +4,8 @@
 #'
 #' @export
 #' @examples
+#'
+#' # Show parameter definitions
 #' show_param_defs()
 #' show_param_defs("grib")
 #' show_param_defs("netcdf")

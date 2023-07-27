@@ -6,7 +6,7 @@
 \title{Parameter definitions}
 \format{
 A list of 60 parameters that have entries for different file formats
-includeing grib, netcdf, fa, v (cfld/vobs) and obsoul.
+including grib, netcdf, fa, v (cfld/vobs) and obsoul.
 }
 \usage{
 harp_params
