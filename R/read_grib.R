@@ -380,7 +380,7 @@ filter_grib_info <- function(
     if (!is.null(step_find)) {
       grib_info <- dplyr::filter(
         grib_info,
-        .data[[step_find[["key"]]]] %in% step_find[["value"]]
+        .data[[step_find[["key"]]]] %in% glue::glue({step_find[["value"]]})
       )
     }
 
