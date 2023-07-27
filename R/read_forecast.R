@@ -197,6 +197,7 @@ read_forecast <- function(
   file_format_opts     = list(),
   transformation       = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts  = NULL,
+  param_defs           = get("harp_params"),
   output_file_opts     = sqlite_opts(),
   return_data          = FALSE,
   merge_lags           = TRUE,
@@ -235,6 +236,8 @@ read_forecast <- function(
   if (!is_forecast) {
     lead_time <- 0
   }
+
+  check_param_defs(param_defs)
 
   # Get a data frame of arguments in preparation for file name generation
 
@@ -354,6 +357,7 @@ read_forecast <- function(
         members             = .y[["members"]],
         transformation      = transformation,
         transformation_opts = transformation_opts,
+        param_defs          = param_defs,
         show_progress       = show_progress,
         data_frame          = TRUE,
         readable_times      = FALSE

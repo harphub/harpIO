@@ -10,7 +10,9 @@
 #' @examples
 #' show_harp_parameters()
 #'
-show_harp_parameters <- function(file_format = NULL, param_defs = harp_params()) {
+show_harp_parameters <- function(
+  file_format = NULL, param_defs = get("harp_params")
+) {
   if (is.null(file_format)) {
     params <- dplyr::arrange(
       tibble::tibble(

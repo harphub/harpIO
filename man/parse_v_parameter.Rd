@@ -4,7 +4,7 @@
 \alias{parse_v_parameter}
 \title{Parameters for vobs and vfld files}
 \usage{
-parse_v_parameter(v_parameter, param_type, param_defs = harp_params())
+parse_v_parameter(v_parameter, param_type, param_defs = get("harp_params"))
 }
 \arguments{
 \item{v_parameter}{vobs or vfld parameter}

@@ -11,7 +11,9 @@
 #' @return A list with \code{short_name}, \code{param_number},
 #'   \code{level_type}, \code{level_numbe.r}
 #'
-get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
+get_grib_param_info <- function(
+  param, vertical_coordinate = NA_character_, param_defs = get("harp_params")
+) {
 
   if (!inherits(param, "harp_parameter")) {
     param <- parse_harp_parameter(
@@ -19,7 +21,7 @@ get_grib_param_info <- function(param, vertical_coordinate = NA_character_) {
     )
   }
 
-  grib_info <- get_param_info(param, "grib")
+  grib_info <- get_param_info(param, "grib", param_defs)
   func      <- grib_info[["param_func"]]
   grib_info <- grib_info[["param_info"]]
 

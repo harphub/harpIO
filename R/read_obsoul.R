@@ -7,7 +7,7 @@
 
 read_obsoul <- function(
   file_name,
-  param_defs = harp_params(),
+  param_defs = get("harp_params"),
   ...
 ) {
 

@@ -49,6 +49,7 @@ read_grib <- function(
   transformation      = "none",
   transformation_opts = list(),
   format_opts         = grib_opts(),
+  param_defs          = get("harp_params"),
   show_progress       = FALSE,
   ...
 ) {
@@ -77,7 +78,9 @@ read_grib <- function(
   }
 
   parameter      <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
-  param_info     <- lapply(parameter, get_grib_param_info)
+  param_info     <- lapply(
+    parameter, get_grib_param_info, vertical_coordinate, param_defs
+  )
   unknown_params <- which(sapply(param_info, function(x) any(is.na(x$short_name))))
 
   if (length(unknown_params) > 0) {
@@ -202,11 +205,13 @@ read_grib <- function(
     # Apply any function to the input(s) as taken from param_defs
 
     func <- unique(grib_info[["func"]])
+    if (is.list(func)) {
+      func <- func[[1]]
+    }
 
-    if (is.na(func)) {
+    if (!is.function(func)) {
       result[["gridded_data"]][[1]] <- result[["gridded_data"]][[1]][[1]]
     } else {
-      func <- func[[1]]
       if (is.null(grib_info[["func_var"]])) {
         result[["gridded_data"]][[1]] <- func(
           result[["gridded_data"]][[1]]
@@ -430,7 +435,7 @@ filter_grib_info <- function(
   if (nchar(level_type) < 1) {
     level_type <- "unknown"
   }
-  level_type <- names(grib_level_types())[grib_level_types() == level_type]
+  level_type <- names(define_grib_level_types())[define_grib_level_types() == level_type]
   if (length(level_type) < 1) {
     level_type <- "unknown"
   }

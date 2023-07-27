@@ -4,7 +4,7 @@
 \alias{show_harp_parameters}
 \title{Show default harp parameter names}
 \usage{
-show_harp_parameters(file_format = NULL, param_defs = harp_params())
+show_harp_parameters(file_format = NULL, param_defs = get("harp_params"))
 }
 \arguments{
 \item{file_format}{The file format for which to show parameters. If set to

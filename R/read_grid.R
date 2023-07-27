@@ -67,6 +67,7 @@ read_grid <- function(
   members             = NULL,
   transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = list(),
+  param_defs          = get("harp_params"),
   show_progress       = FALSE,
   data_frame          = FALSE,
   readable_times      = TRUE,
@@ -137,6 +138,7 @@ read_grid <- function(
     transformation      = transformation,
     transformation_opts = transformation_opts,
     format_opts         = file_format_opts,
+    param_defs          = param_defs,
     show_progress       = show_progress
   )
 

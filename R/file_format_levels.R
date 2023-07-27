@@ -1,4 +1,4 @@
-grib_level_types <- function() {
+define_grib_level_types <- function() {
 
   list(
     surface   = "surface",
@@ -15,7 +15,7 @@ grib_level_types <- function() {
 
 }
 
-nc_level_suffixes <- function() {
+define_nc_level_suffixes <- function() {
   list(
     pressure = "_pl",
     model    = "_ml",

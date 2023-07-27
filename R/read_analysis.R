@@ -93,7 +93,7 @@
 #' @return When \code{return_date = TRUE}, a harp_analysis object.
 #' @export
 read_analysis <- function(
-    dttm,
+  dttm,
   analysis_model,
   parameter,
   members             = NULL,
@@ -106,6 +106,7 @@ read_analysis <- function(
   file_format_opts    = list(),
   transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = NULL,
+  param_defs          = get("harp_params"),
   output_file_opts    = sqlite_opts(),
   return_data         = TRUE,
   merge_lags          = TRUE,
@@ -128,6 +129,8 @@ read_analysis <- function(
   vertical_coordinate <- match.arg(vertical_coordinate)
   transformation      <- match.arg(transformation)
 
+  check_param_defs(param_defs)
+
   analysis <- read_forecast(
     dttm                = dttm,
     fcst_model          = analysis_model,
@@ -143,6 +146,7 @@ read_analysis <- function(
     file_format_opts    = file_format_opts,
     transformation      = transformation,
     transformation_opts = transformation_opts,
+    param_defs          = param_defs,
     output_file_opts    = output_file_opts,
     return_data         = return_data,
     merge_lags          = merge_lags,

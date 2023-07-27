@@ -8,7 +8,7 @@
 #' @return A list with the harp paramater name and the units of the parameter.
 #'
 parse_v_parameter <- function(
-  v_parameter, param_type, param_defs = harp_params()
+  v_parameter, param_type, param_defs = get("harp_params")
 ) {
 
   v_elements <- purrr::map(param_defs, "v")
@@ -36,11 +36,11 @@ parse_v_parameter <- function(
 
 }
 
-parse_v_parameter_synop <- function(v_parameter) {
+parse_v_parameter_synop <- function(v_parameter, param_defs = get("harp_params")) {
   parse_v_parameter(v_parameter, "SYNOP")
 }
 
-parse_v_parameter_temp <- function(v_parameter) {
+parse_v_parameter_temp <- function(v_parameter, param_defs = get("harp_params")) {
   parse_v_parameter(v_parameter, "TEMP")
 }
 

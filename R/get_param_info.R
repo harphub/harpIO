@@ -1,5 +1,5 @@
 get_param_info <- function(
-  param, file_format, param_defs = harp_params()
+  param, file_format, param_defs = get("harp_params")
 ) {
 
   param_names <- names(param_defs)

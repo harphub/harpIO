@@ -12,7 +12,7 @@
 #
 # @examples
 #
-read_vobs <- function(file_name, dttm, opts, ...) {
+read_vobs <- function(file_name, dttm, opts, param_defs = get("harp_params"), ...) {
 
   empty_data <- empty_data_interpolate(NA, NA, empty_type = "obs")
 
@@ -26,7 +26,8 @@ read_vobs <- function(file_name, dttm, opts, ...) {
   v_data <- read_vfile(
     file_name,
     v_type        = "vobs",
-    missing_value = opts[["missing_value"]]
+    missing_value = opts[["missing_value"]],
+    param_defs    = param_defs
   )
 
   if (is.null(v_data)) {

@@ -7,7 +7,8 @@ read_vfile <- function(
   v_type        = c("vfld", "vobs"),
   missing_value = -99.0,
   synop_cols    = NULL,
-  temp_cols     = NULL
+  temp_cols     = NULL,
+  param_defs    = get("harp_params")
 ) {
 
   v_type <- match.arg(v_type)
@@ -106,7 +107,7 @@ read_vfile <- function(
 
     params_synop <- dplyr::mutate(
       params_synop,
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop, param_defs),
       units       = purrr::map_chr(.data$parameter, "param_units"),
       parameter   = purrr::map_chr(.data$parameter, "harp_param")
     )
@@ -171,7 +172,7 @@ read_vfile <- function(
 
     params_temp <- dplyr::mutate(
       params_temp,
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp, param_defs),
       units       = purrr::map_chr(.data$parameter, "param_units"),
       parameter   = purrr::map_chr(.data$parameter, "harp_param")
     )

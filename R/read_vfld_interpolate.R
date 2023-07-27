@@ -44,6 +44,7 @@ read_vfld_interpolate <- function(
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   init                = list(),
   format_opts         = vfile_opts(),
+  param_defs          = get("harp_params"),
   ...
 ) {
 
@@ -75,7 +76,8 @@ read_vfld_interpolate <- function(
     v_type = "vfld",
     missing_value = format_opts$missing_value,
     synop_cols    = format_opts$synop_cols,
-    temp_cols     = format_opts$temp_cols
+    temp_cols     = format_opts$temp_cols,
+    param_defs    = param_defs
   )
 
   if (is.null(vfld_data)) {

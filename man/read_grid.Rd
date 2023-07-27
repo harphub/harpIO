@@ -17,6 +17,7 @@ read_grid(
   members = NULL,
   transformation = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = list(),
+  param_defs = get("harp_params"),
   show_progress = FALSE,
   data_frame = FALSE,
   readable_times = TRUE,

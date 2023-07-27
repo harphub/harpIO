@@ -18,7 +18,7 @@ pad_string <- function(x, string_length, text = " ") {
 # to different file formats. The functions below the data are used for
 # printing, adding or replacing harp entries in the harp_params list
 
-harp_params <- function() {
+define_harp_params <- function() {
   list(
 
     ###################
@@ -169,12 +169,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "t",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "air_temperature",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       v = list(
@@ -236,12 +236,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "td",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "dew_point_temperature",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       v = list(
@@ -333,12 +333,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "ws",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "wind_speed",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       v = list(
@@ -422,12 +422,12 @@ harp_params <- function() {
 
       grib = list(
         name       = list(u = "u", v = "v"),
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = list(u = "x_wind", v = "y_wind"),
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -490,12 +490,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "wdir",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "wind_direction",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       v = list(
@@ -560,12 +560,12 @@ harp_params <- function() {
 
       grib = list(
         name       = list(u = "u", v = "v"),
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = list(u = "x_wind", v = "y_wind"),
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -625,12 +625,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "u",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "x_wind",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -682,12 +682,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "v",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "y_wind",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -710,12 +710,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "w",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "upward_air_velocity",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -760,12 +760,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "fg",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "wind_speed_of_gust",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       fa = list(
@@ -817,12 +817,12 @@ harp_params <- function() {
 
       grib = list(
         name       = list(u = "ugst", v = "vgst"),
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = list(u = "x_wind_gust", v = "y_wind_gust"),
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       fa = list(
@@ -887,12 +887,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "ugst",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "x_wind_gust",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       fa = list(
@@ -936,12 +936,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "vgst",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "y_wind_gust",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       fa = list(
@@ -1002,12 +1002,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "q",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "specific_humidity",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       v = list(
@@ -1070,12 +1070,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "r",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "relative_humidity",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       v = list(
@@ -1103,12 +1103,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "tcc",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "cloud_area_fraction",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -1505,12 +1505,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "z",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "geopotential",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -1531,12 +1531,12 @@ harp_params <- function() {
 
       grib = list(
         name       = "gh",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       netcdf = list(
         name   = "geopotential_height",
-        suffix = nc_level_suffixes()
+        suffix = get("nc_level_suffixes")
       ),
 
       wrf = list(
@@ -1688,7 +1688,7 @@ harp_params <- function() {
 
       grib = list(
         name       = "pres",
-        level_type = grib_level_types()
+        level_type = get("grib_level_types")
       ),
 
       v = list(
@@ -1739,4 +1739,159 @@ harp_params <- function() {
 
   )
 
+}
+
+add_param_def <- function(
+  param,
+  param_defs  = get("harp_params"),
+  description = "",
+  min         = -Inf,
+  max         = Inf,
+  grib        = NULL,
+  netcdf      = NULL,
+  v           = NULL,
+  fa          = NULL,
+  obsoul      = NULL,
+  func        = NULL,
+  ...
+) {
+
+  if (is.element(param, names(param_defs))) {
+    cli::cli_abort(c(
+      "{.arg {param}} already exists in `param_defs`.",
+      "i" = "Use `modify_param_def()` instead."
+    ))
+  }
+
+  param_defs[[param]] <- list(
+    description = description,
+    min         = min,
+    max         = max,
+    grib        = grib,
+    netcdf      = netcdf,
+    v           = v,
+    fa          = fa,
+    obsoul      = obsoul,
+    func        = func,
+    ...
+  )
+
+  non_nulls <- !vapply(param_defs[[param]], is.null, logical(1))
+  param_defs[[param]] <- param_defs[[param]][non_nulls]
+  check_param_defs(param_defs)
+  param_defs
+}
+
+modify_param_def <- function(
+  param,
+  param_defs  = get("harp_params"),
+  description = NULL,
+  min         = NULL,
+  max         = NULL,
+  grib        = NULL,
+  netcdf      = NULL,
+  v           = NULL,
+  fa          = NULL,
+  obsoul      = NULL,
+  func        = NULL,
+  ...
+) {
+
+  if (!is.element(param, names(param_defs))) {
+    cli::cli_abort(c(
+      "{.arg {param}} does not exist `param_defs`.",
+      "i" = "Use `add_param_def() instead."
+    ))
+  }
+
+  arg_names <- c(rlang::fn_fmls_names(), names(list(...)))
+  arg_names <- arg_names[!arg_names %in% c("param", "param_defs", "...")]
+
+  for (arg_name in arg_names) {
+    if (!is.element(arg_name, rlang::fn_fmls_names())) {
+      assign(arg_name, list(...)[[arg_name]])
+    }
+    arg_val <- get(arg_name)
+    if (!is.null(arg_val)) {
+      param_defs[[param]][[arg_name]] <- arg_val
+    }
+  }
+
+  param_defs
+}
+
+new_grib_param <- function(
+  name,
+  level_type = get("grib_level_types"),
+  level      = NULL
+) {
+  grib_param <- list(
+    name = name, level_type = level_type, level = level
+  )
+  non_nulls <- !vapply(grib_param, is.null, logical(1))
+  grib_param[non_nulls]
+}
+
+new_netcdf_param <- function(name, suffix = get("nc_level_suffixes")) {
+  nc_param <- list(name = name, suffix = suffix)
+  non_nulls <- !vapply(nc_param, is.null, logical(1))
+  nc_param[non_nulls]
+}
+
+new_fa_param <- function(name, units, name_len = 16) {
+  list(name = pad_string(name, name_len), units = units)
+}
+
+new_v_param <- function(name, harp_param, units, type = c("SYNOP", "TEMP")) {
+  type <- match.arg(type)
+  list(
+    harp_param = harp_param, name = name, param_units = units, type = type
+  )
+}
+
+new_obsoul_param <- function(name, harp_param, units) {
+  list(name = name, units = units, harp_param = harp_param)
+}
+
+check_param_defs <- function(
+  param_defs = get("harp_params"), caller = rlang::caller_env()
+) {
+  params_with_func <- vapply(
+    param_defs, function(x) !is.null(x[["func"]]), logical(1)
+  )
+  param_defs <- param_defs[params_with_func]
+
+  checks <- mapply(check_formals, names(param_defs), param_defs)
+
+  bad_params <- which(vapply(checks, function(x) x == "error", logical(1)))
+  if (length(bad_params) > 0) {
+    cli::cli_abort(
+      "Mismatch between function formals and param names", call = caller
+    )
+  }
+
+}
+
+check_formals <- function(param_name, param) {
+  func_vars      <- sort(names(formals(param[["func"]])))
+  param          <- param[vapply(param, is.list, logical(1))]
+  file_type_idx  <- vapply(param, function(x) !is.null(x[["name"]]), logical(1))
+
+  file_type_name_err <- vapply(
+    param[file_type_idx],
+    function(x) is.list(x[["name"]]) && !all(sort(names(x[["name"]])) == func_vars),
+    logical(1)
+  )
+
+  bad_file_types <- which(file_type_name_err)
+  if (length(bad_file_types) > 0) {
+    var <- names(param[file_type_idx][bad_file_types])
+    cli::cli_bullets(c(
+      "Error for {.var {param_name}}",
+      "x" = "Function formals and param names do not match for {.var {var}}.",
+      "i" = "Function formals = {.var {func_vars}}"
+    ))
+    return("error")
+  }
+  return("ok")
 }

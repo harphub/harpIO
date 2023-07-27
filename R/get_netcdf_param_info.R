@@ -9,7 +9,10 @@
 #' @return A list with the harp parameter name, the netcdf parameter name and
 #'   the netcdf options, that may have been modified.
 
-get_netcdf_param_info <- function(param, vc = NA_character_, opts = netcdf_opts()) {
+get_netcdf_param_info <- function(
+  param, vc = NA_character_, opts = netcdf_opts(),
+  param_defs = get("harp_params")
+) {
 
   if (!inherits(param, "harp_parameter")) {
     param <- parse_harp_parameter(param, vertical_coordinate = vc)
@@ -41,11 +44,11 @@ get_netcdf_param_info <- function(param, vc = NA_character_, opts = netcdf_opts(
 
   if (grepl("wrf", opts[["options_set"]])) {
 
-    nc_param_info <- get_param_info(param, "wrf")
+    nc_param_info <- get_param_info(param, "wrf", param_defs)
 
   } else {
 
-    nc_param_info <- get_param_info(param, "netcdf")
+    nc_param_info <- get_param_info(param, "netcdf", param_defs)
 
   }
 

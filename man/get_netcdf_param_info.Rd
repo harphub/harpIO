@@ -4,7 +4,12 @@
 \alias{get_netcdf_param_info}
 \title{Internal function to get NetCDF parameter name from a HARP parameter name}
 \usage{
-get_netcdf_param_info(param, vc = NA_character_, opts = netcdf_opts())
+get_netcdf_param_info(
+  param,
+  vc = NA_character_,
+  opts = netcdf_opts(),
+  param_defs = get("harp_params")
+)
 }
 \arguments{
 \item{param}{HARP parameter name.}
