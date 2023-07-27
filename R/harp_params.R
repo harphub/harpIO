@@ -1741,6 +1741,58 @@ define_harp_params <- function() {
 
 }
 
+#' Parameter definitions for reading from files
+#'
+#' \code{add_param_def} adds a new parameter definition to the input list and
+#' \code{modify_param_def} modifies an entry for an existing parameter. Use
+#' \code{show_param_defs} to show the names and descriptions of the paramaters
+#' in the \code{param_defs} list, and pass the file format as an argument to
+#' show the parameters for that file format.
+#'
+#' @name parameter_definitions
+#'
+#' @param param The name of the parameter to add
+#' @param param_defs A list of parameter definitions to modify. Defaults to the
+#'   built in list of parameters.
+#' @param description A description of the parameter.
+#' @param min,max The minimum and maximumvalues the parameter can have - only
+#'   used when reading observations to do a gross error check.
+#' @param grib A list with the grib shortName, and optionally levelType and
+#' level. Use \link{new_grib_param} to generate.
+#' @param netcdf A list with the name of the parameter in the netcdf file and
+#'   optionally a named list of suffixes to add to the parameter name for
+#'   different vertical coordinate systems. Use \link{new_netcdf_param} to
+#'   generate.
+#' @param v A list with the name of the parameter in vfld / vobs files, the
+#'   output name, units and type (synop or temp). Use \link{new_v_param} to
+#'   generate.
+#' @param fa A list with the name of the parameter in FA files and its units.
+#'   Use \link{new_fa_param} to generate.
+#' @param obsoul A list with the name of the paramater in obsoul files (this is
+#'   usually numeric), its units and the output name. Use
+#'   \link{new_obsoul_param} to generate.
+#' @param func A function to apply on reading. For the function to be used, the
+#'   "name" element of the list for the file type must be a named list with
+#'   names matching the names of the function arguments. See, for example,
+#'   \code{harp_params$ws10m} for how this should be done.
+#' @param ... Other file types.
+#'
+#' @return A modified version of the \code{param_defs} input to the function.
+NULL
+
+#'
+#' @rdname parameter_definitions
+#' @export
+#'
+#' @examples
+#' add_param_def(
+#'   "u100m",
+#'   description = "Zonal wind Speed at 100m above ground",
+#'   grib = new_grib_param("u", "heightAboveGround", 100),
+#'   netcdf = new_netcdf_param("x_wind_100m"),
+#'   v = new_v_param("U100", "u100m", "m/s", "SYNOP")
+#' )
+#'
 add_param_def <- function(
   param,
   param_defs  = get("harp_params"),
@@ -1782,6 +1834,21 @@ add_param_def <- function(
   param_defs
 }
 
+#' @rdname parameter_definitions
+#' @export
+#'
+#' @examples
+#' # Use a function to convert sea level pressure to hPa from Pa for grib files
+#' my_params <- modify_param_def(
+#'   "pmsl",
+#'   grib = new_grib_param(
+#'     name = list(p = "msl"),
+#'     level_type = c("meanSea", "heightAboveSea"),
+#'     level = 0
+#'   ),
+#'   func = function(p) p / 100
+#' )
+#' my_params$pmsl
 modify_param_def <- function(
   param,
   param_defs  = get("harp_params"),
@@ -1820,6 +1887,30 @@ modify_param_def <- function(
   param_defs
 }
 
+#' Make a parameter definition list for a file format
+#'
+#' These functions are to be used together with \link{add_param_def} and
+#' \link{modify_param_def} to add a parameter definition entry for a particular
+#' file format.
+#'
+#' @name file_parameter_definitions
+#'
+#' @param name The name of the parameter in the file. In the case of grib files,
+#' this should be the grib shortName and in the case of obsoul files, should be
+#' the number used to define what the variable is. In addition, can be expressed
+#' as a character vector for grib files in order to try different shortNames
+#' until the paramatet is found. Should be a named list if a function is to be
+#' applied with the names matching the argument names in the function.
+NULL
+
+#' @param level_type The grib levelType. Can be a character vector in order to
+#'   try different levelTypes until the variable is found in the file. The
+#'   default is a named list using the in built grib_level_types to define the
+#'   names for diffferent vertical coordinate systems.
+#' @param level The level number. Set to -999 for all levels.
+#'
+#' @rdname file_parameter_definitions
+#' @export
 new_grib_param <- function(
   name,
   level_type = get("grib_level_types"),
@@ -1832,16 +1923,35 @@ new_grib_param <- function(
   grib_param[non_nulls]
 }
 
+#' @param suffix The suffix to add to \code{name} for different vertical
+#'   coordinate systems.
+#'
+#' @rdname file_parameter_definitions
+#' @export
 new_netcdf_param <- function(name, suffix = get("nc_level_suffixes")) {
   nc_param <- list(name = name, suffix = suffix)
   non_nulls <- !vapply(nc_param, is.null, logical(1))
   nc_param[non_nulls]
 }
 
+#' @param units The units of the parameter in the FA files.
+#' @param name_len The number of characters that \code{name} should have in the
+#'   FA files. This is 16 by default and adds blank spaces to the end of
+#'   \code{name} to make it the required length.
+#'
+#' @rdname file_parameter_definitions
+#' @export
 new_fa_param <- function(name, units, name_len = 16) {
   list(name = pad_string(name, name_len), units = units)
 }
 
+#' @param harp_param The name of the parameter to be used in outputs from read
+#'   functions.
+#' @param units The units of the parameter in vfld / vobs files.
+#' @param type The type of the parmater - either "SYNOP" or "TEMP"
+#'
+#' @rdname file_parameter_definitions
+#' @export
 new_v_param <- function(name, harp_param, units, type = c("SYNOP", "TEMP")) {
   type <- match.arg(type)
   list(
@@ -1849,6 +1959,8 @@ new_v_param <- function(name, harp_param, units, type = c("SYNOP", "TEMP")) {
   )
 }
 
+#' @rdname file_parameter_definitions
+#' @export
 new_obsoul_param <- function(name, harp_param, units) {
   list(name = name, units = units, harp_param = harp_param)
 }

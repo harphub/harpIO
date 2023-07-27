@@ -25,3 +25,11 @@
 #'
 #' @source selecttion.pm from HARMONIE / HIRLAM monitor
 "station_groups"
+
+#' Parameter definitions
+#'
+#' A list of parameters with name definitions for different file formats.
+#'
+#' @format A list of 60 parameters that have entries for different file formats
+#'   including grib, netcdf, fa, v (cfld/vobs) and obsoul.
+"harp_params"

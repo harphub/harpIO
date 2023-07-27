@@ -1,16 +1,13 @@
-#' Show default harp parameter names
-#'
-#' Prints a table of default parameter names in harp and their descriptions
-#'
-#' @param file_format The file format for which to show parameters. If set to
-#'   NULL all parameters are shown with a description
-#' @param param_defs Parameter definitions list
+#' @rdname parameter_definitions
+#' @param file_format If given, the parameter names that exist in
+#'   \code{param_defs} for the file format are shown.
 #'
 #' @export
 #' @examples
-#' show_harp_parameters()
-#'
-show_harp_parameters <- function(
+#' show_param_defs()
+#' show_param_defs("grib")
+#' show_param_defs("netcdf")
+show_param_defs <- function(
   file_format = NULL, param_defs = get("harp_params")
 ) {
   if (is.null(file_format)) {
