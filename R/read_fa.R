@@ -181,6 +181,9 @@ read_fa <- function(file_name,
 
 }
 
+get_domain_fa <- function(file_name, opts) {
+  Rfa::FAdomain(Rfa::FAframe(Rfa::FAread_meta(filename=file_name)))
+}
 
 # ALARO doesn't write Tdew, so we calculate it from RH and T
 #' Standard Magnus formula for dewpoint temperature
