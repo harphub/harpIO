@@ -107,7 +107,7 @@ read_obs <- function(
       "read_obs(dttm)"
     )
 
-    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+    dttm <- seq_dttm(start_date, end_date, by)
   }
 
   if (return_data) {

@@ -132,7 +132,7 @@ read_fctable <- function(
   if (nrow(fcst_out) > 0) {
     fcst_out <- dplyr::mutate(
       fcst_out,
-      fcst_cycle = substr(harpCore::as_YMDh(.data[[fcst_dttm]]), 9, 10)
+      fcst_cycle = substr(as_YMDh(.data[[fcst_dttm]]), 9, 10)
     )
   }
 

@@ -1,10 +1,12 @@
-# Set options for FA decoding
+#' Set options for FA decoding
+#'
 #' @param fa_type The kind of model file: "arome", "alaro", "surfex"... Mainly important for precipitation fields.
 #' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components U & V
 #' @param rotate_wind TRUE means wind U,V (along axes of the grid) should be rotated to actual N.
 #' @param meta If TRUE, the time and grid details are also decoded. This is slower.
 #' @param ... Any non-standard options that don't have default values.
-#' @result Returns a list of options. Either the defaults or any modification.
+#' @return Returns a list of options. Either the defaults or any modification.
+#' @export
 fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE, ...) {
   list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind, ...)
 }
@@ -36,7 +38,7 @@ fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE
 
 # @param format_opts Extra options for reading FA files. See fa_opts() for details.
 # @param show_progress Verbosity. Ignored.
-#' @param ... Ignored
+# @param ... Ignored
 # @return A data frame with columns of metadata taken from the file and a list
 #   column of the gridded and / or transformed data.
 #

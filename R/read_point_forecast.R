@@ -229,7 +229,7 @@ read_point_forecast <- function(
       "read_point_forecast(dttm)"
     )
     use_dttm <- FALSE
-    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+    dttm <- seq_dttm(start_date, end_date, by)
   }
 
   switch(tolower(fcst_type),
@@ -440,8 +440,8 @@ read_point_forecast <- function(
     ),
     ~ read_fctable(
       .x,
-      harpCore::as_unixtime(dttm) - harpCore:::to_seconds(.y),
-      lead_time        = lead_time + (harpCore:::to_seconds(.y) / 3600),
+      as_unixtime(dttm) - to_seconds(.y),
+      lead_time        = lead_time + (to_seconds(.y) / 3600),
       stations         = stations,
       members          = ..3,
       param            = parameter,
@@ -518,7 +518,7 @@ read_point_forecast <- function(
         ),
         ~ read_fctable(
           .x,
-          harpCore::as_unixtime(dttm) - harpCore:::to_seconds(.y),
+          as_unixtime(dttm) - to_seconds(.y),
           lead_time  = ..3,
           stations   = stations,
           members    = ..4,

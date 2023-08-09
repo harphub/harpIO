@@ -123,7 +123,7 @@ read_analysis <- function(
         "and `by` must be passed."
       )
     }
-    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+    dttm <- seq_dttm(start_date, end_date, by)
   }
 
   vertical_coordinate <- match.arg(vertical_coordinate)
@@ -159,20 +159,20 @@ read_analysis <- function(
   if (is.data.frame(analysis)) {
     return(fix_analysis_df(analysis, num_members))
   }
-  harpCore::as_harp_list(
+  as_harp_list(
     lapply(analysis, fix_analysis_df, num_members)
   )
 }
 
 fix_analysis_df <- function(.df, num_members) {
   if (num_members < 2) {
-    colnames(.df) <- suppressWarnings(harpCore::psub(
+    colnames(.df) <- suppressWarnings(psub(
       colnames(.df),
       c("fcst_model", "fcst", "[[:graph:]]*_mbr[[:digit:]]{3}", "_lag"),
       c("anl_model", "anl", "anl", "")
     ))
   } else {
-    colnames(.df) <- suppressWarnings(harpCore::psub(
+    colnames(.df) <- suppressWarnings(psub(
       colnames(.df),
       c("^fcst_model$", "^fcst$", "[[:graph:]]*(?=_mbr[[:digit:]]{3})", "_lag"),
       c("anl_model", "anl", "anl", ""),
@@ -184,7 +184,7 @@ fix_analysis_df <- function(.df, num_members) {
       .df[["valid_dttm"]] <- dttm
     }
   }
-  harpCore::as_harp_df(.df)
+  as_harp_df(.df)
 }
 
 

@@ -1,8 +1,6 @@
-# Set options for FAtar decoding
-# Basically the same as FA, except for the added "leadtime_template"
 #' @param ldt_template a character string that describes (part of) the file name used for finding a lead time within a tar archive.
-#' @param ... Any FA or non-standard options that don't have default values.
-#' @result Returns a list of options. Either the defaults or any modification.
+#' @rdname fa_opts
+#' @export
 fatar_opts <- function(ldt_template="+%04i$", ...) {
   fa_opts(ldt_template=ldt_template, ...)
 }

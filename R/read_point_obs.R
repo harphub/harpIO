@@ -102,7 +102,7 @@ read_point_obs <- function(
       )),
       "read_point_obs(dttm)"
     )
-    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+    dttm <- seq_dttm(start_date, end_date, by)
   }
 
   vertical_coordinate <- match.arg(vertical_coordinate)
@@ -142,7 +142,7 @@ read_point_obs <- function(
     level_col      <- NULL
   }
 
-  dttm <- harpCore::as_unixtime(dttm)
+  dttm <- as_unixtime(dttm)
 
   message("Getting ", parameter, ".")
   obs <- read_obstable(
@@ -190,7 +190,7 @@ read_point_obs <- function(
     if (nrow(obs_removed) > 0) {
       obs_removed <- dplyr::mutate(
         obs_removed,
-        valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
+        valid_dttm = unixtime_to_dttm(.data[["valid_dttm"]])
       )
     }
 
@@ -219,7 +219,7 @@ read_point_obs <- function(
     return(
       dplyr::mutate(
         obs,
-        valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
+        valid_dttm = unixtime_to_dttm(.data[["valid_dttm"]])
       )
     )
   }
