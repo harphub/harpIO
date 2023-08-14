@@ -7,6 +7,7 @@
 read_obs(
   dttm,
   parameter,
+  param_defs = get("harp_params"),
   stations = NULL,
   file_path = getwd(),
   file_format = NULL,
@@ -30,6 +31,12 @@ character. A vector of date-times can be generated using
 
 \item{parameter}{The names of the parameters to read. By default this is
 NULL, meaning that all parameters are read from the observations files.}
+
+\item{param_defs}{A list of parameter definitions that includes the file
+format to be read. By default the built in list \code{\link{harp_parmams}}
+is used. Modifications and additions to this list can be made using
+\code{\link{modify_param_def}} and \code{\link{add_param_def}}
+respectively.}
 
 \item{stations}{The IDs of the stations to read from the files. By default
 this is NULL, meaning that observations for all stations are read from the

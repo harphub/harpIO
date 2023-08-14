@@ -15,6 +15,11 @@
 #'   \link[harpCore]{seq_dttm}.
 #' @param parameter The names of the parameters to read. By default this is
 #'   NULL, meaning that all parameters are read from the observations files.
+#' @param param_defs A list of parameter definitions that includes the file
+#'   format to be read. By default the built in list \code{\link{harp_parmams}}
+#'   is used. Modifications and additions to this list can be made using
+#'   \code{\link{modify_param_def}} and \code{\link{add_param_def}}
+#'   respectively.
 #' @param stations The IDs of the stations to read from the files. By default
 #'   this is NULL, meaning that observations for all stations are read from the
 #'   observations files.
@@ -72,6 +77,7 @@
 read_obs <- function(
   dttm,
   parameter,
+  param_defs         = get("harp_params"),
   stations           = NULL,
   file_path          = getwd(),
   file_format        = NULL,
@@ -182,6 +188,7 @@ read_obs <- function(
             list(file_name = .x),
             as.list(.y),
             list(
+              param_defs       = param_defs,
               file_format      = file_format,
               file_format_opts = file_format_opts
             )

@@ -14,8 +14,14 @@
 #'@param file_name The full path of the file to be read.
 #'@param parameter Parameters to extract from the file. If missing or NULL, all
 #'  parameters are extracted from the file.
-#'@param date_times The date times to extract from the file. If NULL, all date
-#'  times are extracted from the file.
+#'@param param_defs A list of parameter definitions that includes the file
+#'  format to be read. By default the built in list \code{\link{harp_parmams}}
+#'  is used. Modifications and additions to this list can be made using
+#'  \code{\link{modify_param_def}} and \code{\link{add_param_def}} respectively.
+#'@param dttm The date times to extract from the file. If NULL, all date times
+#'  are extracted from the file. \code{\link[harpCore]{seq_dttm}} can be used to
+#'  generate a vector of equally spaced date-time strings.
+
 #'@param stations Station IDs to extract from file. If NULL, all station IDs are
 #'  extracted from the file.
 #'@param file_format The format of the file to read.
@@ -34,6 +40,7 @@
 read_obs_file <- function(
   file_name,
   parameter,
+  param_defs       = get("harp_params"),
   dttm             = NULL,
   stations         = NULL,
   file_format      = NULL,
@@ -96,6 +103,7 @@ read_obs_file <- function(
   read_func(
     file_name  = file_name,
     parameter  = parameter,
+    param_defs = param_defs,
     dttm       = dttm,
     stations   = stations,
     opts       = file_format_opts
