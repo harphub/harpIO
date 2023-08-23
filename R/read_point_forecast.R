@@ -554,31 +554,35 @@ read_point_forecast <- function(
 
   }
 
-  split_sub_models <- function(df, .member_regexp) {
+  ### Multimodel ensembles should be handled by the verification functions
 
-    meta_cols  <- rlang::syms(c("SID", "fcdate", "leadtime", "validdate", "fcst_cycle"))
-    sub_models <- stringr::str_extract(
-      names(df),
-      .member_regexp
-    ) %>%
-      stats::na.omit() %>%
-      unique()
+  # split_sub_models <- function(df, .member_regexp) {
+  #
+  #   meta_cols  <- c(
+  #     "SID", "fcdate", "leadtime", "validdate", "fcst_cycle",
+  #     "fcst_dttm", "valid_dttm", "lead_time"
+  #   )
+  #   sub_models <- stringr::str_extract(
+  #     names(df),
+  #     .member_regexp
+  #   ) %>%
+  #     stats::na.omit() %>%
+  #     unique()
+  #
+  #   if (length(sub_models) == 1) {
+  #     df
+  #   } else {
+  #     df <- purrr::map(
+  #       sub_models,
+  #       ~ dplyr::select(df, dplyr::any_of(meta_cols), dplyr::contains(.x))
+  #     ) %>%
+  #       rlang::set_names(sub_models)
+  #     as_harp_list(df)
+  #   }
+  #
+  # }
 
-    if (length(sub_models) == 1) {
-      df
-    } else {
-      df <- purrr::map(
-        sub_models,
-        ~ dplyr::select(df, !!! meta_cols, dplyr::contains(.x))
-      ) %>%
-        rlang::set_names(sub_models)
-      class(df) <- "harp_fcst"
-      df
-    }
-
-  }
-
-  fcst <- purrr::map(fcst, split_sub_models, member_regexp)
+  # fcst <- purrr::map(fcst, split_sub_models, member_regexp)
 
   if (merge_lags) {
     fcst <- lag_and_join(fcst, lag_table)
@@ -598,8 +602,8 @@ read_point_forecast <- function(
             c("fcst_dttm", "lead_time", "valid_dttm")
           ))
         ),
-        fcst_dttm = unix2datetime(.data[["fcst_dttm"]]),
-        valid_dttm = unix2datetime(.data[["valid_dttm"]])
+        fcst_dttm = unixtime_to_dttm(.data[["fcst_dttm"]]),
+        valid_dttm = unixtime_to_dttm(.data[["valid_dttm"]])
       ),
       .data[["fcst_dttm"]],
       .data[["valid_dttm"]],
@@ -618,8 +622,19 @@ read_point_forecast <- function(
       as_harp_df()
   )
 
-  attr(fcst, "missing_files") <- missing_files
+  fcst <- mapply(
+    function(x, y) dplyr::select(
+      dplyr::mutate(x, fcst_model = y),
+      dplyr::all_of("fcst_model"),
+      dplyr::everything()
+    ),
+    fcst,
+    names(fcst),
+    SIMPLIFY = FALSE
+  )
+
   fcst <- as_harp_list(fcst)
+  attr(fcst, "missing_files") <- missing_files
 
   if (length(fcst) == 1) {
     return(fcst[[1]])
