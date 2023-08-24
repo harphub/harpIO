@@ -282,11 +282,32 @@ db_clean_and_write <- function(
 ) {
 
   table_cols <- DBI::dbListFields(db_conn, db_table)
-  if (length(setdiff(tolower(names(df)), tolower(table_cols))) > 0) {
+
+  # Allow new style harp column names to be mixed with
+  # old style column names
+
+  bad_cols <- setdiff(tolower(colnames(df)), tolower(table_cols))
+  if (is.element("fcst_dttm", bad_cols)) {
+    colnames(df)[colnames(df) == "fcst_dttm"] <- "fcdate"
+    index_cols[index_cols == "fcst_dttm"]     <- "fcdate"
+  }
+  if (is.element("valid_dttm", bad_cols)) {
+    colnames(df)[colnames(df) == "valid_dttm"] <- "validdate"
+    index_cols[index_cols == "valid_dttm"]     <- "validdate"
+  }
+
+  if (is.element("lead_time", bad_cols)) {
+    colnames(df)[colnames(df) == "lead_time"] <- "leadtime"
+    index_cols[index_cols == "lead_time"]     <- "leadtime"
+  }
+  bad_cols <- setdiff(tolower(colnames(df)), tolower(table_cols))
+
+  if (length(bad_cols) > 0) {
     stop(
       paste(
-        "The data to be written contains columns that do not exist in the data base table!\n",
-        "Consider re-creating SQLite file.\n"
+        "The data to be written contain columns that do not exist in the database table.",
+        "\nOffending column names: ", paste(bad_cols(collapse = ", ")),
+        "\nConsider recreating SQLite file.\n"
       ), call. = FALSE
     )
   }
