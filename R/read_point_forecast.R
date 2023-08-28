@@ -440,8 +440,8 @@ read_point_forecast <- function(
     ),
     ~ read_fctable(
       .x,
-      as_unixtime(dttm) - to_seconds(.y),
-      lead_time        = lead_time + (to_seconds(.y) / 3600),
+      harpCore::as_unixtime(dttm) - harpCore::to_seconds(.y),
+      lead_time        = lead_time + (harpCore::to_seconds(.y) / 3600),
       stations         = stations,
       members          = ..3,
       param            = parameter,
@@ -518,7 +518,7 @@ read_point_forecast <- function(
         ),
         ~ read_fctable(
           .x,
-          as_unixtime(dttm) - to_seconds(.y),
+          harpCore::as_unixtime(dttm) - harpCore::to_seconds(.y),
           lead_time  = ..3,
           stations   = stations,
           members    = ..4,
@@ -596,14 +596,14 @@ read_point_forecast <- function(
       dplyr::mutate(
         dplyr::rename_with(
           .x,
-          ~suppressWarnings(psub(
+          ~suppressWarnings(harpCore::psub(
             .x,
             c("fcdate", "leadtime", "validdate"),
             c("fcst_dttm", "lead_time", "valid_dttm")
           ))
         ),
-        fcst_dttm = unixtime_to_dttm(.data[["fcst_dttm"]]),
-        valid_dttm = unixtime_to_dttm(.data[["valid_dttm"]])
+        fcst_dttm = harpCore::unixtime_to_dttm(.data[["fcst_dttm"]]),
+        valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
       ),
       .data[["fcst_dttm"]],
       .data[["valid_dttm"]],
@@ -619,7 +619,7 @@ read_point_forecast <- function(
       dplyr::transmute(
         dplyr::across(where(~!all(is.na(.x))))
       ) %>%
-      as_harp_df()
+      harpCore::as_harp_df()
   )
 
   fcst <- mapply(
@@ -698,7 +698,7 @@ lag_and_join <- function(fcst_list, lags_df) {
       .x,
       fcdate     = .data$fcdate + .y,
       leadtime   = .data$leadtime - .y / 3600,
-      fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
+      fcst_cycle = substr(harpCore::unixtime_to_ymdh(.data[["fcdate"]]), 9, 10)
     )
   )
 
