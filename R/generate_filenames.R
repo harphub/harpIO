@@ -145,12 +145,12 @@ generate_filenames <- function(
   args <- list(...)
   output_cols <- names(args)
 
-  for(i in seq_along(args)) {
+  for (i in seq_along(args)) {
 
     arg <- args[[i]]
 
     if (!is.list(arg)) {
-      if(is.null(arg)) arg <- NA
+      if (is.null(arg)) arg <- NA
       arg <- list(arg)
     }
 

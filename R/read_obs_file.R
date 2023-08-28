@@ -51,7 +51,7 @@ read_obs_file <- function(
   if (missing(parameter)) parameter <- NULL
 
   if (!is.null(dttm)) {
-    dttm <- as_unixtime(dttm)
+    dttm <- harpCore::as_unixtime(dttm)
   }
 
   file_format <- check_for_na(file_format)

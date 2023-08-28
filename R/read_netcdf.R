@@ -611,7 +611,7 @@ select_nc_time <- function(nc_times, time_units, validdate, lead_time) {
 
 }
 
-get_basedate <- function (nc_time, time_units) {
+get_basedate <- function(nc_time, time_units) {
   if (grepl(" since", time_units)) {
     origin <- sub("^ ", "", gsub("[[:alpha:]]+ since", "", time_units))
     time_x <- substring(time_units, 1, 1)

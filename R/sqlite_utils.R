@@ -21,7 +21,7 @@ dbopen <- function(dbfile, lock) {
   if (utils::packageVersion("DBI") < "0.5") stop("Unfortunately, HARP will only
 function correctly with package DBI version 0.5 or higher.")
   if (missing(lock)) {
-    if (exists(".SQLiteLocking")) lock <- .SQLiteLocking
+    if (exists(".SQLiteLocking")) lock <- get(".SQLiteLocking")
     else lock <- TRUE
   }
   if (lock)  DBI::dbConnect(RSQLite::SQLite(), dbname=dbfile)

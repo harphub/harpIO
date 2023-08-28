@@ -96,14 +96,14 @@ ens_mean_and_var.harp_spatial_fcst <- function(
 
   member_data <- lapply(
     purrr::transpose(dplyr::select(.fcst, dplyr::contains("_mbr"))),
-    as_geolist
+    harpCore::geolist
   )
 
   dplyr::mutate(
     .fcst,
-    !!mean_name := as_geolist(lapply(member_data, mean)),
-    !!var_name  := as_geolist(lapply(member_data, variance)),
-    !!sd_name   := as_geolist(sqrt(!!var_name))
+    !!mean_name := harpCore::geolist(lapply(member_data, mean)),
+    !!var_name  := harpCore::geolist(lapply(member_data, harpCore::variance)),
+    !!sd_name   := harpCore::geolist(sqrt(!!var_name))
   )
 
 }

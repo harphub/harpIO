@@ -96,13 +96,13 @@ read_obsoul <- function(
 ###
 tidy_obsoul_synop <- function(synop_df, param_defs, country, max_obs) {
 
-  # Modify SID depending on country, set validdate in unix time
+  # Modify SID depending on country, set valid_dttm in unix time
   # and convert parameter codes to names
   synop_df <- dplyr::mutate(
     synop_df,
     SID  = modify_sid(.data[["SID"]], country),
-    validdate = suppressMessages(
-      str_datetime_to_unixtime(
+    valid_dttm = suppressMessages(
+      harpCore::as_unixtime(
         paste0(
           .data[["date"]],
           formatC(as.integer(.data[["hms"]]), width = 6, flag = "0")
@@ -132,7 +132,7 @@ tidy_obsoul_synop <- function(synop_df, param_defs, country, max_obs) {
       .data[["lat"]],
       .data[["lon"]],
       .data[["elev"]],
-      .data[["validdate"]],
+      .data[["valid_dttm"]],
       dplyr::starts_with("obs_")
     ) %>%
     dplyr::filter(!is.na(.data[["obs_code"]]))
@@ -145,7 +145,7 @@ tidy_obsoul_synop <- function(synop_df, param_defs, country, max_obs) {
       .data[["lat"]],
       .data[["lon"]],
       .data[["elev"]],
-      .data[["validdate"]],
+      .data[["valid_dttm"]],
       param = .data[["obs_code"]],
       obs   = dplyr::case_when(
         .data[["param"]] == "Pmsl" ~ .data[["obs_1"]] * -1,

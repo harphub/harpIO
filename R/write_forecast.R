@@ -45,7 +45,7 @@ write_forecast <- function(df, opts) {
   )
   template_subs <- setdiff(template_subs, unused_subs)
 
-  df[["file_date"]]    <- as_YMDhms(df[["fcst_dttm"]])
+  df[["file_date"]]    <- harpCore::as_YMDhms(df[["fcst_dttm"]])
   df[["lags"]]         <- NULL
 
   df <- replace_colname(df, "station_data", "forecast")

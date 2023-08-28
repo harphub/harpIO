@@ -229,7 +229,7 @@ read_point_forecast <- function(
       "read_point_forecast(dttm)"
     )
     use_dttm <- FALSE
-    dttm <- seq_dttm(start_date, end_date, by)
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
   }
 
   switch(tolower(fcst_type),
@@ -633,7 +633,7 @@ read_point_forecast <- function(
     SIMPLIFY = FALSE
   )
 
-  fcst <- as_harp_list(fcst)
+  fcst <- harpCore::as_harp_list(fcst)
   attr(fcst, "missing_files") <- missing_files
 
   if (length(fcst) == 1) {

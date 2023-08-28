@@ -113,7 +113,7 @@ read_obs <- function(
       "read_obs(dttm)"
     )
 
-    dttm <- seq_dttm(start_date, end_date, by)
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
   }
 
   if (return_data) {
@@ -144,7 +144,7 @@ read_obs <- function(
 
     names(data_files)[names(data_files) == "fcst_dttm"] <- "dttm"
 
-    data_files[["dttm"]] <- unixtime_to_str_dttm(data_files[["dttm"]])
+    data_files[["dttm"]] <- harpCore::unixtime_to_str_dttm(data_files[["dttm"]])
 
     data_files <- data_files[colnames(data_files) != "lags"]
 
@@ -227,7 +227,7 @@ read_obs <- function(
               dplyr::select(
                 dplyr::mutate(
                   table_data,
-                  file_date = unixtime_to_str_dttm(.data[["valid_dttm"]])
+                  file_date = harpCore::unixtime_to_str_dttm(.data[["valid_dttm"]])
                 ),
                 -dplyr::any_of(
                   c(
@@ -295,7 +295,7 @@ read_obs <- function(
         }
         function_output[[list_counter]][[table_name]] <- dplyr::mutate(
           function_output[[list_counter]][[table_name]],
-          valid_dttm = unixtime_to_dttm(.data[["valid_dttm"]])
+          valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
         )
         function_output[[list_counter]][[param_name]] <- table_params
       }

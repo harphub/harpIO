@@ -230,7 +230,7 @@ read_forecast <- function(
       )),
       "read_forecast(dttm)"
     )
-    dttm <- seq_dttm(start_date, end_date, by)
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
   }
 
   vertical_coordinate <- match.arg(vertical_coordinate)
@@ -498,7 +498,7 @@ read_forecast <- function(
       is.element("lead_time", colnames(data_df))
     ) {
       data_df[["valid_dttm"]] <- data_df[["fcst_dttm"]] +
-        to_seconds(data_df[["lead_time"]])
+        harpCore::to_seconds(data_df[["lead_time"]])
     }
 
     if (return_data) function_output[[list_counter]] <- data_df
@@ -512,7 +512,7 @@ read_forecast <- function(
         # Ensure data frame contains data that were asked for, even if they were not found
         meta_df <- args_df
         meta_df[["fcst_dttm"]]    <- suppressMessages(
-          as_unixtime(fcst_dttm)
+          harpCore::as_unixtime(fcst_dttm)
         )
         meta_df[["lead_time"]] <- list(lead_time)
         meta_df[["parameter"]] <- list(parameter)
@@ -572,7 +572,7 @@ read_forecast <- function(
     function_output <- dplyr::bind_rows(function_output)
 
     if (is.element("lags", colnames(function_output))) {
-      if (all(to_seconds(unique(function_output[["lags"]])) == 0)) {
+      if (all(harpCore::to_seconds(unique(function_output[["lags"]])) == 0)) {
         function_output <- dplyr::select(function_output, -.data[["lags"]])
       }
     }
@@ -601,12 +601,16 @@ read_forecast <- function(
     }
 
     if (is.element("fcst_dttm", colnames(function_output))) {
-      function_output[["fcst_dttm"]]  <- unixtime_to_dttm(function_output[["fcst_dttm"]])
+      function_output[["fcst_dttm"]]  <- harpCore::unixtime_to_dttm(
+        function_output[["fcst_dttm"]]
+      )
       function_output[["fcst_cycle"]] <- format(function_output[["fcst_dttm"]], "%H")
     }
 
     if (is.element("valid_dttm", colnames(function_output))) {
-      function_output[["valid_dttm"]] <- unixtime_to_dttm(function_output[["valid_dttm"]])
+      function_output[["valid_dttm"]] <- harpCore::unixtime_to_dttm(
+        function_output[["valid_dttm"]]
+      )
     }
 
 
@@ -630,7 +634,7 @@ read_forecast <- function(
       for (df_col in list_cols) {
         if (all(sapply(df[[df_col]], meteogrid::is.geofield))) {
           if (!inherits(df[[df_col]], "geolist")) {
-            df[[df_col]] <- as_geolist(df[[df_col]])
+            df[[df_col]] <- harpCore::geolist(df[[df_col]])
           }
         }
         if (all(sapply(df[[df_col]], inherits, "harp_xs"))) {
@@ -663,12 +667,12 @@ read_forecast <- function(
     }
 
     #function_output <- lapply(function_output, add_harp_class, transformation_opts)
-    function_output <- as_harp_list(
+    function_output <- harpCore::as_harp_list(
       mapply(
         function(x, y) {
           dplyr::relocate(
             dplyr::mutate(
-              as_harp_df(x),
+              harpCore::as_harp_df(x),
               fcst_model = y
             ),
             dplyr::all_of("fcst_model")
@@ -745,7 +749,7 @@ spread_df <- function(df) {
 
   }
 
-  as_harp_df(df)
+  harpCore::as_harp_df(df)
 
 }
 
