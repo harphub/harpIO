@@ -694,12 +694,18 @@ lag_and_join <- function(fcst_list, lags_df) {
   fcst_list[non_zero_values] <- purrr::map2(
     fcst_list[non_zero_values],
     lag_seconds[non_zero_values],
-    ~ dplyr::mutate(
-      .x,
-      fcdate     = .data$fcdate + .y,
-      leadtime   = .data$leadtime - .y / 3600,
-      fcst_cycle = substr(harpCore::unixtime_to_ymdh(.data[["fcdate"]]), 9, 10)
-    )
+    ~{
+      fc_dttm_col <- intersect(c("fcdate", "fcst_dttm"), colnames(.x))
+      lt_col      <- intersect(c("leadtime", "lead_time"), colnames(.x))
+      dplyr::mutate(
+        .x,
+        {{fc_dttm_col}} := .data[[fc_dttm_col]] + .y,
+        {{lt_col}}      := .data[[lt_col]] - .y / 3600,
+        fcst_cycle = substr(
+          harpCore::unixtime_to_ymdh(.data[[fc_dttm_col]]), 9, 10
+        )
+      )
+    }
   )
 
   join_lags <- function(inner_list) {
