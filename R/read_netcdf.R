@@ -491,9 +491,9 @@ read_and_transform_netcdf <- function(
       }
 
       if (is.element("member", colnames(nc_info))) {
-        nc_members                     <- ncdf4::ncvar_get(nc_id, nc_opts[["member_var"]])
+        nc_members                     <- ncdf4::ncvar_get(nc_id, file_opts[["member_var"]])
         nc_members                     <- as.numeric(gsub("[[:alpha:]]|[[:punct:]]", "", nc_members))
-        member_pos                     <- which(nc_var_dims == nc_opts[["member_var"]])
+        member_pos                     <- which(nc_var_dims == file_opts[["member_var"]])
         start[member_pos]              <- which(nc_members == nc_info[["member"]][i])
         count[member_pos]              <- 1
         geofield_info[["member"]]      <- nc_info[["member"]][i]
