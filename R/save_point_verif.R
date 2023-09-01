@@ -22,10 +22,13 @@ save_point_verif <- function(
 ) {
 
   parameter  <- attr(verif_data, "parameter")
-  start_date <- attr(verif_data, "start_date")
-  end_date   <- attr(verif_data, "end_date")
+  dttm       <- harpCore::as_str_dttm(
+    sort(harpCore::as_dttm(range(attr(verif_data, "dttm"))))
+  )
+  start_date <- dttm[1]
+  end_date   <- dttm[2]
 
-  model_names <- unique(verif_data[[1]]$mname)
+  model_names <- unique(verif_data[[1]]$fcst_model)
 
   multi_models <- stringr::str_extract(model_names, "\\([[:graph:]]+\\)") %>%
     stringr::str_replace("\\(", "") %>%
