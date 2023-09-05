@@ -54,7 +54,7 @@ Remotes:
     harphub/meteogrid,
     harphub/Rgrib2,
     harphub/harpVis,
-    harphub/harpCore
+    harphub/harpCore@develop
 URL: https://github.com/harphub/harpIO
 BugReports: https://github.com/harphub/harpIO/issues
 VignetteBuilder: knitr
