@@ -322,12 +322,17 @@ read_forecast <- function(
     missing_files <- on_disk_files[!file.exists(on_disk_files)]
 
     if (length(missing_files) > 0) {
+      std_warn_length <- getOption("warning.length")
+      options(warning.length = 8170)
       warning(
+        cli::col_br_red("\n***\n"),
         "Files not found for ", fcst_dttm, ". Missing files:\n",
         paste(missing_files, collapse = "\n"),
+        cli::col_br_red("\n***"),
         call.      = FALSE,
         immediate. = TRUE
       )
+      options(warning.length = std_warn_length)
     }
 
     data_df <- dplyr::filter(data_df, !.data[["file_name"]] %in% missing_files)
@@ -534,6 +539,14 @@ read_forecast <- function(
             "members_out", "fcst_dttm", "lead_time", "parameter"
           )
         )]
+
+        # Make meta data consistent with lags
+        if (is.element("lags", colnames(meta_df))) {
+          meta_df[["fcst_dttm"]] <- meta_df[["fcst_dttm"]] -
+            harpCore::to_seconds(meta_df[["lags"]])
+          meta_df[["lead_time"]] <- meta_df[["lead_time"]] +
+            harpCore::to_seconds(meta_df[["lags"]]) / 3600
+         }
 
         data_df <- suppressMessages(dplyr::full_join(
           data_df,

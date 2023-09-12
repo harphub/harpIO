@@ -346,7 +346,10 @@ read_point_forecast <- function(
     lags,
     ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE)
   ) %>%
-    dplyr::inner_join(template_table)
+    dplyr::inner_join(
+      template_table,
+      by = intersect(colnames(.), colnames(template_table))
+    )
 
   file_names <- purrr::pmap(
     as.list(lag_table),
@@ -430,7 +433,10 @@ read_point_forecast <- function(
     members <- tibble::tibble(fcst_model = fcst_model, members = list(NULL))
   }
 
-  lag_table <- dplyr::left_join(lag_table, members)
+  lag_table <- dplyr::left_join(
+    lag_table, members,
+    by = intersect(colnames(lag_table), colnames(members))
+  )
 
   fcst <- purrr::pmap(
     list(
@@ -616,10 +622,23 @@ read_point_forecast <- function(
       dplyr::matches("_mbr[[:digit:]]+_lag[[:digit:]]*$"),
       dplyr::everything()
     ) %>%
-      dplyr::transmute(
-        dplyr::across(where(~!all(is.na(.x))))
-      ) %>%
       harpCore::as_harp_df()
+  )
+
+  fcst <- purrr::imap(
+    fcst,
+    ~{
+      if (nrow(.x) < 1) {
+        cli::cli_warn(
+          "No data found for \"{.y}\"."
+        )
+        return(.x)
+      }
+      dplyr::transmute(
+        .x,
+        dplyr::across(where(~!all(is.na(.x))))
+      )
+    }
   )
 
   fcst <- mapply(
