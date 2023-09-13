@@ -70,20 +70,20 @@ get_netcdf_param_info <- function(
     )
   }
 
-  if (grepl("^met_norway", opts[["options_set"]])) {
-    n_last <- 3
-    suffix <- substr(
-      nc_param_info[["name"]],
-      nchar(nc_param_info[["name"]]) - n_last + 1,
-      nchar(nc_param_info[["name"]])
-    )
-    opts[["z_var"]] <- switch(
-      suffix,
-      "_pl" = "pressure",
-      "_ml" = "hybrid",
-      opts[["z_var"]]
-    )
-  }
+  # if (grepl("^met_norway", opts[["options_set"]])) {
+  #   n_last <- 3
+  #   suffix <- substr(
+  #     nc_param_info[["name"]],
+  #     nchar(nc_param_info[["name"]]) - n_last + 1,
+  #     nchar(nc_param_info[["name"]])
+  #   )
+  #   opts[["z_var"]] <- switch(
+  #     suffix,
+  #     "_pl" = "pressure",
+  #     "_ml" = "hybrid",
+  #     opts[["z_var"]]
+  #   )
+  # }
   # if (opts[["options_set"]] %in% c("met_norway_eps", "met_norway_det"))  {
   #   if (grepl("surface", nc_param_info[["name"]])) {
   #     opts[["z_var"]] <- "height0"

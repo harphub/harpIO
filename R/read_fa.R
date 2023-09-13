@@ -155,18 +155,19 @@ read_fa <- function(file_name,
 
     result <- transform_geofield(result, transformation, opts)
 
-    if (show_progress) pb$tick()
-
     result
 
   }
 
   if (show_progress) {
-    pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(fa_info))
+    show_progress <- list(
+      name = cli::col_yellow("Reading fa file"),
+      show_after = 1
+    )
   }
 
   # create a data.frame with 1 row per parameter
-  fa_data <- purrr::map_dfr(
+  fa_data <- purrr::map(
     1:length(fa_info),
     read_and_transform_fa,
     fafile,
@@ -174,8 +175,9 @@ read_fa <- function(file_name,
     format_opts,
     transformation,
     transformation_opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
   attr(fa_data, "transformation_opts") <- transformation_opts
 

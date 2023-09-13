@@ -146,17 +146,19 @@ read_hdf5 <- function(
 
     result <- transform_geofield(result, transformation, transformation_opts)
 # FIXME: to have a geofield output, I need to extract domain info every time again
-    if (show_progress) pb$tick()
 
     result
   }
 
   if (show_progress) {
-    pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(fa_info))
+    show_progress <- list(
+      name = "Reading hdf5 file",
+      show_after = 1
+    )
   }
 
   # create a data.frame with 1 row per parameter
-  hdf5_data <- purrr::map_dfr(
+  hdf5_data <- purrr::map(
     1:nrow(hdf5_info),
     read_and_transform_hdf5,
     file_name,
@@ -164,8 +166,9 @@ read_hdf5 <- function(
     format_opts,
     transformation,
     transformation_opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
   attr(hdf5_data, "transformation_opts") <- transformation_opts
 

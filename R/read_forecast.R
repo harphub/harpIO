@@ -206,7 +206,7 @@ read_forecast <- function(
   output_file_opts     = sqlite_opts(),
   return_data          = FALSE,
   merge_lags           = TRUE,
-  show_progress        = FALSE,
+  show_progress        = TRUE,
   stop_on_fail         = FALSE,
   is_forecast          = TRUE,
   start_date           = NULL,

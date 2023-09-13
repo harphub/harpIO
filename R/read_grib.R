@@ -100,6 +100,10 @@ read_grib <- function(
     stop("None of the requested parameters can be read from grib files.", call. = FALSE)
   }
 
+  if (show_progress) {
+    cli::cli_progress_message(cli::col_yellow("Indexing grib file"))
+  }
+
   grib_info <- Rgrib2::Gopen(
     file_name,
     IntPar = c("perturbationNumber", "indicatorOfTypeOfLevel", "paramId", "dataType"),
@@ -177,8 +181,7 @@ read_grib <- function(
     file_name,
     format_opts,
     transformation = "none",
-    opts           = list(),
-    show_progress  = FALSE
+    opts           = list()
   ) {
 
     result <- tibble::tibble(
@@ -233,8 +236,6 @@ read_grib <- function(
 
     result <- transform_geofield(result, transformation, opts)
 
-    if (show_progress) pb$tick()
-
     result
 
   }
@@ -244,20 +245,22 @@ read_grib <- function(
   )
 
   if (show_progress) {
-    pb <- progress::progress_bar$new(
-      format = "[:bar] :percent eta: :eta", total = length(grib_info)
+    show_progress <- list(
+      name = cli::col_yellow("Reading grib file"),
+      show_after = 1
     )
   }
 
-  grib_data <- purrr::map_dfr(
+  grib_data <- purrr::map(
     grib_info,
     read_and_transform_grib,
     grib_file,
     format_opts,
     transformation,
     transformation_opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
   # grib_data <- grib_info[c(fcdate, validdate, leadtime....)]
   # if keep_raw_data or transf="none":

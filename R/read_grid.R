@@ -74,12 +74,15 @@ read_grid <- function(
   transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = list(),
   param_defs          = get("harp_params"),
-  show_progress       = FALSE,
+  show_progress       = TRUE,
   data_frame          = FALSE,
   readable_times      = TRUE,
   spread_members      = FALSE,
   ...
 ) {
+
+  # Set progress bar to false for batch running
+  if (!interactive()) show_progress <- FALSE
 
   if (missing(parameter)) parameter <- NULL
 

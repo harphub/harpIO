@@ -451,7 +451,7 @@ read_and_transform_netcdf <- function(
     nc_info, param_info, nc_id, nc_domain, transformation, opts, first_only, show_progress
 ) {
 
-  func <- function(nc_info, nc_id, nc_opts, nc_domain, transformation = "none", opts = list(), show_progress) {
+  func <- function(nc_info, nc_id, nc_opts, nc_domain, transformation = "none", opts = list()) {
 
     geofields <- list()
 
@@ -563,21 +563,20 @@ read_and_transform_netcdf <- function(
 
     result <- transform_geofield(result, transformation, opts)
 
-    if (show_progress) pb$tick()
-
     result
   }
 
   if (first_only) nc_info <- nc_info[1, ]
 
   if (show_progress) {
-    bar_info <- paste(param_info[["harp_param"]][["fullname"]], "[:bar] :percent eta: :eta")
-    pb       <- progress::progress_bar$new(format = bar_info, total = nrow(nc_info))
+    show_progress <- list(
+      name = cli::col_yellow("Reading nc file"),
+      show_after = 1
+    )
   }
-
   nc_info <- split(nc_info, nc_info[["index"]])
 
-  purrr::map_dfr(
+  purrr::map(
     nc_info,
     func,
     nc_id,
@@ -585,8 +584,9 @@ read_and_transform_netcdf <- function(
     nc_domain,
     transformation,
     opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
 }
 

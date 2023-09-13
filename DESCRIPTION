@@ -53,7 +53,7 @@ Remotes:
     harphub/harpData,
     harphub/meteogrid,
     harphub/Rgrib2,
-    harphub/harpVis,
+    harphub/harpVis@develop,
     harphub/harpCore@develop
 URL: https://github.com/harphub/harpIO
 BugReports: https://github.com/harphub/harpIO/issues
