@@ -50,6 +50,10 @@ read_vfld_interpolate <- function(
 
   vertical_coordinate <- match.arg(vertical_coordinate)
 
+  if (length(format_opts) < 1) {
+    format_opts <- vfile_opts()
+  }
+
   if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
   if (is.null(members)) members <- NA_character_
 

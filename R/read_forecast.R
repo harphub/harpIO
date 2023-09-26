@@ -531,7 +531,11 @@ read_forecast <- function(
         }
 
         meta_df <- unnest_func(meta_df, "lead_time")
-        meta_df <- unnest_func(meta_df, "parameter")
+        if (all(vapply(meta_df[["parameter"]], is.null, logical(1)))) {
+          meta_df[["parameter"]] <- NULL
+        } else {
+          meta_df <- unnest_func(meta_df, "parameter")
+        }
         meta_df <- meta_df[intersect(
           colnames(meta_df),
           c(

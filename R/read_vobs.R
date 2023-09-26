@@ -14,6 +14,10 @@
 #
 read_vobs <- function(file_name, dttm, opts, param_defs = get("harp_params"), ...) {
 
+  if (length(opts) < 0) {
+    opts <- vfile_opts(type = "vobs")
+  }
+
   empty_data <- empty_data_interpolate(NA, NA, empty_type = "obs")
 
   if (file.exists(file_name)) {
