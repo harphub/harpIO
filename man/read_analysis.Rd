@@ -22,7 +22,7 @@ read_analysis(
   output_file_opts = sqlite_opts(),
   return_data = TRUE,
   merge_lags = TRUE,
-  show_progress = FALSE,
+  show_progress = TRUE,
   start_date = NULL,
   end_date = NULL,
   by = "6h"
