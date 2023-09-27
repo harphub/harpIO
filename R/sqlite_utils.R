@@ -306,7 +306,7 @@ db_clean_and_write <- function(
     stop(
       paste(
         "The data to be written contain columns that do not exist in the database table.",
-        "\nOffending column names: ", paste(bad_cols(collapse = ", ")),
+        "\nOffending column names: ", paste(bad_cols, collapse = ", "),
         "\nConsider recreating SQLite file.\n"
       ), call. = FALSE
     )

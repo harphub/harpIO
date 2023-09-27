@@ -409,6 +409,9 @@ filter_grib_info <- function(
 
     }
 
+    if (!is.null(opts[["first_only"]]) && opts[["first_only"]]) {
+      grib_info <- grib_info[1, ]
+    }
     if (!exists("level_type")) {
       level_type <- ""
     }
@@ -455,7 +458,8 @@ filter_grib_info <- function(
   }
 
   if (!is.null(lead_time) && is_forecast) {
-    grib_info <- dplyr::filter(grib_info, .data[["leadtime"]] %in% lead_time)
+    .lt <- lead_time
+    grib_info <- dplyr::filter(grib_info, .data[["leadtime"]] %in% .lt)
     if (nrow(grib_info) == 0) {
       warning(
         "'lead_time' [", paste(lead_time, collapse = ", "), "] not found in grib file.",
