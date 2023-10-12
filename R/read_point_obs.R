@@ -156,20 +156,24 @@ read_point_obs <- function(
   )
 
   if (
-    parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h") &&
-      any(grepl("AccPcp3h|AccPcp6h|AccPcp12h", colnames(obs)))
+    parameter %in% c("AccPcp3h", "AccPcp6h", "AccPcp12h", "AccPcp24h") &&
+      any(grepl("AccPcp3h|AccPcp6h|AccPcp12h|AccPcp24h", colnames(obs)))
     ) {
 
     metadata_cols <- rlang::syms(colnames(obs)[colnames(obs) != parameter])
     message("Deriving 6h precipitation from 12h precipitation")
     obs <- derive_6h_precip(obs, available_files, dttm, stations)
-    if (parameter == "AccPcp12h") {
+    if (parameter %in% c("AccPcp12h","AccPcp24h")) {
       message("Deriving 12h precipitation from 6h precipitation")
       obs <- derive_12h_precip(obs)
     }
     if (parameter == "AccPcp3h") {
       message("Deriving 3h precipitation from 6h precipitation")
       obs <- derive_3h_precip(obs)
+    }
+    if (parameter == "AccPcp24h") {
+      message("Deriving 24h precipitation from 12h precipitation")
+      obs <- derive_24h_precip(obs)
     }
     obs <- obs %>%
       dplyr::select(!!! metadata_cols, !! obs_param) %>%
@@ -342,7 +346,8 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
     pcp_in_data,
     "AccPcp12h" = {acc <- "AccPcp6h"; assign(paste0("pcp_", pcp_in_data), pcp_data)},
     "AccPcp6h"  = {acc <- "AccPcp12h"; assign(paste0("pcp_", pcp_in_data), pcp_data)},
-    "AccPcp3h"  = acc  <- c("AccPcp6h", "AccPcp12h")
+    "AccPcp3h"  = acc  <- c("AccPcp6h", "AccPcp12h"),
+    "AccPcp24h" = acc  <- c("AccPcp6h", "AccPcp12h")
   )
 
   for (pcp_acc in acc) {
@@ -418,3 +423,23 @@ derive_3h_precip <- function(pcp_data) {
     )
 }
 
+derive_24h_precip <- function(pcp_data) {
+  pcp_data %>%
+    dplyr::full_join(
+      dplyr::transmute(
+        pcp_data,
+        validdate = .data$validdate + 3600 * 12,
+        .data$SID,
+        .data$lon,
+        .data$lat,
+        .data$elev,
+        .data$units,
+        AccPcp12h_lag = .data$AccPcp12h
+      )
+    ) %>% dplyr::mutate(
+      AccPcp24h = dplyr::case_when(
+        is.na(.data$AccPcp24h) ~ .data$AccPcp12h + .data$AccPcp12h_lag,
+        TRUE                   ~ .data$AccPcp24h
+      )
+    )
+}
