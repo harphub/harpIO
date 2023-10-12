@@ -50,7 +50,7 @@ where d = days, h = hours, m = minutes and s = seconds. \code{lags} is
 primarily used to generate the correct file names for lagged members - for
 example a lag of 1 hour will generate a file name with a date-time 1 hour
 earlier than the date-time in the sequence \code{(start_data, end_date, by
-= by)} and a lead time 1 hour longer.}
+  = by)} and a lead time 1 hour longer.}
 
 \item{file_template}{A template for the file names. For available built in
 templates see \code{\link{show_file_templates}}. If anything else is

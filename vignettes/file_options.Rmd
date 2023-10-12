@@ -63,7 +63,7 @@ cat(
   sep = "\n"
 )
 
-grib_file <- "fc2018071000+006grib_fp"
+#grib_file <- "fc2018071000+006grib_fp"
 ```
 
 ### Setting the shortName
@@ -120,7 +120,7 @@ read_grid(
   ), 
   data_frame = TRUE
 ) %>% 
-  select(-ends_with("date"), -members)
+  select(-ends_with("dttm"), -members)
 ```
 
 ### Dealing with an unknown shortName
@@ -159,7 +159,7 @@ read_grid(
   ), 
   data_frame = TRUE
 ) %>% 
-  select(-ends_with("date"), -members)
+  select(-ends_with("dttm"), -members)
 ```
 
 By default, all levels are read, but we can use the second argument of `use_grib_typeOfLevel` to set the levels to read:
@@ -177,7 +177,7 @@ read_grid(
   ), 
   data_frame = TRUE
 ) %>% 
-  select(-ends_with("date"), -members)
+  select(-ends_with("dttm"), -members)
 ```
 
 Note that currently a warning is only given if no levels are found. If more than one level is asked for, but at least one is found the function is silent about the missing levels. 
@@ -300,7 +300,7 @@ So, now if we use our modified options to read the file, we should get a result:
 
 ```{r read-with-ncopts}
 read_grid(nc_file, "T2m", file_format_opts = my_nc_opts, data_frame = TRUE) %>% 
-  select(-ends_with("date"))
+  select(-ends_with("dttm"))
 ```
 
 We can also select specific members and lead times:
@@ -314,7 +314,7 @@ read_grid(
   file_format_opts = my_nc_opts, 
   data_frame       = TRUE
 ) %>% 
-  select(-ends_with("date"))
+  select(-ends_with("dttm"))
 ```
 
 ### Options sets
@@ -362,7 +362,7 @@ read_forecast(
   file_format_opts = netcdf_opts("met_norway_det"),
   return_data      = TRUE
 ) %>% 
-  select(-starts_with("level"), -fcst_cycle ,-validdate)
+  select(-starts_with("level"), -fcst_cycle ,-valid_dttm)
 ```
 
 ```{r aa-thredds-read-forecast-run, echo = FALSE}
@@ -385,7 +385,7 @@ read_forecast(
   file_format_opts = netcdf_opts("met_norway_det"),
   return_data      = TRUE
 ) %>% 
-  select(-starts_with("level"), -fcst_cycle ,-validdate)
+  select(-starts_with("level"), -fcst_cycle ,-valid_dttm)
 ```
 
 ### The _z_var_ problem
@@ -412,7 +412,7 @@ read_grid(
   data_frame           = TRUE,
   vertical_coordinate = "model"
 ) %>% 
-  select(-ends_with("date"))
+  select(-ends_with("dttm"))
 ```
 
 We also have to pass the `vertical_coordinate = "model"` to get the correct name in the  `level_type` coloumn in the data frame of the output. 

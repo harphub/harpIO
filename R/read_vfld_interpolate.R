@@ -43,10 +43,16 @@ read_vfld_interpolate <- function(
   members             = NA_character_,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   init                = list(),
+  format_opts         = vfile_opts(),
+  param_defs          = get("harp_params"),
   ...
 ) {
 
   vertical_coordinate <- match.arg(vertical_coordinate)
+
+  if (length(format_opts) < 1) {
+    format_opts <- vfile_opts()
+  }
 
   if (is.numeric(members)) members <- paste0("mbr", formatC(members, width = 3, flag = "0"))
   if (is.null(members)) members <- NA_character_
@@ -67,7 +73,16 @@ read_vfld_interpolate <- function(
   }
 
 
-  vfld_data <- read_vfile(file_name, members = members, lead_time = lead_time, v_type = "vfld")
+  vfld_data <- read_vfile(
+    file_name,
+    members = members,
+    lead_time = lead_time,
+    v_type = "vfld",
+    missing_value = format_opts$missing_value,
+    synop_cols    = format_opts$synop_cols,
+    temp_cols     = format_opts$temp_cols,
+    param_defs    = param_defs
+  )
 
   if (is.null(vfld_data)) {
     return(
@@ -89,7 +104,7 @@ read_vfld_interpolate <- function(
         purrr::map_lgl(~ any(grepl("level", .x))) %>%
         all()
       if (!has_level) {
-        stop ("Parameter is a list but not all elements have a level component.")
+        stop("Parameter is a list but not all elements have a level component.")
       }
     } else {
       parameter <- purrr::map(parameter, parse_harp_parameter, vertical_coordinate)
@@ -137,7 +152,7 @@ read_vfld_interpolate <- function(
       vfld_data$synop      <- vfld_data$synop %>%
         dplyr::select(dplyr::any_of(c("SID", "lat", "lon", "model_elevation")), !!!param_cols_out) %>%
         #dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, !!!param_cols_out) %>%
-        tidyr::gather(key = parameter, value = forecast, !!!param_cols_out) %>%
+        tidyr::gather(key = "parameter", value = "forecast", !!!param_cols_out) %>%
         dplyr::mutate(
           member    = members,
           lead_time = lead_time
@@ -168,7 +183,7 @@ read_vfld_interpolate <- function(
       vfld_data$temp <- vfld_data$temp %>%
         dplyr::select(dplyr::any_of(c("SID", "lat", "lon", "model_elevation", "p")), !!!param_cols_in) %>%
         #dplyr::select(.data$SID, .data$lat, .data$lon, .data$model_elevation, .data$p, !!!param_cols_in) %>%
-        tidyr::gather(key = parameter, value = forecast, !!!param_cols_in) %>%
+        tidyr::gather(key = "parameter", value = "forecast", !!!param_cols_in) %>%
         dplyr::mutate(
           member    = members,
           lead_time = lead_time

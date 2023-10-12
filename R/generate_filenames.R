@@ -106,7 +106,7 @@ generate_filenames <- function(
   } else {
 
     if (is.null(end_date)) {
-      stop ("end_date must be passed as well as start_date", call. = FALSE)
+      stop("end_date must be passed as well as start_date", call. = FALSE)
     }
     file_dates <- seq_dates(start_date, end_date, by = by)
     file_dates <- suppressMessages(str_datetime_to_unixtime(file_dates))
@@ -121,7 +121,7 @@ generate_filenames <- function(
 
   # Construct a data frame from all of the arguments
   file_names_df <- data.frame(
-    fcdate           = file_dates,
+    fcst_dttm        = file_dates,
     stringsAsFactors = FALSE
   )
 
@@ -145,12 +145,12 @@ generate_filenames <- function(
   args <- list(...)
   output_cols <- names(args)
 
-  for(i in seq_along(args)) {
+  for (i in seq_along(args)) {
 
     arg <- args[[i]]
 
     if (!is.list(arg)) {
-      if(is.null(arg)) arg <- NA
+      if (is.null(arg)) arg <- NA
       arg <- list(arg)
     }
 
@@ -188,7 +188,7 @@ generate_filenames <- function(
   }
 
   # Adjust the lead time and fcdate to the lags
-  file_names_df[["fcdate"]] <- file_names_df[["fcdate"]] - file_names_df[["lag_seconds"]]
+  file_names_df[["fcst_dttm"]] <- file_names_df[["fcst_dttm"]] - file_names_df[["lag_seconds"]]
   lead_time_col <- grep("^lead|^ldt", tolower(colnames(file_names_df)))
   if (length(lead_time_col) > 1) {
     stop(
@@ -208,12 +208,12 @@ generate_filenames <- function(
     file_names_df[["LDT"]]         <- file_names_df[[lead_time_col]]
   }
 
-  file_names_df[["YYYY"]] <- lubridate::year(unix2datetime(file_names_df[["fcdate"]]))
-  file_names_df[["M"]]    <- lubridate::month(unix2datetime(file_names_df[["fcdate"]]))
-  file_names_df[["D"]]    <- lubridate::day(unix2datetime(file_names_df[["fcdate"]]))
-  file_names_df[["H"]]    <- lubridate::hour(unix2datetime(file_names_df[["fcdate"]]))
-  file_names_df[["m"]]    <- lubridate::minute(unix2datetime(file_names_df[["fcdate"]]))
-  file_names_df[["s"]]    <- lubridate::second(unix2datetime(file_names_df[["fcdate"]]))
+  file_names_df[["YYYY"]] <- lubridate::year(unix2datetime(file_names_df[["fcst_dttm"]]))
+  file_names_df[["M"]]    <- lubridate::month(unix2datetime(file_names_df[["fcst_dttm"]]))
+  file_names_df[["D"]]    <- lubridate::day(unix2datetime(file_names_df[["fcst_dttm"]]))
+  file_names_df[["H"]]    <- lubridate::hour(unix2datetime(file_names_df[["fcst_dttm"]]))
+  file_names_df[["m"]]    <- lubridate::minute(unix2datetime(file_names_df[["fcst_dttm"]]))
+  file_names_df[["s"]]    <- lubridate::second(unix2datetime(file_names_df[["fcst_dttm"]]))
   file_names_df[["MM"]]   <- formatC(file_names_df[["M"]], width = 2, flag = "0")
   file_names_df[["DD"]]   <- formatC(file_names_df[["D"]], width = 2, flag = "0")
   file_names_df[["HH"]]   <- formatC(file_names_df[["H"]], width = 2, flag = "0")
@@ -308,7 +308,7 @@ generate_filenames <- function(
 
     output_cols <- intersect(
       colnames(file_names_df),
-      c("fcdate", "lags", output_cols, "file_name")
+      c("fcst_dttm", "lags", output_cols, "file_name")
     )
 
     dplyr::distinct(file_names_df[output_cols])

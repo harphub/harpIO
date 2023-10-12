@@ -1,6 +1,6 @@
 setup_transformation <- function(trans, opts) {
 
-  if (trans == "none") {
+  if (trans %in% c("none")) {
     return(opts)
   }
 
@@ -23,7 +23,7 @@ setup_transformation <- function(trans, opts) {
   }
 
   opts_func <- get(paste0(trans, "_opts"))
-  opts      <- do.call(opts_func, opts)
+  opts      <- do.call(opts_func, opts[names(opts)[names(opts) != "weights"]])
 
   if (is.null(opts[["clim_file"]])) {
     return(opts)

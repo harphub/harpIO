@@ -20,7 +20,7 @@ levels, "model" for model levels or "height" for altitude levels.}
 }
 \value{
 A list (of class harp_parameter) with \code{fullname},
-  \code{basename}, \code{level_type}, \code{level}, \code{accum}
+\code{basename}, \code{level_type}, \code{level}, \code{accum}
 }
 \description{
 Parses a harp-style parameter name and returns accumulation time, level (if

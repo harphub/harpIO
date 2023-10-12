@@ -4,6 +4,7 @@
 \alias{interpolate_opts}
 \alias{regrid_opts}
 \alias{xsection_opts}
+\alias{subgrid_opts}
 \title{Generate Transformation Options}
 \usage{
 interpolate_opts(
@@ -42,8 +43,12 @@ xsection_opts(
   clim_file_opts = NULL,
   clim_param = "sfc_geo",
   method = "bilinear",
-  keep_raw_data = FALSE
+  levels_ascending = TRUE,
+  keep_raw_data = FALSE,
+  ...
 )
+
+subgrid_opts(x1, x2, y1, y2, ...)
 }
 \arguments{
 \item{stations}{A data frame of points to interpolate to. Must have the
@@ -104,6 +109,19 @@ meters. The default is 2500m.}
 \item{vertical_res}{The vertical grid length of the cross section. For data
 on pressure levels or model levels this should be in hPa. For data on
 height levels this should be in meters. The default is log(10).}
+
+\item{levels_ascending}{The order of the level values. In the output the
+levels are numbered for simple plotting. Set to \code{TRUE} (the default)
+for the levels to be numbered in ascending order of the level values and
+\code{FALSE} for the numbering to be done in descending order.}
+
+\item{x1}{left x index of the subdomain}
+
+\item{x2}{right x index of the subdomain}
+
+\item{y1}{bottom y index of the subdomain}
+
+\item{y2}{top y index of the subdomain}
 }
 \value{
 A list of options that will be used in the transformation.

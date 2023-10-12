@@ -11,7 +11,8 @@ transform_geofield <- function(data, transformation, opts) {
     "none"        = "gridded_data",
     "interpolate" = "station_data",
     "regrid"      = "regridded_data",
-    "xsection"    = "xsection_data"
+    "xsection"    = "xsection_data",
+    "subgrid"     = "subgrid_data"
   )
 
   if (transformation == "none") {
@@ -25,6 +26,16 @@ transform_geofield <- function(data, transformation, opts) {
         opts[["stations"]][c("SID", "lat", "lon")],
         station_data = meteogrid::point.interp(x, weights = opts[["weights"]])
       )
+    }
+  }
+
+  if (transformation == "subgrid") {
+    fun <- function(x, opts) {
+      stopifnot(meteogrid::is.geofield(x))
+      geofield_info <- attr(x, "info")
+      x <- meteogrid::subgrid(x, opts[["x1"]], opts[["x2"]], opts[["y1"]], opts[["y2"]])
+      attr(x, "info") <- geofield_info
+      x
     }
   }
 
@@ -42,6 +53,12 @@ transform_geofield <- function(data, transformation, opts) {
     fun <- function(x, opts) {
       stopifnot(meteogrid::is.geofield(x))
       x <- meteogrid::point.interp(x, weights = opts[["weights"]])
+      x <- tibble::tibble(
+        distance = seq(
+          0, by = opts[["horizontal_res"]], length.out = length(x)
+        ),
+        value = x
+      )
       attr(x, "point_a") <- opts[["a"]]
       attr(x, "point_b") <- opts[["b"]]
       attr(x, "dx")      <- opts[["horizontal_res"]]

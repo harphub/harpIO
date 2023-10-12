@@ -1,4 +1,4 @@
-#' Get MET Norway NetCDF parameter name from a HARP parameter name
+#' Internal function to get NetCDF parameter name from a HARP parameter name
 #'
 #' @param param HARP parameter name.
 #' @param vc The vertical coordinate. Set to NA for no vertical coordinate,
@@ -8,128 +8,108 @@
 #'   options may be modified depending on the parameter.
 #' @return A list with the harp parameter name, the netcdf parameter name and
 #'   the netcdf options, that may have been modified.
-#' @export
-#'
-#' @examples
-#' get_netcdf_param_info("T2m")
-#' get_netcdf_param_info("PMSL")
-#' get_netcdf_param_info("S10m")
-#' get_netcdf_param_info("Pcp")
-#' get_netcdf_param_info("z0m", opts = netcdf_opts(options_set = "met_norway_det"))
 
-get_netcdf_param_info <- function (param, vc = NA_character_, opts = netcdf_opts()) {
+get_netcdf_param_info <- function(
+  param, vc = NA_character_, opts = netcdf_opts(),
+  param_defs = get("harp_params")
+) {
 
   if (!inherits(param, "harp_parameter")) {
     param <- parse_harp_parameter(param, vertical_coordinate = vc)
   }
-
-  param_table <- tibble::tribble(
-    ~harp_param, ~nc_param                        , ~nc_param_wrf,
-    "t"        , "air_temperature"                , "T",
-    "t0m"      , "air_temperature_0m"             , "TSK",
-    "t2m"      , "air_temperature_2m"             , "T2",
-    "tmin"     , "air_temperature_min"            , NA,
-    "tmax"     , "air_temperature_max"            , NA,
-    "q"        , "specific_humidity"              , "QVAPOR",
-    "q2m"      , "specific_humidity_2m"           , "Q2",
-    "rh"       , "relative_humidity"              , NA,
-    "rh2m"     , "relative_humidity_2m"           , NA,
-    "caf"      , "cloud_area_fraction"            , "CLDFRA",
-    "cctot"    , "cloud_area_fraction"            , "CLDFRA",
-    "cchigh"   , "high_type_cloud_area_fraction"  , "CLDFRA",
-    "ccmed"    , "medium_type_cloud_area_fraction", NA,
-    "cclow"    , "low_type_cloud_area_fraction"   , NA,
-    "cbase"    , "cloud_base_altitude"            , NA,
-    "pmsl"     , "air_pressure_at_sea_level"      , NA,
-    "psfc"     , "surface_air_pressure"           , "PSFC",
-    "ps"       , "surface_air_pressure"           , "PSFC",
-    "u"        , "x_wind"                         , "U",
-    "v"        , "y_wind"                         , "V",
-    "w"        , "upward_air_velocity"            , "W",
-    "ugust10m" , "x_wind_gust_10m"                , NA,
-    "vgust10m" , "y_wind_gust_10m"                , NA,
-    "g10m"     , "wind_speed_of_gust"             , NA,
-    "u10m"     , "x_wind_10m"                     , "U10",
-    "v10m"     , "y_wind_10m"                     , "V10",
-    "s10m"     , "wind_speed"                     , NA,
-    "d10m"     , "wind_direction"                 , NA,
-    "tke"      , "turbulent_kinetic_energy"       , NA,
-    "vis"      , "visibility_in_air"              , NA,
-    "z"        , "geopotential"                   , "PH",
-    "z0m"      , "surface_geopotential"           , NA,
-    "sfc_geo"  , "surface_geopotential"           , NA,
-    "altitude" , "altitude"                       , "HGT",
-    "terrain"  , "altitude"                       , "HGT",
-    "topo"     , "altitude"                       , "HGT",
-    "pcp"      , "precipitation_amount_acc"       , "RAINNC",
-    "tg1"      , "TG1"                            , NA,
-    "tg2"      , "TG2"                            , NA,
-    "tg3"      , "TG3"                            , NA,
-    "wg1"      , "WG1"                            , NA,
-    "wg2"      , "WG2"                            , NA,
-    "wg3"      , "WG3"                            , NA,
-    "fog"      , "fog_area_fraction"              , NA,
-    "sst"      , "sea_surface_temperature"        , "SST",
-    "snow"     , "snowfall_amount_acc"            , NA
-  )
 
   if (opts[["force_param_name"]]) {
     return(
       list(
         harp_param = param,
         nc_param   = param[["fullname"]],
+        func       = NA,
         opts       = opts
       )
     )
   }
 
+  if (!is.null(opts[["param_find"]])) {
+    if (is.element(param[["fullname"]], names(opts[["param_find"]]))) {
+      return(
+        list(
+          harp_param = param,
+          nc_param   = opts[["param_find"]][[param[["fullname"]]]],
+          func       = NA,
+          opts       = opts
+        )
+      )
+    }
+  }
+
   if (grepl("wrf", opts[["options_set"]])) {
 
-    netcdf_param <- param_table %>%
-      dplyr::filter(.data$harp_param == tolower(param$fullname)) %>%
-      dplyr::pull(.data$nc_param_wrf)
-
-    if (length(netcdf_param) == 0 || is.na(netcdf_param)) {
-      netcdf_param <- param$fullname
-    }
+    nc_param_info <- get_param_info(param, "wrf", param_defs)
 
   } else {
-    netcdf_param <- param_table %>%
-      dplyr::filter(.data$harp_param == tolower(param$fullname)) %>%
-      dplyr::pull(.data$nc_param)
 
-    if (length(netcdf_param) < 1) {
-      netcdf_param <- param_table %>%
-        dplyr::filter(.data$harp_param == tolower(param$basename)) %>%
-        dplyr::pull(.data$nc_param)
-    }
+    nc_param_info <- get_param_info(param, "netcdf", param_defs)
 
-    if (length(netcdf_param) < 1) {
-      netcdf_param <- param$fullname
-    } else {
-      if (!is.na(vc) && is_temp(param, vc)) {
-        suffix <- switch(
-          vc,
-          "pressure" = "_pl",
-          "model"    = "_ml",
-          ""
-        )
-        netcdf_param <- paste0(netcdf_param, suffix)
-      }
-    }
   }
 
-  if (opts[["options_set"]] %in% c("met_norway_eps", "met_norway_det"))  {
-    if (grepl("surface", netcdf_param)) opts[["z_var"]] <- "height0"
-  }
-  if (opts[["options_set"]] %in% c("met_norway_ifsens", "met_norway_ifshires"))  {
-    if (grepl("_+[[:digit:]]m$", netcdf_param)) opts[["z_var"]] <- "surface"
-  }
-  if (grepl("^met_norway", opts[["options_set"]])) {
-    if (grepl("_pl$", netcdf_param)) opts[["z_var"]] <- "pressure"
-    if (grepl("_ml$", netcdf_param)) opts[["z_var"]] <- "hybrid"
+  func          <- nc_param_info[["param_func"]]
+  nc_param_info <- nc_param_info[["param_info"]]
+
+  if (is.null(nc_param_info[["name"]])) {
+    warning(
+      param[["fullname"]], " is not a built in parameter name for netcdf ",
+      "files. Using name as is.",
+      call. = FALSE, immediate. = TRUE
+    )
   }
 
-  list(harp_param = param, nc_param = netcdf_param, opts = opts)
+  if (is.list(nc_param_info[["suffix"]])) {
+    nc_param_info[["name"]] <- paste0(
+      nc_param_info[["name"]],
+      nc_param_info[["suffix"]][[param[["level_type"]]]]
+    )
+  }
+
+  # if (grepl("^met_norway", opts[["options_set"]])) {
+  #   n_last <- 3
+  #   suffix <- substr(
+  #     nc_param_info[["name"]],
+  #     nchar(nc_param_info[["name"]]) - n_last + 1,
+  #     nchar(nc_param_info[["name"]])
+  #   )
+  #   opts[["z_var"]] <- switch(
+  #     suffix,
+  #     "_pl" = "pressure",
+  #     "_ml" = "hybrid",
+  #     opts[["z_var"]]
+  #   )
+  # }
+  # if (opts[["options_set"]] %in% c("met_norway_eps", "met_norway_det"))  {
+  #   if (grepl("surface", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "height0"
+  #   }
+  # }
+  #
+  # if (opts[["options_set"]] %in% c("met_norway_ifsens", "met_norway_ifshires"))  {
+  #   if (grepl("_+[[:digit:]]m$", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "surface"
+  #   }
+  # }
+  #
+  # if (grepl("^met_norway", opts[["options_set"]])) {
+  #   if (grepl("_pl$", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "pressure"
+  #   }
+  #   if (grepl("_ml$", nc_param_info[["name"]])) {
+  #     opts[["z_var"]] <- "hybrid"
+  #   }
+  # }
+
+  list(
+    harp_param = param,
+    nc_param   = nc_param_info[["name"]],
+    func       = func,
+    opts       = opts
+  )
 
 }

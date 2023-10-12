@@ -2,9 +2,14 @@
 % Please edit documentation in R/get_netcdf_param_info.R
 \name{get_netcdf_param_info}
 \alias{get_netcdf_param_info}
-\title{Get MET Norway NetCDF parameter name from a HARP parameter name}
+\title{Internal function to get NetCDF parameter name from a HARP parameter name}
 \usage{
-get_netcdf_param_info(param, vc = NA_character_, opts = netcdf_opts())
+get_netcdf_param_info(
+  param,
+  vc = NA_character_,
+  opts = netcdf_opts(),
+  param_defs = get("harp_params")
+)
 }
 \arguments{
 \item{param}{HARP parameter name.}
@@ -18,15 +23,8 @@ options may be modified depending on the parameter.}
 }
 \value{
 A list with the harp parameter name, the netcdf parameter name and
-  the netcdf options, that may have been modified.
+the netcdf options, that may have been modified.
 }
 \description{
-Get MET Norway NetCDF parameter name from a HARP parameter name
-}
-\examples{
-get_netcdf_param_info("T2m")
-get_netcdf_param_info("PMSL")
-get_netcdf_param_info("S10m")
-get_netcdf_param_info("Pcp")
-get_netcdf_param_info("z0m", opts = netcdf_opts(options_set = "met_norway_det"))
+Internal function to get NetCDF parameter name from a HARP parameter name
 }

@@ -102,7 +102,7 @@ To show the effect of the correction to 2m temperature, we can just show the rel
 
 ```{r show_t2m_correction, message=FALSE}
 library(dplyr)
-select(t2m$AROME_Arctic, SID, lead_time, parameter, AROME_Arctic_det)
+select(t2m, SID, lead_time, parameter, fcst)
 ```
 
 As you will see the uncorrected temperatures are higher as we set artificially high elevations for the elevation in my_stations. 
@@ -146,21 +146,21 @@ We can now plot the two fields using `plot_field()` from the harpVis package.
 ```{r plot, fig.width=8, fig.height=8}
 library(harpVis)
 
-plot_field(
-  s10m, 
-  fcst_model = "AROME_Arctic", 
-  plot_col   = gridded_data, 
-  lead_time  = 0, 
-  breaks     = seq(0, 20, 2)
-)
-
-plot_field(
-  s10m, 
-  fcst_model = "AROME_Arctic", 
-  plot_col   = regridded_data, 
-  lead_time  = 0, 
-  breaks     = seq(0, 20, 2)
-)
+# plot_field(
+#   s10m, 
+#   fcst_model = "AROME_Arctic", 
+#   plot_col   = gridded_data, 
+#   lead_time  = 0, 
+#   breaks     = seq(0, 20, 2)
+# )
+# 
+# plot_field(
+#   s10m, 
+#   fcst_model = "AROME_Arctic", 
+#   plot_col   = regridded_data, 
+#   lead_time  = 0, 
+#   breaks     = seq(0, 20, 2)
+# )
 
 ```
 

@@ -128,7 +128,7 @@ process_read_forecast_args <- function(
         if (length(lags) > 1 && length(lags) != length(members)) {
           stop(
             length(lags), " lags specified for '",
-            paste(union(fcst_model, sub_model), collapse =":"), "'. ",
+            paste(union(fcst_model, sub_model), collapse = ":"), "'. ",
             length(members), ", 1, or NULL expected.",
             call. = FALSE
           )
@@ -137,7 +137,7 @@ process_read_forecast_args <- function(
 
         if (length(members_out) != length(members)) {
           stop(length(members_out), " members_out specified for '",
-            paste(union(fcst_model, sub_model), collapse =":"), "'. ",
+            paste(union(fcst_model, sub_model), collapse = ":"), "'. ",
             length(members), " expected.",
             call. = FALSE
           )

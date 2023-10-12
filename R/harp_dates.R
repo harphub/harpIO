@@ -212,17 +212,16 @@ unixtime_to_str_datetime <- function(unixtime, str_function) {
 #' str_datetime_to_unixtime("201701011230")
 #'
 str_datetime_to_unixtime <- function(str_datetime) {
-  switch(as.character(nchar(str_datetime[1])),
-    "8"  = {message("Date assumed to be YYYYMMDD")
-      date_function <- lubridate::ymd},
-    "10"= {message("Date assumed to be YYYYMMDDHH")
-      date_function <- lubridate::ymd_h},
-    "12"  = {message("Date assumed to be YYYYMMDDHHmm")
-      date_function <- lubridate::ymd_hm},
-    "14"  = {message("Date assumed to be YYYYMMDDHHmmss")
-      date_function <- lubridate::ymd_hms},
-    date_function <- NA
+
+  date_function <- switch(
+    as.character(nchar(str_datetime[1])),
+    "8"  = lubridate::ymd,
+    "10" = lubridate::ymd_h,
+    "12" = lubridate::ymd_hm,
+    "14" = lubridate::ymd_hms,
+    NA
   )
+
   if (!is.function(date_function)) stop("Unknown date-time string format")
   date_function(str_datetime) %>%
     lubridate::as_datetime() %>%
@@ -265,13 +264,13 @@ seq_dates <- function(start_date, end_date, by = "1h") {
   if (lubridate::is.POSIXct(start_date)) {
     start_date <- as.numeric(start_date)
   } else {
-    start_date <- suppressMessages(str_datetime_to_unixtime(start_date))
+    start_date <- str_datetime_to_unixtime(start_date)
   }
 
   if (lubridate::is.POSIXct(start_date)) {
     end_date <- as.numeric(end_date)
   } else {
-    end_date <- suppressMessages(str_datetime_to_unixtime(end_date))
+    end_date <- str_datetime_to_unixtime(end_date)
   }
 
   by_secs <- readr::parse_number(by) * units_multiplier(by)

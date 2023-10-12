@@ -7,6 +7,7 @@
 netcdf_opts(
   options_set = c("none", "met_norway_eps", "met_norway_det", "met_norway_ifsens",
     "met_norway_ifshires", "wrf", "wrf_u_stagger", "wrf_v_stagger"),
+  param_find = list(),
   proj4_var = "projection_lambert",
   proj4_att = "proj4",
   proj4 = NULL,
@@ -16,15 +17,23 @@ netcdf_opts(
   lat_var = "latitude",
   x_rev = FALSE,
   y_rev = FALSE,
+  dx = NULL,
+  dy = NULL,
   z_var = NA,
   member_var = NA,
   time_var = "time",
-  ref_time_var = NA
+  ref_time_var = NA,
+  force_param_name = FALSE
 )
 }
 \arguments{
 \item{options_set}{A set of pre-defined options that can be returned.
 Currently only available for data at MET Norway.}
+
+\item{param_find}{A list used to map parameter name to the name of the
+variable in in the NetCDF file. The name should be the parameter name
+used in the read function and the element should be the name in the NetCDF
+file.}
 
 \item{proj4_var}{The variable that holds the projection information in the
 NetCDF files. Set to 0 if the proj4 string is a global attribute.}
@@ -59,6 +68,12 @@ order.}
 \item{y_rev}{Set to \code{TRUE} if data in the y direction are in reverse
 order.}
 
+\item{dx}{The x resolution of the data. This needs to be set if the x
+dimension in the file is not a netcdf dimvar.}
+
+\item{dy}{The y resolution of the data. This needs to be set if the y
+dimension in the file is not a netcdf dimvar.}
+
 \item{z_var}{The name of the z (vertical) dimension.}
 
 \item{member_var}{The name of the ensemble member dimension.}
@@ -68,6 +83,9 @@ order.}
 \item{ref_time_var}{The name of the variable holding the forecast reference
 time. Set to NA if it is to be derived from the first value in the time
 dimension.}
+
+\item{force_param_name}{Logical. Set to TRUE to force harp to look for the
+exact parameter name as passed rather than to use a lookup table.}
 }
 \value{
 A list of options for reading netcdf files.
@@ -82,7 +100,7 @@ order of the dimensions.
 \details{
 Note that the order of the dimensions is "Fortran order" rather than "C"
 order. This means that the order of the dimensions is obtained by reading
-from right to left in the output of ncdump -h <filename>.
+from right to left in the output of ncdump -h \if{html}{\out{<filename>}}.
 
 The default options can be seen by running \code{netcdf_opts()}, but there
 are also some options sets that can be selected, currently only those for

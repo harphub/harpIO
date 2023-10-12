@@ -47,7 +47,14 @@
 #'   level, "value" is the value of the grib key and "level" is the value of the
 #'   level. Set level = -999 to select all available levels. The default is
 #'   NULL, which means to attempt to automatically find the level.
-#' @param ...  Any other options that may exist in future Rgrib2 versions.
+#' @param step_find A named list with names being the parameters to find in the
+#'   grib files. Each element of the named list is a list with names "key",
+#'   "value" and "level". Here "key" is the grib key to be used to find the
+#'   step, "value" is the value of the grib key. \code{step_find} would typically
+#'   be used to find the filter the data by the stepRange grib key - the
+#'   helper function \code{use_grib_stepRange()} will automatically use the
+#'   stepRange key.
+#' @param ... Any other options that may exist in future Rgrib2 versions.
 #'
 #' @return A list of options for reading grib files.
 #' @export
@@ -66,6 +73,7 @@ grib_opts <- function(
   multi      = FALSE,
   param_find = NULL,
   level_find = NULL,
+  step_find  = NULL,
   ...
 ) {
 
@@ -85,7 +93,7 @@ grib_opts <- function(
         )
       }
 
-      if (arg_name == "param_find") {
+      if (arg_name %in% c("param_find", "step_find")) {
         list_names  <- "keyvalue"
         error_names <- "`key` and `value`."
       } else {
@@ -116,11 +124,12 @@ grib_opts <- function(
 
   check_inputs(param_find, "param_find")
   check_inputs(level_find, "level_find")
+  check_inputs(step_find, "step_find")
 
   list(
     meta = meta, multi = multi,
     param_find = param_find, level_find = level_find,
-    ...
+    step_find = step_find, ...
   )
 
 }
@@ -149,6 +158,13 @@ use_grib_key = function(key, value) {
 use_grib_indicatorOfParameter = function(value) {
   stopifnot(is.numeric(value))
   use_grib_key("indicatorOfParameter", value)
+}
+
+#' @rdname grib_opts
+#' @export
+use_grib_parameterNumber = function(value) {
+  stopifnot(is.numeric(value))
+  use_grib_key("parameterNumber", value)
 }
 
 #' @rdname grib_opts
@@ -228,4 +244,12 @@ use_grib_meanSea <- function() {
   use_grib_key_level("typeOfLevel", "meanSea", -999)
 }
 
-
+#' @rdname grib_opts
+#' @export
+use_grib_stepRange = function(value) {
+  if (is.numeric(value)) {
+    value <- as.character(value)
+  }
+  stopifnot(is.character(value))
+  use_grib_key("stepRange", value)
+}

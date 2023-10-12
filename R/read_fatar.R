@@ -1,3 +1,13 @@
+#' @param ldt_template a character string that describes (part of) the file name used for finding a lead time within a tar archive.
+#' @rdname fa_opts
+#' @export
+fatar_opts <- function(ldt_template="+%04i$", ...) {
+  fa_opts(ldt_template=ldt_template, ...)
+}
+#fatar_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE, ldt_template="+%04i$", ...) {
+#  list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind, ldt_template=ldt_template, ...)
+#}
+
 # Read a field from an FA file in a tar archive
 #
 # @param file_name A tar archive of FA files.
@@ -16,6 +26,7 @@
 read_fatar <- function(file_name,
                        parameter,
                        lead_time=NULL,
+                       format_opts=fatar_opts(),
                        ...) {
 
   if (!requireNamespace("Rfa", quietly=TRUE)) {
@@ -29,8 +40,12 @@ read_fatar <- function(file_name,
   if (length(lead_time) < 1) {
     # either an error OR just default to taking all available lead times
     # FIXME: we could also extract /all/ lead times in this case, or the first file...
-    stop("For fatar files, lead time must be passed.")
+    warning("For fatar files, lead time should be passed. Using 0.")
+    lead_time <- 0
   }
+
+  # make sure the format options are complete
+  format_opts <- do.call(fatar_opts, format_opts)
 
   ## TODO: fatar should be able to decumulate precipitation
   if (is.list(file_name)) {
@@ -42,38 +57,34 @@ read_fatar <- function(file_name,
     filelist <- Rfa::ParseTar(file_name)
   }
 
-  # now we call read_fa for individual lead times and combine in a tibble
+  # call read_fa for individual lead times and combine in a tibble
   ffun <- function(ldt, filelist) {
-    fcfile <- grep(sprintf("+%04i$", ldt), names(filelist), value = TRUE)
+    for (tt in format_opts$ldt_template) {
+    # find the lead time as a file within the tar archive
+      fcfile <- grep(sprintf(tt, ldt), names(filelist), value = TRUE)
+      if (length(fcfile) > 0) break
+    }
     if (length(fcfile) != 1) {
       stop("Lead time ", ldt, " not available in archive file\n",
            file_name, "\n", length(fcfile), " hits")
     }
     fafile <- Rfa::FAopen(filelist[[fcfile]])
+    # pass format_opts to read_fa (ldt_template will just be ignored)
     harpIO:::read_fa(fafile,
-                                parameter=parameter,
-                                lead_time=ldt,
-                                ...)
+                     parameter=parameter,
+                     lead_time=ldt,
+                     format_opts=format_opts,
+                     ...)
   }
 
   result <- purrr::map_dfr(lead_time, ffun, filelist)
-#  result <- NULL
-#  for (ldt in seq_along(lead_time)) {
-#    fcfile <- grep(sprintf("+%04i$", lead_time[ldt]), names(filelist), value = TRUE)
-#    if (length(fcfile) != 1) {
-#      stop("Lead time ", lead_time[ldt], " not available in archive file\n",
-#           file_name, "\n", length(fcfile), " hits")
-#    }
-#    fafile <- Rfa::FAopen(filelist[[fcfile]])
-#    presult <- harpIO:::read_fa(fafile,
-#                                parameter=parameter,
-#                                lead_time=lead_time[ldt],
-#                                ...)
-#    if (is.null(result)) result <- presult
-#    else result <- rbind(result, presult)
-#  }
-
   result
 }
 
+get_domain_fatar <- function(file_name, opts) {
+  # This is not perfect, as ParseTar will go through the whole file rather than just taking the first FA file in the archive.
+  # But currently Rfa doesn't really offer better ways. Unless you use FindInTar(archive, 1) as byte position
+  # FAread_meta( filename=1, archname=file_name)
+  Rfa::FAdomain(Rfa::FAframe(Rfa::FAread_meta(Rfa::ParseTar(file_name)[[1]])))
+}
 

@@ -12,7 +12,11 @@
 #
 # @examples
 #
-read_vobs <- function(file_name, missing_value = -99, ...) {
+read_vobs <- function(file_name, dttm, opts, param_defs = get("harp_params"), ...) {
+
+  if (length(opts) < 0) {
+    opts <- vfile_opts(type = "vobs")
+  }
 
   empty_data <- empty_data_interpolate(NA, NA, empty_type = "obs")
 
@@ -23,9 +27,28 @@ read_vobs <- function(file_name, missing_value = -99, ...) {
     return(list(synop = empty_data, temp = empty_data))
   }
 
-  v_data <- read_vfile(file_name, v_type = "vobs")
+  v_data <- read_vfile(
+    file_name,
+    v_type        = "vobs",
+    missing_value = opts[["missing_value"]],
+    param_defs    = param_defs
+  )
+
   if (is.null(v_data)) {
     return(list(synop = empty_data, temp = empty_data))
+  }
+
+  if (!missing(dttm) && !is.null(dttm)) {
+    if (!is.null(v_data[["synop"]]) && nrow(v_data[["synop"]]) > 0) {
+      v_data[["synop"]] <- dplyr::bind_cols(
+        tibble::tibble(valid_dttm = dttm), v_data[["synop"]]
+      )
+    }
+    if (!is.null(v_data[["temp"]]) && nrow(v_data[["temp"]]) > 0) {
+      v_data[["temp"]] <- dplyr::bind_cols(
+        tibble::tibble(valid_dttm = dttm), v_data[["temp"]]
+      )
+    }
   }
 
   v_data

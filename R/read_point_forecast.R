@@ -11,10 +11,10 @@
 #' but the \code{lags} argument is used to ensure that all of the necessary data
 #' for creating lagged members are read in.
 #'
-#' @param start_date Date of the first forecast to be read in. Should be in
-#'   YYYYMMDDhh format. Can be numeric or charcter.
-#' @param end_date Date of the last forecast to be read in. Should be in
-#'   YYYYMMDDhh format. Can be numeric or charcter.
+#' @param dttm A vector of date time strings to read. Can be in YYYYMMDD,
+#'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+#'   character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
+#'   vector of equally spaced date-time strings.
 #' @param fcst_model The forecast model to read - this is typically used to
 #'   construct the file name. Can be a character vector of model names.
 #' @param fcst_type The type of forecast to read. Set to "det" for deterministic
@@ -73,6 +73,10 @@
 #'   profiles of the data are in the files so the vertical level information is
 #'   removed when constructing the file name. If you want the full parameter
 #'   name to be used in the file name set to TRUE.
+#' @param start_date,end_date,by `r lifecycle::badge("deprecated")` The use of
+#'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
+#'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+#'   spaced date-times.
 #' @return A list with an element for each forecast model, or in the case of a
 #'   multi model ensemble, another list with an element for each sub model. The
 #'   list elements each contain a data frame with columns for station ID (SID),
@@ -187,15 +191,13 @@
 #'   )
 #' }
 read_point_forecast <- function(
-  start_date,
-  end_date,
+  dttm,
   fcst_model,
   fcst_type,
   parameter,
   lead_time           = seq(0, 48, 3),
   lags                = "0s",
   merge_lags          = TRUE,
-  by                  = "6h",
   file_path           = ".",
   file_template       = "fctable",
   drop_any_na         = TRUE,
@@ -204,8 +206,31 @@ read_point_forecast <- function(
   accumulate          = TRUE,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   get_lat_and_lon     = FALSE,
-  force_param_name    = FALSE
+  force_param_name    = FALSE,
+  start_date          = NULL,
+  end_date            = NULL,
+  by                  = "6h"
 ) {
+
+  use_dttm <- TRUE
+  if (missing(dttm)) {
+    if (any(sapply(list(start_date, end_date, by), is.null))) {
+      stop(
+        "If `dttm` is not passed, `start_date`, `end_date` ",
+        "and `by` must be passed."
+      )
+    }
+    lifecycle::deprecate_warn(
+      "0.1.0",
+      I(paste(
+        "The use of `start_date`, `end_date`, and `by`",
+        "arguments of `read_point_forecast()`"
+      )),
+      "read_point_forecast(dttm)"
+    )
+    use_dttm <- FALSE
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+  }
 
   switch(tolower(fcst_type),
     "eps" = {
@@ -321,15 +346,16 @@ read_point_forecast <- function(
     lags,
     ~ expand.grid(fcst_model = .x, lag = .y, stringsAsFactors = FALSE)
   ) %>%
-    dplyr::inner_join(template_table)
+    dplyr::inner_join(
+      template_table,
+      by = intersect(colnames(.), colnames(template_table))
+    )
 
   file_names <- purrr::pmap(
     as.list(lag_table),
     ~ generate_filenames(
       file_path     = file_path,
-      start_date    = start_date,
-      end_date      = end_date,
-      by            = by,
+      file_date     = dttm,
       lags          = ..2,
       parameter     = param_name,
       fcst_model    = gsub("_unshifted", "", ..1),
@@ -407,7 +433,10 @@ read_point_forecast <- function(
     members <- tibble::tibble(fcst_model = fcst_model, members = list(NULL))
   }
 
-  lag_table <- dplyr::left_join(lag_table, members)
+  lag_table <- dplyr::left_join(
+    lag_table, members,
+    by = intersect(colnames(lag_table), colnames(members))
+  )
 
   fcst <- purrr::pmap(
     list(
@@ -417,14 +446,14 @@ read_point_forecast <- function(
     ),
     ~ read_fctable(
       .x,
-      suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
-      suppressMessages(str_datetime_to_unixtime(end_date)),
-      lead_time        = lead_time + readr::parse_number(.y),
+      harpCore::as_unixtime(dttm) - harpCore::to_seconds(.y),
+      lead_time        = lead_time + (harpCore::to_seconds(.y) / 3600),
       stations         = stations,
       members          = ..3,
       param            = parameter,
       get_latlon       = get_lat_and_lon,
-      force_param_name = force_param_name
+      force_param_name = force_param_name,
+      use_dttm         = use_dttm
     )
   )
 
@@ -475,11 +504,9 @@ read_point_forecast <- function(
           lead_time_accum[unread_leads],
           lag_table$file_template[unread_leads]
         ),
-        ~ generate_filenames(
+        ~generate_filenames(
           file_path     = file_path,
-          start_date    = start_date,
-          end_date      = end_date,
-          by            = by,
+          file_date     = dttm,
           lags          = .y,
           parameter     = param_name,
           fcst_model    = gsub("_unshifted", "", .x),
@@ -497,8 +524,7 @@ read_point_forecast <- function(
         ),
         ~ read_fctable(
           .x,
-          suppressMessages(str_datetime_to_unixtime(start_date)) - (readr::parse_number(.y) * units_multiplier(.y)),
-          suppressMessages(str_datetime_to_unixtime(end_date)),
+          harpCore::as_unixtime(dttm) - harpCore::to_seconds(.y),
           lead_time  = ..3,
           stations   = stations,
           members    = ..4,
@@ -506,6 +532,16 @@ read_point_forecast <- function(
           get_latlon = get_lat_and_lon
         )
       ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
+
+      no_data_for_accum <- which(vapply(fcst_lead_time_accum, nrow, numeric(1)) < 1)
+
+      if (any(no_data_for_accum)) {
+        missing_leads <- unique(unlist(lead_time_accum))
+        cli::cli_abort(c(
+          "Unable to find data to compute accumulations.",
+          "x" = "Cannot find lead times: {missing_leads} in sqlite files."
+        ))
+      }
 
       fcst[unread_leads]       <- purrr::map2(fcst[unread_leads], fcst_lead_time_accum, dplyr::bind_rows)
       fcst_accum[unread_leads] <- purrr::map(
@@ -524,31 +560,35 @@ read_point_forecast <- function(
 
   }
 
-  split_sub_models <- function(df, .member_regexp) {
+  ### Multimodel ensembles should be handled by the verification functions
 
-    meta_cols  <- rlang::syms(c("SID", "fcdate", "leadtime", "validdate", "fcst_cycle"))
-    sub_models <- stringr::str_extract(
-      names(df),
-      .member_regexp
-    ) %>%
-      stats::na.omit() %>%
-      unique()
+  # split_sub_models <- function(df, .member_regexp) {
+  #
+  #   meta_cols  <- c(
+  #     "SID", "fcdate", "leadtime", "validdate", "fcst_cycle",
+  #     "fcst_dttm", "valid_dttm", "lead_time"
+  #   )
+  #   sub_models <- stringr::str_extract(
+  #     names(df),
+  #     .member_regexp
+  #   ) %>%
+  #     stats::na.omit() %>%
+  #     unique()
+  #
+  #   if (length(sub_models) == 1) {
+  #     df
+  #   } else {
+  #     df <- purrr::map(
+  #       sub_models,
+  #       ~ dplyr::select(df, dplyr::any_of(meta_cols), dplyr::contains(.x))
+  #     ) %>%
+  #       rlang::set_names(sub_models)
+  #     as_harp_list(df)
+  #   }
+  #
+  # }
 
-    if (length(sub_models) == 1) {
-      df
-    } else {
-      df <- purrr::map(
-        sub_models,
-        ~ dplyr::select(df, !!! meta_cols, dplyr::contains(.x))
-      ) %>%
-        rlang::set_names(sub_models)
-      class(df) <- "harp_fcst"
-      df
-    }
-
-  }
-
-  fcst <- purrr::map(fcst, split_sub_models, member_regexp)
+  # fcst <- purrr::map(fcst, split_sub_models, member_regexp)
 
   if (merge_lags) {
     fcst <- lag_and_join(fcst, lag_table)
@@ -560,13 +600,20 @@ read_point_forecast <- function(
     fcst,
     ~ dplyr::select(
       dplyr::mutate(
-        .x,
-        fcdate = unix2datetime(.data[["fcdate"]]),
-        validdate = unix2datetime(.data[["validdate"]])
+        dplyr::rename_with(
+          .x,
+          ~suppressWarnings(harpCore::psub(
+            .x,
+            c("fcdate", "leadtime", "validdate"),
+            c("fcst_dttm", "lead_time", "valid_dttm")
+          ))
+        ),
+        fcst_dttm = harpCore::unixtime_to_dttm(.data[["fcst_dttm"]]),
+        valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
       ),
-      .data[["fcdate"]],
-      .data[["validdate"]],
-      .data[["leadtime"]],
+      .data[["fcst_dttm"]],
+      .data[["valid_dttm"]],
+      .data[["lead_time"]],
       .data[["SID"]],
       dplyr::matches("^parameter$"),
       dplyr::matches("^p$"), dplyr::matches("^m$"), dplyr::matches("^z$"),
@@ -575,13 +622,42 @@ read_point_forecast <- function(
       dplyr::matches("_mbr[[:digit:]]+_lag[[:digit:]]*$"),
       dplyr::everything()
     ) %>%
-      dplyr::transmute(
-        dplyr::across(where(~!all(is.na(.x))))
-      )
+      harpCore::as_harp_df()
   )
 
+  fcst <- purrr::imap(
+    fcst,
+    ~{
+      if (nrow(.x) < 1) {
+        cli::cli_warn(
+          "No data found for \"{.y}\"."
+        )
+        return(.x)
+      }
+      dplyr::transmute(
+        .x,
+        dplyr::across(where(~!all(is.na(.x))))
+      )
+    }
+  )
+
+  fcst <- mapply(
+    function(x, y) dplyr::select(
+      dplyr::mutate(x, fcst_model = y),
+      dplyr::all_of("fcst_model"),
+      dplyr::everything()
+    ),
+    fcst,
+    names(fcst),
+    SIMPLIFY = FALSE
+  )
+
+  fcst <- harpCore::as_harp_list(fcst)
   attr(fcst, "missing_files") <- missing_files
-  class(fcst) <- "harp_fcst"
+
+  if (length(fcst) == 1) {
+    return(fcst[[1]])
+  }
 
   fcst
 
@@ -637,12 +713,18 @@ lag_and_join <- function(fcst_list, lags_df) {
   fcst_list[non_zero_values] <- purrr::map2(
     fcst_list[non_zero_values],
     lag_seconds[non_zero_values],
-    ~ dplyr::mutate(
-      .x,
-      fcdate     = .data$fcdate + .y,
-      leadtime   = .data$leadtime - .y / 3600,
-      fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
-    )
+    ~{
+      fc_dttm_col <- intersect(c("fcdate", "fcst_dttm"), colnames(.x))
+      lt_col      <- intersect(c("leadtime", "lead_time"), colnames(.x))
+      dplyr::mutate(
+        .x,
+        {{fc_dttm_col}} := .data[[fc_dttm_col]] + .y,
+        {{lt_col}}      := .data[[lt_col]] - .y / 3600,
+        fcst_cycle = substr(
+          harpCore::unixtime_to_ymdh(.data[[fc_dttm_col]]), 9, 10
+        )
+      )
+    }
   )
 
   join_lags <- function(inner_list) {

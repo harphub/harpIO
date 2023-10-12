@@ -5,7 +5,10 @@ read_vfile <- function(
   members       = NA,
   lead_time     = NA,
   v_type        = c("vfld", "vobs"),
-  missing_value = -99.0
+  missing_value = -99.0,
+  synop_cols    = NULL,
+  temp_cols     = NULL,
+  param_defs    = get("harp_params")
 ) {
 
   v_type <- match.arg(v_type)
@@ -82,8 +85,15 @@ read_vfile <- function(
 
       num_param       <- 16
       num_temp_levels <- scan(file_connection, nmax = 1, quiet = TRUE)
+      if (is.null(synop_cols)) {
+        synop_cols <- v_default_names("synop", v_type = v_type)
+      } else {
+        if (length(setdiff(synop_cols, v_default_names("synop", "vfld")) > 1)) {
+          stop(paste(synop_cols, collapse = ", "), "are not valid vfld/vobs parameter names")
+        }
+      }
       params_synop    <- data.frame(
-        parameter        = v_default_names("synop", v_type = v_type),
+        parameter        = synop_cols,
         accum_hours      = 0,
         stringsAsFactors = FALSE
       )
@@ -97,7 +107,7 @@ read_vfile <- function(
 
     params_synop <- dplyr::mutate(
       params_synop,
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_synop, param_defs),
       units       = purrr::map_chr(.data$parameter, "param_units"),
       parameter   = purrr::map_chr(.data$parameter, "harp_param")
     )
@@ -146,16 +156,23 @@ read_vfile <- function(
       )
     } else {
       num_param   <- 8
+      if (is.null(temp_cols)) {
+        temp_cols <- v_default_names("temp", v_type = v_type)
+      } else {
+        if (length(setdiff(temp_cols, v_default_names("temp", "vfld")) > 1)) {
+          stop(paste(temp_cols, collapse = ", "), "are not valid vfld/vobs TEMP parameter names")
+        }
+      }
       params_temp <- data.frame(
-        parameter        = v_default_names("temp", v_type = v_type),
-        accum_hours      = rep(0, 8),
+        parameter        = temp_cols,
+        accum_hours      = rep(0, length(temp_cols)),
         stringsAsFactors = FALSE
       )
     }
 
     params_temp <- dplyr::mutate(
       params_temp,
-      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp),
+      parameter   = purrr::map(.data$parameter, parse_v_parameter_temp, param_defs),
       units       = purrr::map_chr(.data$parameter, "param_units"),
       parameter   = purrr::map_chr(.data$parameter, "harp_param")
     )

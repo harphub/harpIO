@@ -6,8 +6,8 @@
 \title{Weather station IDs with regional groups}
 \format{
 A data frame with 6001 rows and 2 variables: \describe{
-  \item{SID}{station ID number} \item{group}{Geographic group the station
-  belongs to}}
+\item{SID}{station ID number} \item{group}{Geographic group the station
+belongs to}}
 }
 \source{
 selecttion.pm from HARMONIE / HIRLAM monitor

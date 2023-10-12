@@ -4,7 +4,7 @@
 \alias{msub}
 \title{Multiple pattern matching and replacement}
 \usage{
-msub(x, pattern, replacement, ...)
+msub(x, pattern, replacement, regex = FALSE, ...)
 }
 \arguments{
 \item{x}{A character vector.}
@@ -14,17 +14,27 @@ msub(x, pattern, replacement, ...)
 \item{replacement}{A character vector of the same length as pattern with the
 corresponding replacements.}
 
+\item{regex}{A logical to denote whether \code{pattern} is a regular
+expression (TRUE) or a string to match exactly (FALSE). The default is
+FALSE so strings in \code{pattern} are matched exactly.}
+
 \item{...}{Other arguments to \link[base]{gsub}}
 }
 \value{
 A character vector of the same length as x
 }
 \description{
-\code{msub} calls \link[base]{gsub} for each pattern / replacement pair.
-Where a pattern is not found, nothing is replaced for that pattern /
-replacement pair.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+This function was deprecated as it is replaced by
+\link[harpCore]{psub}
 }
 \examples{
 msub(letters[1:10], c("a", "c", "e"), c("A", "C", "E"))
-
+msub(c("a", "b", "ac", "ad"), c("a", "ac"), c("A", "AC"))
+\dontrun{
+# "ac" is replaced with "Ac" due to substring matching
+msub(c("a", "b", "ac", "ad"), c("a", "ac"), c("A", "AC"), regex = TRUE)
 }
+}
+\keyword{internal}

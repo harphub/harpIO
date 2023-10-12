@@ -7,8 +7,8 @@
 save_point_verif(
   verif_data,
   verif_path = "./Verification",
- 
-    verif_file_template = "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
+  verif_file_template =
+    "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
   ...
 )
 }

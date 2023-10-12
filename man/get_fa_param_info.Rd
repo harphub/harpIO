@@ -25,8 +25,8 @@ are rotated from model axes to earth axes.}
 }
 \value{
 A 16 character string, or in rare cases a vector of several strings
-  denoting the components (e.g. total precipitation may be the sum of up to 4
-  fields).
+denoting the components (e.g. total precipitation may be the sum of up to 4
+fields).
 }
 \description{
 a harp-style parameter is translated to the field name in

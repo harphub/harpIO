@@ -5,9 +5,13 @@
 #' not available for the given accumulation time, they are derived from
 #' observations for other accumulation times, either by subtraction or addition.
 #'
-#' @param start_date The start date of the observations to read.
-#' @param end_date The end date of the observations to read.
-#' @param parameter Which parameter to read. This will normally be a harp3
+#' @param dttm A vector of date time strings to read. Can be in YYYYMMDD,
+#'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+#'   character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
+#'   vector of equally spaced date-time strings. Alternatively valid date-times
+#'   can be extracted from a forecast data frame or \code{harp_list} of
+#'   forecast data frames using \code{\link[harpCore]{unique_valid_dttm}}.
+#' @param parameter Which parameter to read. This will normally be a harp
 #'   parameter name.
 #' @param obs_path The path to the OBSTABLE files
 #' @param obsfile_template The template for the OBSTABLE file name.
@@ -22,23 +26,25 @@
 #'   the vertical coordinate of the data is given here. The default is
 #'   "pressure", but can also be "model" for model levels, or "height" for
 #'   height above ground /sea level.
+#' @param start_date,end_date,by `r lifecycle::badge("deprecated")` The use of
+#'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
+#'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+#'   spaced date-times.
 #'
-#' @return A tibble with columns for validdate, SID and the parameter.
+#' @return A tibble with columns for valid_dttm, SID and the parameter.
 #' @export
 #'
 #' @examples
 #' if (requireNamespace("harpData", quietly = TRUE)) {
 #'   read_point_obs(
-#'     2019021700,
-#'     2019022023,
+#'     seq_dttm(2019021700, 2019022023),
 #'     "T2m",
 #'     obs_path = system.file("OBSTABLE", package = "harpData")
 #'   )
 #'
 #'   # stations can be specified using a vector of station ID numbers
 #'   read_point_obs(
-#'     2019021700,
-#'     2019022023,
+#'     seq_dttm(2019021700, 2019022023),
 #'     "T2m",
 #'     obs_path = system.file("OBSTABLE", package = "harpData"),
 #'     stations = c(1001, 1010)
@@ -47,8 +53,7 @@
 #'   # Gross error checks are done automatically but the allowable values
 #'   # can be changed with min_allowed and max_allowed.
 #'   obs <- read_point_obs(
-#'     2019021700,
-#'     2019022023,
+#'     seq_dttm(2019021700, 2019022023),
 #'     "T2m",
 #'     obs_path = system.file("OBSTABLE", package = "harpData"),
 #'     min_allowed = 260,
@@ -60,8 +65,7 @@
 #'
 #'   # For vertical profiles, the vertical coordinate must be specified
 #'   read_point_obs(
-#'     2019021700,
-#'     2019022023,
+#'     seq_dttm(2019021700, 2019022023),
 #'     "Z",
 #'     obs_path            = system.file("OBSTABLE", package = "harpData"),
 #'     vertical_coordinate = "pressure"
@@ -69,8 +73,7 @@
 #' }
 #'
 read_point_obs <- function(
-  start_date,
-  end_date,
+  dttm,
   parameter,
   obs_path            = ".",
   obsfile_template    = "obstable",
@@ -78,15 +81,35 @@ read_point_obs <- function(
   min_allowed         = NULL,
   max_allowed         = NULL,
   stations            = NULL,
-  vertical_coordinate = c(NA_character_, "pressure", "model", "height")
+  vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
+  start_date          = NULL,
+  end_date            = NULL,
+  by                  = "1h"
 ) {
+
+  if (missing(dttm)) {
+    if (any(sapply(list(start_date, end_date, by), is.null))) {
+      stop(
+        "If `dttm` is not passed, `start_date`, `end_date` ",
+        "and `by` must be passed."
+      )
+    }
+    lifecycle::deprecate_warn(
+      "0.1.0",
+      I(paste(
+        "The use of `start_date`, `end_date`, and `by`",
+        "arguments of `read_point_obs()`"
+      )),
+      "read_point_obs(dttm)"
+    )
+    dttm <- harpCore::seq_dttm(start_date, end_date, by)
+  }
 
   vertical_coordinate <- match.arg(vertical_coordinate)
 
-  obs_files <- get_filenames(
+  obs_files <- generate_filenames(
     obs_path,
-    start_date    = start_date,
-    end_date      = end_date,
+    file_date     = dttm,
     file_template = obsfile_template
   )
 
@@ -100,9 +123,6 @@ read_point_obs <- function(
   if (length(missing_files) > 0) {
     warning(paste("Files not found:\n", paste(missing_files, collapse = "\n")), call. = FALSE, immediate. = TRUE)
   }
-
-  date_start <- suppressMessages(str_datetime_to_unixtime(start_date))
-  date_end   <- suppressMessages(str_datetime_to_unixtime(end_date))
 
   harp_param <- parse_harp_parameter(parameter, vertical_coordinate)
   if (!is.null(harp_param$level_type) && is_temp(harp_param)) {
@@ -122,13 +142,14 @@ read_point_obs <- function(
     level_col      <- NULL
   }
 
-  message("Getting ", parameter, " observations for ", start_date, "-", end_date)
+  dttm <- harpCore::as_unixtime(dttm)
+
+  message("Getting ", parameter, ".")
   obs <- read_obstable(
     available_files,
     !!obs_param,
     sqlite_table,
-    date_start,
-    date_end,
+    dttm,
     stations,
     level_col,
     vertical_level
@@ -141,7 +162,7 @@ read_point_obs <- function(
 
     metadata_cols <- rlang::syms(colnames(obs)[colnames(obs) != parameter])
     message("Deriving 6h precipitation from 12h precipitation")
-    obs <- derive_6h_precip(obs, available_files, date_start, date_end, stations)
+    obs <- derive_6h_precip(obs, available_files, dttm, stations)
     if (parameter %in% c("AccPcp12h","AccPcp24h")) {
       message("Deriving 12h precipitation from 6h precipitation")
       obs <- derive_12h_precip(obs)
@@ -173,7 +194,7 @@ read_point_obs <- function(
     if (nrow(obs_removed) > 0) {
       obs_removed <- dplyr::mutate(
         obs_removed,
-        validdate = unix2datetime(.data[["validdate"]])
+        valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
       )
     }
 
@@ -202,7 +223,7 @@ read_point_obs <- function(
     return(
       dplyr::mutate(
         obs,
-        validdate = unix2datetime(.data[["validdate"]])
+        valid_dttm = harpCore::unixtime_to_dttm(.data[["valid_dttm"]])
       )
     )
   }
@@ -220,8 +241,7 @@ read_obstable <- function(
   files,
   .obs_param,
   .sqlite_table,
-  .date_start,
-  .date_end,
+  .dttm,
   .stations,
   .level_col = NULL,
   .level     = NULL
@@ -248,8 +268,9 @@ read_obstable <- function(
         next()
       }
       .obs[[list_counter]] <- obstable %>%
-        dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, !!obs_param_quo) %>%
-        dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
+        dplyr::rename_with(~gsub("validdate", "valid_dttm", .x)) %>%
+        dplyr::select(dplyr::any_of(c("valid_dttm", "SID", "lon", "lat", "elev")), !!obs_param_quo) %>%
+        dplyr::filter(.data$valid_dttm %in% .dttm)
       if (DBI::dbExistsTable(obs_db, paste0(.sqlite_table, "_params"))) {
         .obs_units <- dplyr::tbl(obs_db, paste0(.sqlite_table, "_params")) %>%
           dplyr::filter(.data$parameter == obs_param_name) %>%
@@ -272,8 +293,9 @@ read_obstable <- function(
         next()
       }
       .obs[[list_counter]] <- obstable %>%
-        dplyr::select(.data$validdate, .data$SID, .data$lon, .data$lat, .data$elev, .data[[.level_col]], !!obs_param_quo) %>%
-        dplyr::filter(.data$validdate >= .date_start & .data$validdate <= .date_end)
+        dplyr::rename_with(~gsub("validdate", "valid_dttm", .x)) %>%
+        dplyr::select(dplyr::any_of(c("valid_dttm", "SID", "lon", "lat", "elev", .level_col)), !!obs_param_quo) %>%
+        dplyr::filter(.data$valid_dttm %in% .dttm)
       if (.level != -999) {
         .obs[[list_counter]] <- dplyr::filter(.obs[[list_counter]], .data[[.level_col]] == .level)
       }
@@ -312,12 +334,12 @@ read_obstable <- function(
 }
 
 # Derive 6h precipitation from 12h precipitation
-derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station_ids) {
+derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
 
   pcp_AccPcp6h  <- NULL
   pcp_AccPcp12h <- NULL
 
-  first_date    <- first_date - 3600 * 12
+  dttm <- c(dttm, dttm[1] - 3600 * 12)
 
   pcp_in_data   <- grep("AccPcp*[[:digit:]]", names(pcp_data), perl = TRUE, value = TRUE)
   switch(
@@ -333,7 +355,7 @@ derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station
     acc_sym <- rlang::sym(pcp_acc)
     assign(
       paste0("pcp_", pcp_acc),
-      read_obstable(obs_files, !!acc_sym, "SYNOP", first_date, last_date, station_ids)
+      read_obstable(obs_files, !!acc_sym, "SYNOP", dttm, station_ids)
     )
   }
 
@@ -341,7 +363,7 @@ derive_6h_precip <- function(pcp_data, obs_files, first_date, last_date, station
     dplyr::full_join(
       dplyr::transmute(
         pcp_AccPcp6h,
-        validdate = .data$validdate + 3600 * 6,
+        valid_dttm = .data$valid_dttm + 3600 * 6,
         .data$SID,
         .data$lon,
         .data$lat,
@@ -368,7 +390,7 @@ derive_12h_precip <- function(pcp_data) {
     dplyr::full_join(
       dplyr::transmute(
         pcp_data,
-        validdate = .data$validdate + 3600 * 6,
+        valid_dttm = .data$valid_dttm + 3600 * 6,
         .data$SID,
         .data$lon,
         .data$lat,
@@ -389,7 +411,7 @@ derive_3h_precip <- function(pcp_data) {
     dplyr::full_join(
       dplyr::transmute(
         pcp_data,
-        validdate = .data$validdate + 3600 * 3,
+        valid_dttm = .data$valid_dttm + 3600 * 3,
         .data$SID,
         AccPcp3h_lag = .data$AccPcp3h
       )

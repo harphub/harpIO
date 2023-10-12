@@ -4,6 +4,7 @@
 \alias{grib_opts}
 \alias{use_grib_key}
 \alias{use_grib_indicatorOfParameter}
+\alias{use_grib_parameterNumber}
 \alias{use_grib_paramId}
 \alias{use_grib_shortName}
 \alias{use_grib_key_level}
@@ -15,6 +16,7 @@
 \alias{use_grib_model}
 \alias{use_grib_surface}
 \alias{use_grib_meanSea}
+\alias{use_grib_stepRange}
 \title{Set options for grib files}
 \usage{
 grib_opts(
@@ -22,12 +24,15 @@ grib_opts(
   multi = FALSE,
   param_find = NULL,
   level_find = NULL,
+  step_find = NULL,
   ...
 )
 
 use_grib_key(key, value)
 
 use_grib_indicatorOfParameter(value)
+
+use_grib_parameterNumber(value)
 
 use_grib_paramId(value)
 
@@ -50,6 +55,8 @@ use_grib_model(level = -999)
 use_grib_surface()
 
 use_grib_meanSea()
+
+use_grib_stepRange(value)
 }
 \arguments{
 \item{meta}{Logical. Whether to read metadata}
@@ -67,6 +74,14 @@ grib files. Each element of the named list is a list with names "key",
 level, "value" is the value of the grib key and "level" is the value of the
 level. Set level = -999 to select all available levels. The default is
 NULL, which means to attempt to automatically find the level.}
+
+\item{step_find}{A named list with names being the parameters to find in the
+grib files. Each element of the named list is a list with names "key",
+"value" and "level". Here "key" is the grib key to be used to find the
+step, "value" is the value of the grib key. \code{step_find} would typically
+be used to find the filter the data by the stepRange grib key - the
+helper function \code{use_grib_stepRange()} will automatically use the
+stepRange key.}
 
 \item{...}{Any other options that may exist in future Rgrib2 versions.}
 }
