@@ -80,7 +80,7 @@ interpolate_opts <- function(
 
   if (missing(stations)) {
     message("No stations specified. Using default stations: 'station_list'")
-    stations = get("station_list")
+    stations = harpCore::station_list
   }
 
   stopifnot(is.data.frame(stations))
