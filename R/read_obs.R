@@ -16,7 +16,7 @@
 #' @param parameter The names of the parameters to read. By default this is
 #'   NULL, meaning that all parameters are read from the observations files.
 #' @param param_defs A list of parameter definitions that includes the file
-#'   format to be read. By default the built in list \code{\link{harp_parmams}}
+#'   format to be read. By default the built in list \code{\link{harp_params}}
 #'   is used. Modifications and additions to this list can be made using
 #'   \code{\link{modify_param_def}} and \code{\link{add_param_def}}
 #'   respectively.
@@ -73,7 +73,6 @@
 #'   observations.
 #' @export
 #'
-#' @examples
 read_obs <- function(
   dttm,
   parameter,

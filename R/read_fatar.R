@@ -70,11 +70,11 @@ read_fatar <- function(file_name,
     }
     fafile <- Rfa::FAopen(filelist[[fcfile]])
     # pass format_opts to read_fa (ldt_template will just be ignored)
-    harpIO:::read_fa(fafile,
-                     parameter=parameter,
-                     lead_time=ldt,
-                     format_opts=format_opts,
-                     ...)
+    read_fa(fafile,
+            parameter=parameter,
+            lead_time=ldt,
+            format_opts=format_opts,
+            ...)
   }
 
   result <- purrr::map_dfr(lead_time, ffun, filelist)

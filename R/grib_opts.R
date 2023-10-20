@@ -134,6 +134,9 @@ grib_opts <- function(
 
 }
 
+#' @param key A grib key
+#' @param value The value of the grib key to use
+#'
 #' @rdname grib_opts
 #' @export
 #' @examples
@@ -181,6 +184,7 @@ use_grib_shortName = function(value) {
   use_grib_key("shortName", value)
 }
 
+#' @param level The grib level to use.
 #' @rdname grib_opts
 #' @export
 use_grib_key_level <- function(key, value, level = -999) {

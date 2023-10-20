@@ -15,7 +15,7 @@
 #'@param parameter Parameters to extract from the file. If missing or NULL, all
 #'  parameters are extracted from the file.
 #'@param param_defs A list of parameter definitions that includes the file
-#'  format to be read. By default the built in list \code{\link{harp_parmams}}
+#'  format to be read. By default the built in list \code{\link{harp_params}}
 #'  is used. Modifications and additions to this list can be made using
 #'  \code{\link{modify_param_def}} and \code{\link{add_param_def}} respectively.
 #'@param dttm The date times to extract from the file. If NULL, all date times
@@ -36,7 +36,6 @@
 #'  in temp.}
 #'@export
 #'
-#' @examples
 read_obs_file <- function(
   file_name,
   parameter,

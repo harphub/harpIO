@@ -158,7 +158,10 @@ default interpolation method is bilinear interpolation.
 interpolate_opts()
 if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
   new_domain = read_grid(
-    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+    system.file(
+      "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+      package = "harpData"
+    ),
     parameter = "T2m"
   )
   regrid_opts(new_domain = new_domain)

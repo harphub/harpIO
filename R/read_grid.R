@@ -31,7 +31,7 @@
 #'   \code{\link{interpolate_opts}}, \code{\link{regrid_opts}} or
 #'   \code{\link{xsection_opts}}.
 #' @param param_defs A list of parameter definitions that includes the file
-#'   format to be read. By default the built in list \code{\link{harp_parmams}}
+#'   format to be read. By default the built in list \code{\link{harp_params}}
 #'   is used. Modifications and additions to this list can be made using
 #'   \code{\link{modify_param_def}} and \code{\link{add_param_def}}
 #'   respectively.
@@ -41,6 +41,8 @@
 #'   when set to FALSE.
 #' @param readable_times When \code{data_frame = TRUE}, whether to convert times
 #'   in unix format to a data-time format. The default is TRUE.
+#' @param spread_members When \code{data_frame = TRUE}, whether to spread the
+#'   members into a column for each member.
 #' @param ... All arguments passed to the specified reader function.
 #'
 #' @return A geofield or (possibly) a plain  matrix.
@@ -49,15 +51,24 @@
 #' @examples
 #' if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
 #'   read_grid(
-#'     system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+#'     system.file(
+#'       "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+#'       package = "harpData"
+#'     ),
 #'     parameter = "T2m"
 #'   )
 #'   read_grid(
-#'     system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
-#'     parameter = "RH2m"
+#'     system.file(
+#'       "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+#'        package = "harpData"
+#'     ),
+#'     parameter = "S10m"
 #'   )
 #'   read_grid(
-#'     system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+#'     system.file(
+#'       "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+#'        package = "harpData"
+#'     ),
 #'     parameter = "tcc"
 #'   )
 #' }

@@ -1,13 +1,12 @@
-#' Title
-#'
-#' @param .df
-#' @param level_definitions
-#' @param psfc_col
-#'
-#' @return
-#' @export
-#'
-#' @examples
+# This function needs more work before it can be exported
+# #' Title
+# #'
+# #' @param .df
+# #' @param level_definitions
+# #' @param psfc_col
+# #'
+# #' @return
+# #' @export
 hybrid_to_pressure <- function(
   .df,
   level_definitions,
@@ -23,7 +22,7 @@ hybrid_to_pressure <- function(
   UseMethod("hybrid_to_pressure")
 }
 
-#' @export
+# #' @export
 hybrid_to_pressure.data.frame <- function(
   .df,
   level_definitions,
@@ -51,7 +50,7 @@ hybrid_to_pressure.data.frame <- function(
   )
 }
 
-#' @export
+# #' @export
 hybrid_to_pressure.harp_xs_df <- function(
   .df,
   level_definitions,
@@ -77,24 +76,25 @@ hybrid_to_pressure.harp_xs_df <- function(
   )
 }
 
-#' Title
-#'
-#' @param .df
-#'
-#' @return
-#' @export
-#'
-#' @examples
+# This function needs more work before it can be exported
+# #' Title
+# #'
+# #' @param .df
+# #'
+# #' @return
+# #' @export
+# #'
+# #' @examples
 xs_to_regular_pressure_levels <- function(.df) {
   UseMethod("xs_to_regular_pressure_levels")
 }
 
-#' @export
+# #' @export
 xs_to_regular_pressure_levels.data.frame <- function(.df) {
 
   res <- dplyr::group_by(.df, .data[["distance"]]) %>%
     dplyr::summarize(mm = min(diff(.data[["pressure"]]))) %>%
-    dplyr::pull(mm) %>%
+    dplyr::pull(dplyr::all_of("mm")) %>%
     min()
 
   res <- floor(res)
@@ -109,7 +109,7 @@ xs_to_regular_pressure_levels.data.frame <- function(.df) {
 
 }
 
-#' @export
+# #' @export
 xs_to_regular_pressure_levels.harp_xs_df <- function(.df) {
   dplyr::mutate(
     .df,
@@ -129,20 +129,21 @@ p_to_even_p <- function(p, val, res) {
   )
 }
 
-#' Title
-#'
-#' @param .df
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
+# This function needs more work before it can be exported
+# #' Title
+# #'
+# #' @param .df
+# #' @param ...
+# #'
+# #' @return
+# #' @export
+# #'
+# #' @examples
 psfc_to_polygon <- function(.df, ...) {
   UseMethod("psfc_to_polygon")
 }
 
-#' @export
+# #' @export
 psfc_to_polygon.data.frame <- function(.df, xs_int) {
 
   xs <- dplyr::filter(.df, .data[["level"]] == min(.data[["level"]])) %>%
@@ -166,7 +167,7 @@ psfc_to_polygon.data.frame <- function(.df, xs_int) {
     )
 }
 
-#' @export
+# #' @export
 psfc_to_polygon.harp_xs_df <- function(.df, ...) {
   dplyr::mutate(
     .df,

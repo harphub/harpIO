@@ -1,17 +1,18 @@
-#' Title
-#'
-#' @param xsection
-#' @param psfc_param
-#' @param file_path
-#' @param file_template
-#' @param file_format
-#' @param file_format_opts
-#' @param show_progress
-#'
-#' @return
-#' @export
-#'
-#' @examples
+# This function needs more work before it can be exported
+# #' Title
+# #'
+# #' @param xsection
+# #' @param psfc_param
+# #' @param file_path
+# #' @param file_template
+# #' @param file_format
+# #' @param file_format_opts
+# #' @param show_progress
+# #'
+# #' @return
+# #' @export
+# #'
+# #' @examples
 join_psfc_to_xsection <- function(
   xsection,
   psfc_param       = "ps",
@@ -25,7 +26,7 @@ join_psfc_to_xsection <- function(
   UseMethod("join_psfc_to_xsection")
 }
 
-#' @export
+# #' @export
 join_psfc_to_xsection.harp_xs_df <- function(
   xsection,
   psfc_param       = "ps",
@@ -42,7 +43,7 @@ join_psfc_to_xsection.harp_xs_df <- function(
   members <- NULL
 
   if (length(grep("_mbr[[:digit:]]{3}", colnames(xsection))) > 0) {
-    xsection <- harpPoint::gather_members(xsection)
+    xsection <- harpCore::pivot_members(xsection)
     members <- unique(as.numeric(gsub("[[:alpha:]]", "", xsection$member)))
   }
 
@@ -90,7 +91,7 @@ join_psfc_to_xsection.harp_xs_df <- function(
     )
 
   if (!is.null(members)) {
-    psfc <- harpPoint::gather_members(psfc)
+    psfc <- harpCore::pivot_members(psfc)
   }
 
   xsection_col <- colnames(xsection)[sapply(
@@ -142,7 +143,7 @@ join_psfc_to_xsection.harp_xs_df <- function(
 
 }
 
-#' @export
+# #' @export
 join_psfc_to_xsection.harp_fcst <- function(
   xsection,
   psfc_param       = "ps",

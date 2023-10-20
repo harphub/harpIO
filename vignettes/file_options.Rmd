@@ -224,7 +224,7 @@ Netcdf files are becoming increasingly used in meteorology and climatology. Each
 
 We can use a netcdf file from the {harpData} package to show how `netcdf_opts()` works. 
 
-```{r nc-file, eval = FALSE}
+```{r nc-file, eval = TRUE}
 nc_file <- system.file(
   "netcdf/AAEPS/fc2018071000.nc", 
   package = "harpData"
@@ -232,7 +232,7 @@ nc_file <- system.file(
 ```
 
 ```{r nc-file-hidden, echo = FALSE}
-nc_file <- "fc2018071000.nc"
+#nc_file <- "fc2018071000.nc"
 ```
 
 Then we can open a connection to the file using the {ncdf4} package to get a summary of the contents of the file.
@@ -350,8 +350,7 @@ template <- paste0(
   "{fcst_model}_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
 )
 read_forecast(
-  2021030100, 
-  2021030118,
+  seq_dttm(2021030100, 2021030118, "6h"),
   fcst_model       = "arome_arctic",
   parameter        = "T2m",
   by               = "6h",
@@ -373,8 +372,7 @@ template <- paste0(
   "{fcst_model}_extracted_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
 )
 read_forecast(
-  2021030100, 
-  2021030118,
+  seq_dttm(2021030100, 2021030118, "6h"),
   fcst_model       = "arome_arctic",
   parameter        = "T2m",
   by               = "6h",
@@ -415,7 +413,7 @@ read_grid(
   select(-ends_with("dttm"))
 ```
 
-We also have to pass the `vertical_coordinate = "model"` to get the correct name in the  `level_type` coloumn in the data frame of the output. 
+We also have to pass the `vertical_coordinate = "model"` to get the correct name in the  `level_type` column in the data frame of the output. 
 
 Note that for variables with a singleton z dimension, any name can be given for _z_var_ as long as it exists as a dimension in the file. Furthermore, if there are many different dimensions with names such as "height0", "height1", "height2" etc. the number doesn't have to match. This means that you do not have to modify _z_var_ so much. 
 

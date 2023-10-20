@@ -31,10 +31,6 @@
 #' @param merge_lags A logical that, if set to TRUE (the default), lagged
 #'   ensemble members will be shifted in time and joined to the parent forecast
 #'   as derived from \code{start_date} and \code{by}.
-#' @param by Used in constructing the file names. A string of a number followed
-#'   by a letter (the default is "6h"), where the letter can be "d" for days,
-#'   "h" for hours, "m" for minutes and "s" for seconds. Should be set to the
-#'   fastest varying time dimension in the desired file names.
 #' @param file_path The path to the data.
 #' @param file_template The template for the file names of the files to be read
 #'   from. This would normally be one of the "fctable_*" templates that can be
@@ -212,6 +208,7 @@ read_point_forecast <- function(
   by                  = "6h"
 ) {
 
+  utils::globalVariables(".")
   use_dttm <- TRUE
   if (missing(dttm)) {
     if (any(sapply(list(start_date, end_date, by), is.null))) {

@@ -42,7 +42,6 @@ Then we are going to read in the AROME_Arctic data for 10m wind speed (S10m) add
 ```{r interp1, message = FALSE}
 read_forecast(
   2018071000,
-  2018071000,
   "AROME_Arctic",
   "S10m",
   transformation = "interpolate",
@@ -87,7 +86,6 @@ my_options <- interpolate_opts(
 
 t2m <- read_forecast(
   2018071000,
-  2018071000,
   "AROME_Arctic",
   "T2m",
   transformation      = "interpolate",
@@ -108,17 +106,17 @@ select(t2m, SID, lead_time, parameter, fcst)
 As you will see the uncorrected temperatures are higher as we set artificially high elevations for the elevation in my_stations. 
 
 ## Regrid
-Regridding is done in much the same way as interpolating to points, except you set `transformation = "regrid"` and the options are generated using `regrid_opts()`. Unlike for interpolation `transformation_opts` must be set other `read_forecast()` won't know what grid to which to regrid the data. The most important argument to `regrid_opts()` is `new_domain`. This defines the domain that to which the data will be regridded. It must be a "geofield" or "geodomain" object - all gridded data read in by `read_forecast()` or `read_grid()` are automatically coerced into geofields, or a geodomain can be defined using [meteogrid's](https://github.com/harphub/meteogrid) `Make.domain()` function. 
+Regridding is done in much the same way as interpolating to points, except you set `transformation = "regrid"` and the options are generated using `regrid_opts()`. Unlike for interpolation `transformation_opts` must be set other `read_forecast()` won't know what grid to which to regrid the data. The most important argument to `regrid_opts()` is `new_domain`. This defines the domain that to which the data will be regridded. It must be a "geofield" or "geodomain" object - all gridded data read in by `read_forecast()` or `read_grid()` are automatically coerced into geofields, or a geodomain can be defined using [harpCore's](https://github.com/harphub/harpCore) `define_domain()` function. 
 
 We will demonstrate regridding by making a domain with 10km resolution based on the AROME_Arctic domain.
 ```{r regrid1}
 library(meteogrid)
 
-my_domain <- Make.domain(
-  "lambert",
-  clonlat = c(15.57905, 78.21638),
-  nxny    = c(15, 15),
-  dxdy    = c(10000, 10000),
+my_domain <- define_domain(
+  centre_lon = 15.57905,
+  centre_lat = 78.21638,
+  nxny    = 15,
+  dxdy    = 10000,
   reflat  = 77.5,
   reflon  = -25
 )
@@ -130,7 +128,6 @@ In the above, `keep_raw_data = TRUE`, which means that both the original fields 
 
 ```{r regrid2, message=FALSE}
 s10m <- read_forecast(
-  2018071000,
   2018071000,
   "AROME_Arctic",
   "S10m",

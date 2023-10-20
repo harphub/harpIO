@@ -46,7 +46,6 @@ library(harpIO)
 
 ```{r aa_grib, message=FALSE}
 read_forecast(
-  2018071000, 
   2018071000,
   "AROME_Arctic",
   "T2m",
@@ -64,7 +63,6 @@ Reading ensemble forecasts works in exactly the same way. harpData includes outp
 ```{r aaeps_nc}
 read_forecast(
   2018071000,
-  2018071000,
   "AAEPS",
   "T2m",
   file_path        = system.file("netcdf/AAEPS", package = "harpData"),
@@ -78,7 +76,6 @@ You will see that there is a warning about missing lead times. This is because t
 
 ```{r aaeps_nc_mem}
 read_forecast(
-  2018071000,
   2018071000,
   "AAEPS",
   "T2m",
@@ -96,8 +93,7 @@ For lagged ensembles, data are available in harpData for the CMEPS model in `vfl
 
 ```{r cmeps_vfld, message=FALSE}
 read_forecast(
-  2019021700, 
-  2019021718,
+  seq_dttm(2019021700, 2019021718, "6h"),
   "CMEPS_prod",
   "T2m",
   lead_time     = seq(0, 12, 3),
@@ -109,7 +105,7 @@ read_forecast(
 )
 ```
 
-You will see that a number of members have NA - this is beacues certain combinations of forecast time and lead time do not exist for those members. When data are in read in from SQLite files using `read_point_forecast()` this information is adjusted to take care of the lagged members. When working with point data, the most efficient workflow is to use `read_forecast()` to write the data to \code{SQLite} files and then read from the \code{SQLite} files. 
+You will see that a number of members have NA - this is because certain combinations of forecast time and lead time do not exist for those members. When data are in read in from SQLite files using `read_point_forecast()` this information is adjusted to take care of the lagged members. When working with point data, the most efficient workflow is to use `read_forecast()` to write the data to \code{SQLite} files and then read from the \code{SQLite} files. 
 
 ### See also
 [Transforming forecast model data](transformations.html)

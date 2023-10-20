@@ -16,22 +16,21 @@
 #' @param .fcst A harp_fcst list or a harp_spatial_fcst data frame.
 #' @param accum_time The time over which to compute the accumulation. Must be in
 #'   the same units as the lead_time column.
-#' @param .fcst_name Not to be set by the user, but used for consistency between
-#'   classes.
 #' @param ... Further arguments passed to or from methods.
 #'
 #' @return An object of the same class as .fcst with the accumulations computed.
 #'   Rows for lead times for which it is not possible to compute the
 #'   accumulation are dropped.
 #' @export
-#'
-#' @examples
 accumulate <- function(.fcst, accum_time, ...) {
   UseMethod("accumulate")
 }
 
+#' @rdname accumulate
+#' @param .fcst_name Not to be set by the user, but used for consistency between
+#'   classes.
 #' @export
-accumulate.harp_spatial_fcst <- function(.fcst, accum_time, .fcst_name = "") {
+accumulate.harp_spatial_fcst <- function(.fcst, accum_time, .fcst_name = "", ...) {
 
   # Find forecast columns
   fcst_cols <- grep("_mbr[[:digit:]]+|_det$", colnames(.fcst))

@@ -13,6 +13,11 @@ bind_fcst(.fcst)
 A data frame
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+This function was deprecated due to class definition changes. Use
+\code{\link[harpCore]{bind}} instead.
+}
+\details{
 Given a harp_fcst list, \code{bind_fcst} binds the data frames in the
 harp_fcst list into a single data frame for easy plotting. For ensemble
 forecasts, the member data are gathered into a single column.

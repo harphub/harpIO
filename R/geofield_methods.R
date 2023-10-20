@@ -17,7 +17,7 @@
 #' ) {
 #'   geo <- read_grid(
 #'     system.file(
-#'       "grib/HARMUK20171015T12Z+003.grib",
+#'       "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
 #'       package = "harpData"
 #'     ),
 #'     "T2m"

@@ -1,8 +1,6 @@
 #' Read deterministic forecast files and interpolate to stations.
 #'
-#' @description
 #' `r lifecycle::badge("deprecated")`
-#'
 #' This function was deprecated as \link{read_forecast} is much more flexible.
 #'
 #' @keywords internal
@@ -16,7 +14,7 @@
 #' @param parameter The parameters to read as a character vector. For reading
 #'   from vfld files, set to NULL to read all parameters, or set
 #'   \code{veritcal_coordinate = NA} to only read surface parameters. See
-#'   \code{\link{show_harp_parameters}} to get the possible parameters.
+#'   \code{show_harp_parameters} to get the possible parameters.
 #' @param lead_time The lead times to read as a numeric vector.
 #' @param by The time between forecasts. Should be a string of a number followed
 #'   by a letter (the defualt is "6h"), where the letter gives the units - may
@@ -114,7 +112,7 @@ read_det_interpolate <- function(
   ...
 ) {
 
-  lifecycle::deprecate_warn(
+  lifecycle::deprecate_stop(
     "0.1.0",
     "read_det_interpolate()",
     "read_forecast()"

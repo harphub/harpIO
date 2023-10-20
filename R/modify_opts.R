@@ -14,7 +14,7 @@
 #'   found in \code{opts} will be added to \code{opts}. The default is FALSE and
 #'   will give a warning for each option not found in \code{opts}
 #'
-#' @return
+#' @return The input options list with modified options
 #' @export
 #'
 #' @examples

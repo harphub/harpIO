@@ -84,6 +84,12 @@ helper function \code{use_grib_stepRange()} will automatically use the
 stepRange key.}
 
 \item{...}{Any other options that may exist in future Rgrib2 versions.}
+
+\item{key}{A grib key}
+
+\item{value}{The value of the grib key to use}
+
+\item{level}{The grib level to use.}
 }
 \value{
 A list of options for reading grib files.

@@ -1,12 +1,12 @@
-#' Parameters for vobs and vfld files
-#'
-#' Internal function to convert parameter names from vobs or vfld files into
-#' harp format parameters. Use parse_v_parameter_synop for SYNOP parameters and
-#' parse_v_parameter_temp for TEMP parameters.
-#' @param v_parameter vobs or vfld parameter
-#' @param param_type type of parameter - "SYNOP" or "TEMP"
-#' @return A list with the harp paramater name and the units of the parameter.
-#'
+# #' Parameters for vobs and vfld files
+# #'
+# #' Internal function to convert parameter names from vobs or vfld files into
+# #' harp format parameters. Use parse_v_parameter_synop for SYNOP parameters and
+# #' parse_v_parameter_temp for TEMP parameters.
+# #' @param v_parameter vobs or vfld parameter
+# #' @param param_type type of parameter - "SYNOP" or "TEMP"
+# #' @return A list with the harp paramater name and the units of the parameter.
+# #'
 parse_v_parameter <- function(
   v_parameter, param_type, param_defs = get("harp_params")
 ) {

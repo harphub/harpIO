@@ -1,8 +1,6 @@
 #' Read ensemble forecast files and interpolate to stations.
 #'
-#' @description
 #' `r lifecycle::badge("deprecated")`
-#'
 #' This function was deprecated as \link{read_forecast} is much more flexible.
 #'
 #' @param start_date Date of the first forecast to be read in. Should be in
@@ -14,7 +12,7 @@
 #' @param parameter he parameters to read as a character vector. For reading
 #'   from vfld files, set to NULL to read all parameters, or set
 #'   \code{veritcal_coordinate = NA} to only read surface parameters. See
-#'   \code{\link{show_harp_parameters}} to get the possible parameters.
+#'   \code{show_harp_parameters} to get the possible parameters.
 #' @param lead_time The lead times to read as a numeric vector.
 #' @param members_in The input member numbers. If only one EPS is set in
 #'   \code{eps_model} then this is a vector. If more than one EPS is set in
@@ -133,7 +131,7 @@ read_eps_interpolate <- function(
   ...
 ){
 
-  lifecycle::deprecate_warn(
+  lifecycle::deprecate_stop(
     "0.1.0",
     "read_eps_interpolate()",
     "read_forecast()"

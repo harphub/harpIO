@@ -105,11 +105,6 @@ name to be used in the file name set to TRUE.}
 \code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
 with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 spaced date-times.}
-
-\item{by}{Used in constructing the file names. A string of a number followed
-by a letter (the default is "6h"), where the letter can be "d" for days,
-"h" for hours, "m" for minutes and "s" for seconds. Should be set to the
-fastest varying time dimension in the desired file names.}
 }
 \value{
 A list with an element for each forecast model, or in the case of a

@@ -44,7 +44,7 @@ vector if more than one model is wanted.}
 \item{parameter}{The parameters to read as a character vector. For reading
 from vfld files, set to NULL to read all parameters, or set
 \code{veritcal_coordinate = NA} to only read surface parameters. See
-\code{\link{show_harp_parameters}} to get the possible parameters.}
+\code{show_harp_parameters} to get the possible parameters.}
 
 \item{lead_time}{The lead times to read as a numeric vector.}
 
@@ -137,7 +137,6 @@ member, SID, lat, lon, \if{html}{\out{<parameter>}}.
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
-
 This function was deprecated as \link{read_forecast} is much more flexible.
 }
 \keyword{internal}

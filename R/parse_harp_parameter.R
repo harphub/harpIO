@@ -4,7 +4,7 @@
 #' any) and the base name of the parameter
 #'
 #' @param param Parameter name - available names can be found from
-#'   \link{show_harp_parameters}.
+#'   \link{show_param_defs}.
 #' @param vertical_coordinate If the parameter is for the upper air, the
 #'   vertical coordinate system must be given. Can be "pressure" for pressure
 #'   levels, "model" for model levels or "height" for altitude levels.

@@ -1,5 +1,8 @@
 #' Compute the ensemble mean and variance
 #'
+#' `r lifecycle::badge("deprecated")`
+#' This function is replaced by \code{\link[harpCore]{ens_stats}}
+#'
 #' The ensemble mean and variance are computed and added as columns to tables in
 #' a \code{harp_fcst} object.
 #'
@@ -20,11 +23,15 @@
 #'   the forecast tables.
 #' @export
 #'
-#' @examples
 ens_mean_and_var <- function(
   .fcst, mean_name = "ens_mean", var_name = "ens_var", sd_name = "ens_spread",
   var_drop_member = NULL
 ) {
+  lifecycle::deprecate_stop(
+    "0.1.0",
+    "ens_mean_and_var()",
+    "ens_stats()"
+  )
   UseMethod("ens_mean_and_var")
 }
 
@@ -59,20 +66,20 @@ ens_mean_and_var.default <- function(
 
   .fcst <- dplyr::mutate(
     .fcst,
-    !!mean_name := rowMeans(member_data),
-    !!var_name  := matrixStats::rowVars(as.matrix(member_data)),
-    !!sd_name   := sqrt(!!var_name)
+    !!mean_name := rowMeans(member_data)#,
+    #!!var_name  := matrixStats::rowVars(as.matrix(member_data)),
+    #!!sd_name   := sqrt(!!var_name)
   )
 
   if (!is.null(var_drop_member)) {
     dm_var_name <- rlang::sym(paste0("dropped_members_", var_name))
     dm_sd_name <- rlang::sym(paste0("dropped_members_", sd_name))
     .fcst <- dplyr::mutate(
-      .fcst,
-      !!dm_var_name := matrixStats::rowVars(
-        as.matrix(dplyr::select(member_data, -dplyr::matches(drop_members)))
-      ),
-      !!dm_sd_name  := sqrt(!!dm_var_name)
+      .fcst#,
+      #!!dm_var_name := matrixStats::rowVars(
+      #  as.matrix(dplyr::select(member_data, -dplyr::matches(drop_members)))
+      #),
+      #!!dm_sd_name  := sqrt(!!dm_var_name)
     )
   }
 

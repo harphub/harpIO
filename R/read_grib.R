@@ -358,7 +358,7 @@ filter_grib_info <- function(
 
           if (
             !any(level_find[["value"]] %in% single_surfaces) &&
-              level_find[["level"]] != -999
+              all(level_find[["level"]] != -999)
           ) {
             grib_info_f <- dplyr::filter(
               grib_info_f, .data[["level"]] %in% level_find[["level"]]

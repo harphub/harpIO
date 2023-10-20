@@ -78,15 +78,3 @@ temp observations.
 
 This function was deprecated as \link{read_obs} is much more flexible.
 }
-\examples{
-if (requireNamespace("harpData", quietly = TRUE)) {
-  read_obs_convert(
-    start_date  = 2019021700,
-    end_date    = 2019022023,
-    by          = "1h",
-    obs_path    = system.file("vobs", package = "harpData"),
-    return_data = TRUE
-  )
-}
-
-}

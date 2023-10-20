@@ -67,7 +67,7 @@ If set to NULL all members will be read.}
 \code{\link{xsection_opts}}.}
 
 \item{param_defs}{A list of parameter definitions that includes the file
-format to be read. By default the built in list \code{\link{harp_parmams}}
+format to be read. By default the built in list \code{\link{harp_params}}
 is used. Modifications and additions to this list can be made using
 \code{\link{modify_param_def}} and \code{\link{add_param_def}}
 respectively.}
@@ -81,6 +81,9 @@ when set to FALSE.}
 \item{readable_times}{When \code{data_frame = TRUE}, whether to convert times
 in unix format to a data-time format. The default is TRUE.}
 
+\item{spread_members}{When \code{data_frame = TRUE}, whether to spread the
+members into a column for each member.}
+
 \item{...}{All arguments passed to the specified reader function.}
 }
 \value{
@@ -93,15 +96,24 @@ transformation can optionally be applied to those data.
 \examples{
 if (requireNamespace("Rgrib2", quietly = TRUE) & requireNamespace("harpData", quietly = TRUE)) {
   read_grid(
-    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+    system.file(
+      "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+      package = "harpData"
+    ),
     parameter = "T2m"
   )
   read_grid(
-    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
-    parameter = "RH2m"
+    system.file(
+      "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+       package = "harpData"
+    ),
+    parameter = "S10m"
   )
   read_grid(
-    system.file("grib/HARMUK20171015T12Z+003.grib", package = "harpData"),
+    system.file(
+      "grib/AROME_Arctic/2018/07/10/00/fc2018071000+000grib_fp",
+       package = "harpData"
+    ),
     parameter = "tcc"
   )
 }

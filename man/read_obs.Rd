@@ -33,7 +33,7 @@ character. A vector of date-times can be generated using
 NULL, meaning that all parameters are read from the observations files.}
 
 \item{param_defs}{A list of parameter definitions that includes the file
-format to be read. By default the built in list \code{\link{harp_parmams}}
+format to be read. By default the built in list \code{\link{harp_params}}
 is used. Modifications and additions to this list can be made using
 \code{\link{modify_param_def}} and \code{\link{add_param_def}}
 respectively.}

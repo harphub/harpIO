@@ -2,9 +2,12 @@
 % Please edit documentation in R/accumulate.R
 \name{accumulate}
 \alias{accumulate}
+\alias{accumulate.harp_spatial_fcst}
 \title{Compute accumulation between forecast lead times}
 \usage{
 accumulate(.fcst, accum_time, ...)
+
+\method{accumulate}{harp_spatial_fcst}(.fcst, accum_time, .fcst_name = "", ...)
 }
 \arguments{
 \item{.fcst}{A harp_fcst list or a harp_spatial_fcst data frame.}

@@ -36,6 +36,10 @@ A \code{harp_fcst} object with columns ens_mean and ens_var added to
 the forecast tables.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+This function is replaced by \code{\link[harpCore]{ens_stats}}
+}
+\details{
 The ensemble mean and variance are computed and added as columns to tables in
 a \code{harp_fcst} object.
 }
