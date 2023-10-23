@@ -66,20 +66,20 @@ ens_mean_and_var.default <- function(
 
   .fcst <- dplyr::mutate(
     .fcst,
-    !!mean_name := rowMeans(member_data)#,
-    #!!var_name  := matrixStats::rowVars(as.matrix(member_data)),
-    #!!sd_name   := sqrt(!!var_name)
+    !!mean_name := rowMeans(member_data),
+    !!var_name  := matrixStats::rowVars(as.matrix(member_data)),
+    !!sd_name   := sqrt(!!var_name)
   )
 
   if (!is.null(var_drop_member)) {
     dm_var_name <- rlang::sym(paste0("dropped_members_", var_name))
     dm_sd_name <- rlang::sym(paste0("dropped_members_", sd_name))
     .fcst <- dplyr::mutate(
-      .fcst#,
-      #!!dm_var_name := matrixStats::rowVars(
-      #  as.matrix(dplyr::select(member_data, -dplyr::matches(drop_members)))
-      #),
-      #!!dm_sd_name  := sqrt(!!dm_var_name)
+      .fcst,
+      !!dm_var_name := matrixStats::rowVars(
+        as.matrix(dplyr::select(member_data, -dplyr::matches(drop_members)))
+      ),
+      !!dm_sd_name  := sqrt(!!dm_var_name)
     )
   }
 
