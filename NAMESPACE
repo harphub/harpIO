@@ -3,7 +3,7 @@
 S3method(accumulate,harp_fcst)
 S3method(accumulate,harp_spatial_fcst)
 S3method(ens_mean_and_var,default)
-S3method(ens_mean_and_var,harp_fcst)
+S3method(ens_mean_and_var,harp_list)
 S3method(ens_mean_and_var,harp_spatial_fcst)
 S3method(print,harp_analysis)
 S3method(print,harp_fcst)

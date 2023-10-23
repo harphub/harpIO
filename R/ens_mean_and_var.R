@@ -27,7 +27,7 @@ ens_mean_and_var <- function(
   .fcst, mean_name = "ens_mean", var_name = "ens_var", sd_name = "ens_spread",
   var_drop_member = NULL
 ) {
-  lifecycle::deprecate_stop(
+  lifecycle::deprecate_warn(
     "0.1.0",
     "ens_mean_and_var()",
     "ens_stats()"
@@ -116,7 +116,7 @@ ens_mean_and_var.harp_spatial_fcst <- function(
 }
 
 #' @export
-ens_mean_and_var.harp_fcst <- function(
+ens_mean_and_var.harp_list <- function(
   .fcst, mean_name = "ens_mean", var_name = "ens_var",
   sd_name = "ens_spread", var_drop_member = NULL
 ) {
