@@ -208,7 +208,6 @@ read_point_forecast <- function(
   by                  = "6h"
 ) {
 
-  utils::globalVariables(".")
   use_dttm <- TRUE
   if (missing(dttm)) {
     if (any(sapply(list(start_date, end_date, by), is.null))) {
