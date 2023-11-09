@@ -15,8 +15,8 @@
 #'   character vectors for a mutlimodel ensemble.
 #' @param parameter The name of the forecast parameter(s) to read from the
 #'   files. Should either be harp parameter names (see
-#'   \code{\link{show_param_defs}}), or in the case of netcdf files can be
-#'   the name of the parameters in the files. If reading from vfld files, set to
+#'   \code{\link{show_param_defs}}), or in the case of netcdf files can be the
+#'   name of the parameters in the files. If reading from vfld files, set to
 #'   NULL to read all parameters.
 #' @param lead_time The lead times to read in. If a numeric vector is passed,
 #'   the lead times are assumed to be in hours. Otherwise a character vector may
@@ -104,11 +104,11 @@
 #'   problems reading a file. Missing files are always skipped regardless of
 #'   this setting. The default value is FALSE.
 #' @param is_forecast Logical. When TRUE (the default), data are read on the
-#'   basis if the forecast initialization time (from start_date & end_date, or
-#'   date_times) and lead_times. When FALSE the date-times from start_date &
-#'   end_date, or date_times are used to choose what data to read and lead_times
-#'   is ignored. This is useful for analysis data where many dates are in the
-#'   same file. \code{\link{read_analysis}} also provides this functionality.
+#'   basis if the forecast initialization time (from dttm) and lead_times. When
+#'   FALSE the date-times from dttm are used to choose what data to read and
+#'   lead_times is ignored. This is useful for analysis data where many dates
+#'   are in the same file. \code{\link{read_analysis}} also provides this
+#'   functionality.
 #' @param start_date,end_date,by `r lifecycle::badge("deprecated")` The use of
 #'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
 #'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
@@ -359,7 +359,7 @@ read_forecast <- function(
         file_name           = .x,
         parameter           = .y[["parameter"]],
         is_forecast         = is_forecast,
-        date_times          = fcst_dttm,
+        dttm                = fcst_dttm,
         file_format         = unique(.y[["file_format"]]),
         file_format_opts    = file_format_opts,
         vertical_coordinate = vertical_coordinate,

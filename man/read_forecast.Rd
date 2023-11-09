@@ -43,8 +43,8 @@ character vectors for a mutlimodel ensemble.}
 
 \item{parameter}{The name of the forecast parameter(s) to read from the
 files. Should either be harp parameter names (see
-\code{\link{show_param_defs}}), or in the case of netcdf files can be
-the name of the parameters in the files. If reading from vfld files, set to
+\code{\link{show_param_defs}}), or in the case of netcdf files can be the
+name of the parameters in the files. If reading from vfld files, set to
 NULL to read all parameters.}
 
 \item{lead_time}{The lead times to read in. If a numeric vector is passed,
@@ -150,11 +150,11 @@ problems reading a file. Missing files are always skipped regardless of
 this setting. The default value is FALSE.}
 
 \item{is_forecast}{Logical. When TRUE (the default), data are read on the
-basis if the forecast initialization time (from start_date & end_date, or
-date_times) and lead_times. When FALSE the date-times from start_date &
-end_date, or date_times are used to choose what data to read and lead_times
-is ignored. This is useful for analysis data where many dates are in the
-same file. \code{\link{read_analysis}} also provides this functionality.}
+basis if the forecast initialization time (from dttm) and lead_times. When
+FALSE the date-times from dttm are used to choose what data to read and
+lead_times is ignored. This is useful for analysis data where many dates
+are in the same file. \code{\link{read_analysis}} also provides this
+functionality.}
 
 \item{start_date, end_date, by}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The use of
 \code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
