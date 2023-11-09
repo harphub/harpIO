@@ -566,7 +566,7 @@ read_and_transform_netcdf <- function(
     result
   }
 
-  if (first_only) nc_info <- nc_info[1, ]
+  if (first_only && nrow(nc_info) > 0) nc_info <- nc_info[1, ]
 
   if (show_progress) {
     show_progress <- list(

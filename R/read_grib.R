@@ -410,7 +410,9 @@ filter_grib_info <- function(
     }
 
     if (!is.null(opts[["first_only"]]) && opts[["first_only"]]) {
-      grib_info <- grib_info[1, ]
+      if (nrow(grib_info) > 0) {
+        grib_info <- grib_info[1, ]
+      }
     }
     if (!exists("level_type")) {
       level_type <- ""
