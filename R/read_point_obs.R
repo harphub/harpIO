@@ -359,20 +359,29 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
     )
   }
 
-  pcp_AccPcp6h <- pcp_AccPcp6h %>%
-    dplyr::full_join(
-      dplyr::transmute(
-        pcp_AccPcp6h,
-        valid_dttm = .data$valid_dttm + 3600 * 6,
-        .data$SID,
-        .data$lon,
-        .data$lat,
-        .data$elev,
-        .data$units,
-        AccPcp6h_lag = .data$AccPcp6h
-      )
-    ) %>%
-    dplyr::full_join(pcp_AccPcp12h) %>%
+  pcp_AccPcp6h <- dplyr::full_join(
+    pcp_AccPcp6h,
+    dplyr::transmute(
+      pcp_AccPcp6h,
+      valid_dttm = .data$valid_dttm + 3600 * 6,
+      .data$SID,
+      .data$lon,
+      .data$lat,
+      .data$elev,
+      .data$units,
+      AccPcp6h_lag = .data$AccPcp6h
+    ),
+    by = intersect(
+      colnames(pcp_AccPcp6h),
+      c("valid_dttm", "SID", "lon", "lat", "elev", "units")
+    )
+  )
+
+  pcp_AccPcp6h <- dplyr::full_join(
+    pcp_AccPcp6h,
+    pcp_AccPcp12h,
+    by = intersect(colnames(pcp_AccPcp6h), colnames(pcp_AccPcp12h))
+  ) %>%
     dplyr::mutate(
       AccPcp6h = dplyr::case_when(
         is.na(.data$AccPcp6h) ~ (.data$AccPcp12h - .data$AccPcp6h_lag),
@@ -381,7 +390,10 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
     ) %>%
     dplyr::select(-.data$AccPcp6h_lag)
 
-  dplyr::full_join(pcp_data, pcp_AccPcp6h)
+  dplyr::full_join(
+    pcp_data, pcp_AccPcp6h,
+    by = intersect(colnames(pcp_data), colnames(pcp_AccPcp6h))
+  )
 
 }
 
