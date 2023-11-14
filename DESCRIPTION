@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions and data wrangling for harp
-Version: 0.1.1
+Version: 0.0.9
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -17,7 +17,7 @@ LazyData: true
 RoxygenNote: 7.2.3
 Imports: 
     DBI (>= 0.5),
-    dplyr (>= 1.0.0),
+    dplyr (>= 1.1.0),
     glue,
     lubridate,
     magrittr,
@@ -28,7 +28,7 @@ Imports:
     RSQLite,
     stringr,
     tibble,
-    tidyr (>= 1.0.0),
+    tidyr (>= 1.1.0),
     tools,
     utils,
     dbplyr,
