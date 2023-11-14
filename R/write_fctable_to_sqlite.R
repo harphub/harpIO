@@ -16,7 +16,7 @@ write_fctable_to_sqlite <- function(
   data,
   filename,
   tablename         = "FC",
-  primary_key       = c("fcdate", "leadtime", "SID"),
+  primary_key       = c("fcst_dttm", "lead_time", "SID"),
   synchronous       = "off",
   journal_mode      = "delete",
   remove_model_elev = FALSE
@@ -85,7 +85,9 @@ write_fctable_to_sqlite <- function(
   }
 
   data <- dplyr::select_if(data, ~ !all(is.na(.))) %>%
-    dplyr::filter(SID != -999, lat != -999, lon != -999)
+    dplyr::filter(
+      .data[["SID"]] != -999, .data[["lat"]] != -999, .data[["lon"]] != -999
+    )
 
   primary_key <- intersect(primary_key, colnames(data))
 
@@ -151,10 +153,10 @@ member_elev_diff <- function(df) {
   }
 
   num_elevs <- dplyr::group_by(
-    df, .data[["fcdate"]], .data[["leadtime"]], .data[["SID"]]
+    df, .data[["fcst_dttm"]], .data[["lead_time"]], .data[["SID"]]
   ) %>%
     dplyr::summarise(ll = length(unique(.data[["model_elevation"]]))) %>%
-    dplyr::pull(ll)
+    dplyr::pull(dplyr::all_of("ll"))
 
   any(num_elevs > 1)
 }

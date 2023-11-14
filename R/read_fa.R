@@ -1,10 +1,12 @@
-# Set options for FA decoding
+#' Set options for FA decoding
+#'
 #' @param fa_type The kind of model file: "arome", "alaro", "surfex"... Mainly important for precipitation fields.
 #' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components U & V
 #' @param rotate_wind TRUE means wind U,V (along axes of the grid) should be rotated to actual N.
 #' @param meta If TRUE, the time and grid details are also decoded. This is slower.
 #' @param ... Any non-standard options that don't have default values.
-#' @result Returns a list of options. Either the defaults or any modification.
+#' @return Returns a list of options. Either the defaults or any modification.
+#' @export
 fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE, ...) {
   list(meta=meta, fa_type=fa_type, fa_vector=fa_vector, rotate_wind=rotate_wind, ...)
 }
@@ -36,7 +38,7 @@ fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE
 
 # @param format_opts Extra options for reading FA files. See fa_opts() for details.
 # @param show_progress Verbosity. Ignored.
-#' @param ... Ignored
+# @param ... Ignored
 # @return A data frame with columns of metadata taken from the file and a list
 #   column of the gridded and / or transformed data.
 #
@@ -50,7 +52,7 @@ read_fa <- function(file_name,
                     transformation="none",
                     transformation_opts=list(),
                     format_opts=fa_opts(),
-                    show_progress=FALSE) {
+                    show_progress=FALSE, ...) {
   # TODO: if meta==TRUE, just return a simple array, no geofield or attributes
   # ?accumulated fields?
   # wind rotation, maybe with pre-calculated angle...
@@ -153,18 +155,19 @@ read_fa <- function(file_name,
 
     result <- transform_geofield(result, transformation, opts)
 
-    if (show_progress) pb$tick()
-
     result
 
   }
 
   if (show_progress) {
-    pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(fa_info))
+    show_progress <- list(
+      name = cli::col_yellow("Reading fa file"),
+      show_after = 1
+    )
   }
 
   # create a data.frame with 1 row per parameter
-  fa_data <- purrr::map_dfr(
+  fa_data <- purrr::map(
     1:length(fa_info),
     read_and_transform_fa,
     fafile,
@@ -172,8 +175,9 @@ read_fa <- function(file_name,
     format_opts,
     transformation,
     transformation_opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
   attr(fa_data, "transformation_opts") <- transformation_opts
 
@@ -181,6 +185,9 @@ read_fa <- function(file_name,
 
 }
 
+get_domain_fa <- function(file_name, opts) {
+  Rfa::FAdomain(Rfa::FAframe(Rfa::FAread_meta(filename=file_name)))
+}
 
 # ALARO doesn't write Tdew, so we calculate it from RH and T
 #' Standard Magnus formula for dewpoint temperature

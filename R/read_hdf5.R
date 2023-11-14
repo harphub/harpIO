@@ -24,6 +24,7 @@ get_hdf5_param_info <- function(param) {
                      "v"   = list(quantity="VWIND", units="m/s"),
                      "s"   = list(quantity="ff", units="mm"),
                      "d"   = list(quantity="dd", units=""),
+                     "ref" = list(quantity="DBHZ", units="dBZ"),
                      list(quantity="unknown", units="unknown"))
   result
 }
@@ -44,7 +45,8 @@ read_hdf5 <- function(
       transformation      = "none",
       transformation_opts = list(),
       format_opts         = hdf5_opts(),
-      show_progress       = FALSE) {
+      show_progress       = FALSE,
+      ...) {
 
   if (!requireNamespace("hdf5r", quietly = TRUE)) {
     stop(
@@ -102,7 +104,7 @@ read_hdf5 <- function(
 #                     gdata <- Hdec(file_name, format_opts$data_path)
 
   hdf5_info <- Hopen(file_name)
-  # We get a tibble with validdate, parameter, data_path, 
+  # We get a tibble with validdate, parameter, data_path,
   # now we select only those rows that we want to decode
   # for now, we make this very, very simple
   # but that won't last...
@@ -138,23 +140,25 @@ read_hdf5 <- function(
 #      level_type   = prm_list[[row_num]]$level_type,
 #      level        = prm_list[[row_num]]$level,
 #      units        = prm_list[[row_num]]$units,
-      gridded_data = list(Hdec(hdf5file, prm_list$data_path[row_num], 
+      gridded_data = list(Hdec(hdf5file, prm_list$data_path[row_num],
                                odim=format_opts$odim, meta=format_opts$meta))
     )
 
     result <- transform_geofield(result, transformation, transformation_opts)
 # FIXME: to have a geofield output, I need to extract domain info every time again
-    if (show_progress) pb$tick()
 
     result
   }
 
   if (show_progress) {
-    pb <- progress::progress_bar$new(format = "[:bar] :percent eta: :eta", total = nrow(fa_info))
+    show_progress <- list(
+      name = "Reading hdf5 file",
+      show_after = 1
+    )
   }
 
   # create a data.frame with 1 row per parameter
-  hdf5_data <- purrr::map_dfr(
+  hdf5_data <- purrr::map(
     1:nrow(hdf5_info),
     read_and_transform_hdf5,
     file_name,
@@ -162,8 +166,9 @@ read_hdf5 <- function(
     format_opts,
     transformation,
     transformation_opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
   attr(hdf5_data, "transformation_opts") <- transformation_opts
 

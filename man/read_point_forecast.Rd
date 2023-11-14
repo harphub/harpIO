@@ -5,15 +5,13 @@
 \title{Read point forecasts from FCTABLE files}
 \usage{
 read_point_forecast(
-  start_date,
-  end_date,
+  dttm,
   fcst_model,
   fcst_type,
   parameter,
   lead_time = seq(0, 48, 3),
   lags = "0s",
   merge_lags = TRUE,
-  by = "6h",
   file_path = ".",
   file_template = "fctable",
   drop_any_na = TRUE,
@@ -22,15 +20,17 @@ read_point_forecast(
   accumulate = TRUE,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   get_lat_and_lon = FALSE,
-  force_param_name = FALSE
+  force_param_name = FALSE,
+  start_date = NULL,
+  end_date = NULL,
+  by = "6h"
 )
 }
 \arguments{
-\item{start_date}{Date of the first forecast to be read in. Should be in
-YYYYMMDDhh format. Can be numeric or charcter.}
-
-\item{end_date}{Date of the last forecast to be read in. Should be in
-YYYYMMDDhh format. Can be numeric or charcter.}
+\item{dttm}{A vector of date time strings to read. Can be in YYYYMMDD,
+YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
+character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
+vector of equally spaced date-time strings.}
 
 \item{fcst_model}{The forecast model to read - this is typically used to
 construct the file name. Can be a character vector of model names.}
@@ -53,11 +53,6 @@ that using \link[harpPoint]{lag_forecast}.}
 \item{merge_lags}{A logical that, if set to TRUE (the default), lagged
 ensemble members will be shifted in time and joined to the parent forecast
 as derived from \code{start_date} and \code{by}.}
-
-\item{by}{Used in constructing the file names. A string of a number followed
-by a letter (the default is "6h"), where the letter can be "d" for days,
-"h" for hours, "m" for minutes and "s" for seconds. Should be set to the
-fastest varying time dimension in the desired file names.}
 
 \item{file_path}{The path to the data.}
 
@@ -83,10 +78,10 @@ the same members for all forecast models, this should be a numeric vector.
 For specific members from specific models a named list with each element
 having the name of the forecast model and containing a a numeric vector.
 e.g. \cr \code{members = list(eps_model1 = seq(0, 3), eps_model2 = c(2,
-3))}. \cr For multi model ensembles, each element of this named list should
+  3))}. \cr For multi model ensembles, each element of this named list should
 contain another named list with sub model name followed by the desired
 members, e.g. \cr \code{members = list(eps_model1 = list(sub_model1 =
-seq(0, 3), sub_model2 = c(2, 3)))}}
+  seq(0, 3), sub_model2 = c(2, 3)))}}
 
 \item{accumulate}{TRUE or FALSE. Whether to automatically accumulate
 parameters based on the accumulation time. Set to FALSE if the data to be
@@ -105,17 +100,22 @@ in the file template. For upper air data it is assumed that vertical
 profiles of the data are in the files so the vertical level information is
 removed when constructing the file name. If you want the full parameter
 name to be used in the file name set to TRUE.}
+
+\item{start_date, end_date, by}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The use of
+\code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
+with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
+spaced date-times.}
 }
 \value{
 A list with an element for each forecast model, or in the case of a
-  multi model ensemble, another list with an element for each sub model. The
-  list elements each contain a data frame with columns for station ID (SID),
-  the forecast initialisation time (fcdate), the lead time (leadtime), the
-  time for which the forecast is valid (validdate), and a column for the
-  forecast with a heading of the model name in the case of a deterministic
-  forecast, or multiple columns with heading names usually of the form
-  \code{<model_name>_mbrXXX}, where XXX is the member number, in the case of
-  an ensemble forecast.
+multi model ensemble, another list with an element for each sub model. The
+list elements each contain a data frame with columns for station ID (SID),
+the forecast initialisation time (fcdate), the lead time (leadtime), the
+time for which the forecast is valid (validdate), and a column for the
+forecast with a heading of the model name in the case of a deterministic
+forecast, or multiple columns with heading names usually of the form
+\code{<model_name>_mbrXXX}, where XXX is the member number, in the case of
+an ensemble forecast.
 }
 \description{
 Reads point forecasts from an sqlite file produced by

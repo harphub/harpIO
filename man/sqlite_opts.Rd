@@ -2,15 +2,34 @@
 % Please edit documentation in R/sqlite_opts.R
 \name{sqlite_opts}
 \alias{sqlite_opts}
+\alias{fctable_opts}
+\alias{obstable_opts}
 \title{Options for Writing SQLite files}
 \usage{
 sqlite_opts(
   path = NULL,
   template = "fctable_det",
-  index_cols = c("fcdate", "leadtime", "SID"),
+  index_cols = c("fcst_dttm", "lead_time", "SID"),
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
   remove_model_elev = FALSE
+)
+
+fctable_opts(
+  path = NULL,
+  template = "fctable",
+  index_cols = c("fcst_dttm", "lead_time", "SID"),
+  synchronous = c("off", "normal", "full", "extra"),
+  journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  remove_model_elev = FALSE
+)
+
+obstable_opts(
+  path = NULL,
+  template = "obstable",
+  index_cols = "auto",
+  synchronous = c("off", "normal", "full", "extra"),
+  journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off")
 )
 }
 \arguments{
@@ -22,7 +41,9 @@ directory specified here.}
 point forecast sqlite files, these are templates beginning "fctable_". The
 default is "fctable_det".}
 
-\item{index_cols}{The columns to index by}
+\item{index_cols}{The columns to index by. In the case of
+\code{obstable_opts}, setting index cols to "auto" (the default) will
+automatically assign the index columns.}
 
 \item{synchronous}{The synchronus setting for sqlite files. The defualt is
 "off", but could also be "normal", "full", or "extra". See
@@ -44,7 +65,11 @@ indexing.}
 A list with options for writing sqlite files
 }
 \description{
-Options for Writing SQLite files
+Generate a list for passing to the \code{output_format_opts} argument of
+\link{read_forecast} and \link{read_obs}. \code{sqlite_opts} is the general
+set of options, also suitable for forecast data, and \code{fctable_opts} and
+\code{obstable_opts} have specific defaults to be used with
+\link{read_forecast} and \link{read_obs} respectively.
 }
 \examples{
 sqlite_opts()

@@ -1,6 +1,6 @@
 setup_transformation <- function(trans, opts) {
 
-  if (trans == "none") {
+  if (trans %in% c("none")) {
     return(opts)
   }
 
@@ -23,7 +23,7 @@ setup_transformation <- function(trans, opts) {
   }
 
   opts_func <- get(paste0(trans, "_opts"))
-  opts      <- do.call(opts_func, opts)
+  opts      <- do.call(opts_func, opts[names(opts)[names(opts) != "weights"]])
 
   if (is.null(opts[["clim_file"]])) {
     return(opts)
@@ -112,7 +112,7 @@ get_clim_netcdf <- function(opts, trans) {
   }
 
   if (is.null(opts[["clim_param"]]) || is.na(opts[["clim_param"]])) {
-    clim_domain <- try(get_domain_nc(opts[["clim_file"]], opts[["clim_file_opts"]]))
+    clim_domain <- try(get_domain_netcdf(opts[["clim_file"]], opts[["clim_file_opts"]]))
     if (inherits(clim_domain, "try-error")) {
       stop(
         "Cannot get domain from: ", opts[["clim_file"]], ".\n",

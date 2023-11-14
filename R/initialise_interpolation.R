@@ -24,7 +24,7 @@ initialise_interpolation <- function(file_name=NULL, file_format=NULL,
                                      correct_t2m=FALSE,
                                      drop_NA=TRUE, ...) {
   # default station list:
-  if (is.null(stations)) stations <- get("station_list")
+  if (is.null(stations)) stations <- harpCore::station_list
   # some file types need only the stations anyway
   # NO: also model_elevation should be initialised for vfld & netcdf
   #     so all formats are equivalent...

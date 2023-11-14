@@ -71,7 +71,7 @@ correct_t2m <- function(data_df, opts) {
       "No stations supplied for 2m temperature corrrection. Using default station list.",
       call. = FALSE, immediate. = TRUE
     )
-    opts[["stations"]] <- get("station_list")
+    opts[["stations"]] <- harpCore::station_list
   }
 
   if (!is.element("elev", colnames(opts[["stations"]]))) {

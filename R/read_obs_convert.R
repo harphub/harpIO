@@ -1,30 +1,9 @@
 #' Read observations and output to sqlite OBSTABLE file(s)
 #'
-#' Read observations from any source (currently only vobs...) and output the
-#' data to sqlite files.
+#' @description
+#' `r lifecycle::badge("deprecated")`
 #'
-#' This function is used for reading point observations from files and ouputting
-#' the data to sqlite files. Where observations are stored in files, the time
-#' taken to read in the data can be heavily depndent on the number of files and
-#' the amount of data in them. Therefore, to make the observaton data availble
-#' more quickly for future use this function should be used to save the
-#' interpolated data in sqlite files.
-#'
-#' Sqlite is a portable file based database solution with the ability to query
-#' sqlite files using SQL syntax. This makes accessing data fast, and ensures
-#' that you only read the data that you need.
-#'
-#' To output the data to sqlite files, a path to where you want the files to be
-#' written must be given in the \code{sqlite_path} argument. To return the data
-#' to the calling environment you must set \code{return_data = TRUE} - by
-#' default no data are returned. This is because \code{read_det_interpolate}
-#' could be processing large volumes of data and returning those data to the
-#' environment could result in exceeding memory capacity. If you set neither
-#' \code{sqlite_path}, nor \code{return_data} explicitly, it can appear that
-#' this function does nothing.
-#'
-#' For observations already stored in databases, it may be better to read
-#' directly from the database.
+#' This function was deprecated as \link{read_obs} is much more flexible.
 #'
 #' @param start_date Date of the first observations to be read in. Should be in
 #'   YYYYMMDDhh format. Can be numeric or charcter.
@@ -63,18 +42,6 @@
 #'   one for the temp (upper air) observations, and one for the units of the
 #'   temp observations.
 #' @export
-#'
-#' @examples
-#' if (requireNamespace("harpData", quietly = TRUE)) {
-#'   read_obs_convert(
-#'     start_date  = 2019021700,
-#'     end_date    = 2019022023,
-#'     by          = "1h",
-#'     obs_path    = system.file("vobs", package = "harpData"),
-#'     return_data = TRUE
-#'   )
-#' }
-#'
 read_obs_convert <- function(
   start_date,
   end_date,
@@ -91,6 +58,12 @@ read_obs_convert <- function(
   sqlite_journal_mode  = c("delete", "truncate", "persist", "memory", "wal", "off"),
   ...
 ) {
+
+  lifecycle::deprecate_stop(
+    "0.1.0",
+    "read_obs_convert()",
+    "read_obs()"
+  )
 
   sqlite_synchronous  <- match.arg(sqlite_synchronous)
   sqlite_journal_mode <- match.arg(sqlite_journal_mode)
@@ -136,7 +109,9 @@ read_obs_convert <- function(
         MM          = substr(.data$fcdate, 5, 6),
         DD          = substr(.data$fcdate, 7, 8),
         HH          = substr(.data$fcdate, 9, 10),
-        obs         = purrr::map(.data$file_name, read_func, ...),
+        obs         = purrr::map(
+          .data$file_name, read_func, .data$fcdate, vfile_opts("vobs")
+        ),
         file_path   = ifelse(is.null(sqlite_path), NA, sqlite_path)
       )
     obs_data <- dplyr::mutate(

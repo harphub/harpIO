@@ -12,7 +12,7 @@ parse_harp_parameter(
 }
 \arguments{
 \item{param}{Parameter name - available names can be found from
-\link{show_harp_parameters}.}
+\link{show_param_defs}.}
 
 \item{vertical_coordinate}{If the parameter is for the upper air, the
 vertical coordinate system must be given. Can be "pressure" for pressure
@@ -20,7 +20,7 @@ levels, "model" for model levels or "height" for altitude levels.}
 }
 \value{
 A list (of class harp_parameter) with \code{fullname},
-  \code{basename}, \code{level_type}, \code{level}, \code{accum}
+\code{basename}, \code{level_type}, \code{level}, \code{accum}
 }
 \description{
 Parses a harp-style parameter name and returns accumulation time, level (if

@@ -218,6 +218,11 @@ file_templates <- function() {
       "meps_subset_2_5km_{YYYY}{MM}{DD}T{HH}Z.nc"
     ),
 
+    "obsoul" , file.path(
+      "{file_path}",
+      "obsoul_1_xxxxxy_{country}_{YYYY}{MM}{DD}{HH}"
+    ),
+
     "obstable" , file.path(
       "{file_path}",
       "OBSTABLE_{YYYY}.sqlite"

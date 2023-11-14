@@ -24,8 +24,7 @@ library(harpIO)
 
 ```{r read_and_write, message=FALSE, warning=FALSE}
 read_forecast(
-  start_date       = 2019021700,
-  end_date         = 2019021718,
+  dttm             = seq_dttm(2019021700, 2019021718, "6h"),
   fcst_model       = "MEPS_prod",
   parameter        = NULL,
   lead_time        = seq(0, 12, 3),
@@ -48,8 +47,7 @@ With the default template, you get a directory for each forecast model and under
 You can then read in those data again using `read_point_forecast()`. Here you have to tell the function whether you are reading ensemble ("eps") or deterministic ("det") data. 
 ```{r read_point_forecast, message=FALSE, warning=FALSE}
 read_point_forecast(
-  start_date = 2019021700,
-  end_date   = 2019021718,
+  dttm       = seq_dttm(2019021700, 2019021718, "6h"),
   fcst_model = "MEPS_prod", 
   fcst_type  = "eps",
   parameter  = "T2m",
@@ -62,8 +60,7 @@ By default, all members that are found are read in, but you call also select whi
 
 ```{r select_members, message=FALSE, warning=FALSE}
 read_point_forecast(
-  start_date = 2019021700,
-  end_date   = 2019021718,
+  dttm       = seq_dttm(2019021700, 2019021718, "6h"),
   fcst_model = "MEPS_prod", 
   fcst_type  = "eps",
   parameter  = "T2m",

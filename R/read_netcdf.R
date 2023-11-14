@@ -1,13 +1,17 @@
 read_netcdf <- function(
-  file_name,
-  parameter,
-  lead_time           = NULL,
-  members             = NULL,
-  vertical_coordinate = NA_character_,
-  transformation      = "none",
-  transformation_opts = list(),
-  format_opts         = netcdf_opts(),
-  show_progress       = FALSE
+    file_name,
+    parameter,
+    is_forecast         = TRUE,
+    date_times          = NULL,
+    lead_time           = NULL,
+    members             = NULL,
+    vertical_coordinate = NA_character_,
+    transformation      = "none",
+    transformation_opts = list(),
+    format_opts         = netcdf_opts(),
+    param_defs          = get("harp_params"),
+    show_progress       = FALSE,
+    ...
 ) {
 
   if (!requireNamespace("ncdf4", quietly = TRUE)) {
@@ -28,9 +32,29 @@ read_netcdf <- function(
     format_opts <- netcdf_opts()
   }
 
+  check_param_defs(param_defs)
+
   # Convert parameter name to harp parameter and then to netcdf
+  if (inherits(parameter, "harp_parameter")) {
+    parameter <- list(parameter)
+  }
+  if (length(parameter) == 1 && !is.null(format_opts[["param_find"]])) {
+    if (length(format_opts[["param_find"]]) == 1 && is.null(names(format_opts[["param_find"]]))) {
+      if (!is.list(format_opts[["param_find"]])) {
+        format_opts[["param_find"]] <- list(format_opts[["param_find"]])
+      }
+      if (inherits(parameter, "harp_parameter")) {
+        names(format_opts[["param_find"]]) <- parameter[["fullname"]]
+      } else {
+        names(format_opts[["param_find"]]) <- parameter
+      }
+    }
+  }
   parameter  <- lapply(parameter, parse_harp_parameter, vertical_coordinate)
-  param_info <- lapply(parameter, get_netcdf_param_info, opts = format_opts, vc = vertical_coordinate)
+  param_info <- lapply(
+    parameter, get_netcdf_param_info, opts = format_opts,
+    vc = vertical_coordinate, param_defs = param_defs
+  )
 
   # Open the file and get the time and domain information
   nc_id     <- ncdf4::nc_open(file_name)
@@ -39,7 +63,7 @@ read_netcdf <- function(
 
   # Check for variables in the file
   nc_vars        <- names(nc_id$var)
-  requested_vars <- sapply(param_info, function(x) x[["nc_param"]])
+  requested_vars <- unlist(lapply(param_info, function(x) x[["nc_param"]]))
   missing_vars   <- setdiff(requested_vars, nc_vars)
   warning_func   <- function(x) {
     index      <- which(requested_vars == x)
@@ -62,7 +86,7 @@ read_netcdf <- function(
   }
 
   nc_vars    <- intersect(nc_vars, requested_vars)
-  param_info <- param_info[sapply(param_info, function(x) x[["nc_param"]] %in% nc_vars)]
+  param_info <- param_info[sapply(param_info, function(x) all(unlist(x[["nc_param"]]) %in% nc_vars))]
 
   nc_dims        <- names(nc_id$dim)
   requested_dims <- unique(stats::na.omit(unlist(lapply(
@@ -94,7 +118,11 @@ read_netcdf <- function(
   }
   # Filter the lead times and ensemble members
 
-  nc_info <- mapply(filter_nc, nc_info, param_info, MoreArgs = list(lead_time, members), SIMPLIFY = FALSE)
+  nc_info <- mapply(
+    filter_nc, nc_info, param_info,
+    MoreArgs = list(date_times, lead_time, members, is_forecast),
+    SIMPLIFY = FALSE
+  )
   nc_info <- nc_info[sapply(nc_info, function(x) nrow(x) > 0)]
   if (length(nc_info) < 1) {
     stop("None of the requested data could be read from netcdf file: ", file_name, call. = FALSE)
@@ -114,6 +142,25 @@ read_netcdf <- function(
   if (!is.null(format_opts[["first_only"]]) && format_opts[["first_only"]]) {
     first_only <- TRUE
   }
+
+  # Add row index to identify rows that should be read together so that a
+  # function can be applied
+
+  index_func <- function(.df) {
+    if (is.element("func_var", colnames(.df))) {
+      .df <- dplyr::ungroup(
+        dplyr::mutate(
+          dplyr::group_by(.df, .data[["func_var"]]),
+          index = seq_len(dplyr::n())
+        )
+      )
+    } else {
+      .df[["index"]] <- seq_len(nrow(.df))
+    }
+    .df
+  }
+
+  nc_info <- lapply(nc_info, index_func)
 
   result <- purrr::map2_dfr(
     nc_info,
@@ -145,7 +192,7 @@ read_netcdf <- function(
         "",
         as.character(
           factor(result[["lead_time"]], levels = data_leads, labels = names(data_leads)))
-        )
+      )
     )
   }
 
@@ -165,6 +212,32 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 
   nc_param    <- param[["nc_param"]]
   harp_param  <- param[["harp_param"]]
+
+  nc_info_for_param <- lapply(nc_param, get_nc_info, param, nc_id, info_df)
+
+  if (is.null(names(nc_param))) {
+    return(nc_info_for_param[[1]])
+  }
+
+  nc_info_for_param <- mapply(
+    function(x, y) {
+      x[[1]][["func_var"]] = y
+      x
+    },
+    nc_info_for_param,
+    names(nc_param),
+    SIMPLIFY = FALSE
+  )
+
+  list(
+    purrr::map_dfr(nc_info_for_param, 1),
+    lapply(nc_info_for_param, function(x) x[[2]])
+  )
+
+}
+
+# Function to get nc info for a harp parameter
+get_nc_info <- function(nc_param, param, nc_id, info_df) {
   nc_dims_raw <- sapply(nc_id[["var"]][[nc_param]][["dim"]], function(x) x[["name"]])
   nc_dims     <- sort(nc_dims_raw)
   opts_dims   <- sort(stats::na.omit(unlist(
@@ -204,8 +277,8 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
     }
     if (warn_dims) {
       warning(
-        "Requested dimensions do not match for '", harp_param[["fullname"]],
-        "' in ", file_name, ".\n",
+        "Requested dimensions do not match for '", param[["harp_param"]][["fullname"]],
+        "' in ", nc_id[["filename"]], ".\n",
         "Requested dimensions: (", paste(opts_dims, collapse = ", "), ")\n",
         "Dimensions in file: (", paste(nc_dims, collapse = ", "), ").",
         call. = FALSE, immediate. = TRUE
@@ -222,7 +295,7 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
       if (length(z_levels) < 1) {
         warning(
           param[["opts"]][["z_var"]], " == ", param[["harp_param"]][["level"]],
-          "not found in file: ", file_name,
+          "not found in file: ", nc_id[["filename"]],
           call. = FALSE, immediate. = TRUE
         )
         return(NULL)
@@ -254,15 +327,39 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
   list(info_df, param)
 }
 
+
 ###
 
 # function to filter available netcdf data to requested lead times and ensemble members
 
-filter_nc <- function(nc_info, param_info, lead_times, members) {
+filter_nc <- function(nc_info, param_info, date_times, lead_times, members, is_forecast) {
 
   parameter <- unique(nc_info[["parameter"]])
 
-  if (!is.null(lead_times)) {
+  if (!is.null(date_times)) {
+
+    date_col <- ifelse(is_forecast, "fcdate", "validdate")
+    missing_date_times <- which(!date_times %in% nc_info[[date_col]])
+    if (length(missing_date_times) > 0) {
+      missing_date_times <- date_times[missing_date_times]
+      date_times         <- date_times[-missing_date_times]
+      warning(
+        "date_times: ", paste(missing_date_times, collapse = ","),
+        " for '", parameter, "' not found in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+    }
+    nc_info <- dplyr::filter(nc_info, .data[[date_col]] %in% date_times)
+    if (nrow(nc_info) < 1) {
+      warning(
+        "None of the requested date_times were found for '", parameter, "' in file.",
+        call. = FALSE, immediate. = TRUE
+      )
+      return(nc_info)
+    }
+  }
+
+  if (!is.null(lead_times) && is_forecast) {
     if (is.numeric(lead_times)) { # assume in hours
       lead_times <- paste0(lead_times, "h")
     }
@@ -351,125 +448,145 @@ filter_nc <- function(nc_info, param_info, lead_times, members) {
 # Function to read and transform netcdf data
 
 read_and_transform_netcdf <- function(
-  nc_info, param_info, nc_id, nc_domain, transformation, opts, first_only, show_progress
+    nc_info, param_info, nc_id, nc_domain, transformation, opts, first_only, show_progress
 ) {
 
-  func <- function(x, nc_id, nc_info, nc_opts, nc_domain, transformation = "none", opts = list(), show_progress) {
+  func <- function(nc_info, nc_id, nc_opts, nc_domain, transformation = "none", opts = list()) {
 
-    nc_var_dims <- sapply(nc_id$var[[nc_info$nc_param[x]]]$dim, function(x) x$name)
-    x_pos       <- which(nc_var_dims == nc_opts[["x_dim"]])
-    y_pos       <- which(nc_var_dims == nc_opts[["y_dim"]])
+    geofields <- list()
 
-    geofield_info <- list()
-    geofield_info[["name"]] <- paste(
-      nc_info[["parameter"]][x],
-      ifelse(nc_info[["units"]][x] != "unknown", nc_info[["units"]][x], "")
-    )
-    geofield_info[["time"]] <- list()
-
-    start <- rep(1, length(stats::na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
-    count <- rep(-1, length(stats::na.omit(unlist(nc_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
-
-    if (is.element("level", colnames(nc_info))) {
-      z_var <- nc_opts[["z_var"]]
-      if (grepl("height", nc_opts[["z_var"]])) {
-        z_var <- grep(gsub("[[:digit:]]", "", nc_opts[["z_var"]]), nc_var_dims, value = TRUE)
-      }
-      nc_levels                    <- ncdf4::ncvar_get(nc_id, z_var)
-      z_pos                        <- which(nc_var_dims == z_var)
-      start[z_pos]                 <- which(nc_levels == nc_info[["level"]][x])
-      count[z_pos]                 <- 1
-      geofield_info[["level"]]     <- nc_info[["level"]][x]
-      geofield_info[["leveltype"]] <- nc_info[["level_type"]][x]
+    if (is.element("harp_param", names(nc_opts))) {
+      nc_opts <- list(nc_opts)
     }
 
-    if (is.element("member", colnames(nc_info))) {
-      nc_members                     <- ncdf4::ncvar_get(nc_id, nc_opts[["member_var"]])
-      nc_members                     <- as.numeric(gsub("[[:alpha:]]|[[:punct:]]", "", nc_members))
-      member_pos                     <- which(nc_var_dims == nc_opts[["member_var"]])
-      start[member_pos]              <- which(nc_members == nc_info[["member"]][x])
-      count[member_pos]              <- 1
-      geofield_info[["member"]]      <- nc_info[["member"]][x]
-    }
+    for (i in 1:nrow(nc_info)) {
 
-    geofield_info[["unit"]] <- ifelse(nc_info[["units"]][x] != "unknown", nc_info[["units"]][x], "")
+      file_opts <- nc_opts[[i]][["opts"]]
 
-    if (is.element("leadtime", colnames(nc_info))) {
-      nc_times      <- ncdf4::ncvar_get(nc_id, nc_opts[["time_var"]])
-      time_pos      <- which(nc_var_dims == nc_opts[["time_var"]])
+      nc_var_dims <- sapply(nc_id$var[[nc_info$nc_param[i]]]$dim, function(x) x$name)
+      x_pos       <- which(nc_var_dims == file_opts[["x_dim"]])
+      y_pos       <- which(nc_var_dims == file_opts[["y_dim"]])
 
-      # WRF uses Times to store the time data, but Time as the dimension
-      if (length(time_pos) == 0) {
-        time_pos <- which(nc_var_dims == sub("s$", "", nc_opts[["time_var"]]))
+      geofield_info <- list()
+      geofield_info[["name"]] <- paste(
+        nc_info[["parameter"]][i],
+        ifelse(nc_info[["units"]][i] != "unknown", nc_info[["units"]][i], "")
+      )
+      geofield_info[["time"]] <- list()
+
+      start <- rep(1, length(stats::na.omit(unlist(file_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
+      count <- rep(-1, length(stats::na.omit(unlist(file_opts[c("x_dim", "y_dim", "z_var", "time_var", "member_var")]))))
+
+      if (is.element("level", colnames(nc_info))) {
+        z_var <- file_opts[["z_var"]]
+        if (grepl("height", file_opts[["z_var"]])) {
+          z_var <- grep(gsub("[[:digit:]]", "", file_opts[["z_var"]]), nc_var_dims, value = TRUE)
+        }
+        nc_levels                    <- ncdf4::ncvar_get(nc_id, z_var)
+        z_pos                        <- which(nc_var_dims == z_var)
+        start[z_pos]                 <- which(nc_levels == nc_info[["level"]][i])
+        count[z_pos]                 <- 1
+        geofield_info[["level"]]     <- nc_info[["level"]][i]
+        geofield_info[["leveltype"]] <- nc_info[["level_type"]][i]
       }
-      if (length(time_pos) == 0) {
-        stop("Cannot find position of the time dimension", call. = FALSE)
+
+      if (is.element("member", colnames(nc_info))) {
+        nc_members                     <- ncdf4::ncvar_get(nc_id, file_opts[["member_var"]])
+        nc_members                     <- as.numeric(gsub("[[:alpha:]]|[[:punct:]]", "", nc_members))
+        member_pos                     <- which(nc_var_dims == file_opts[["member_var"]])
+        start[member_pos]              <- which(nc_members == nc_info[["member"]][i])
+        count[member_pos]              <- 1
+        geofield_info[["member"]]      <- nc_info[["member"]][i]
       }
 
-      start[time_pos] <- select_nc_time(
-        nc_times,
-        nc_info[["time_units"]][x],
-        nc_info[["validdate"]][x],
-        nc_info[["leadtime"]][x]
+      geofield_info[["unit"]] <- ifelse(nc_info[["units"]][i] != "unknown", nc_info[["units"]][i], "")
+
+      if (is.element("leadtime", colnames(nc_info))) {
+        nc_times      <- ncdf4::ncvar_get(nc_id, file_opts[["time_var"]])
+        time_pos      <- which(nc_var_dims == file_opts[["time_var"]])
+
+        # WRF uses Times to store the time data, but Time as the dimension
+        if (length(time_pos) == 0) {
+          time_pos <- which(nc_var_dims == sub("s$", "", file_opts[["time_var"]]))
+        }
+        if (length(time_pos) == 0) {
+          stop("Cannot find position of the time dimension", call. = FALSE)
+        }
+
+        start[time_pos] <- select_nc_time(
+          nc_times,
+          nc_info[["time_units"]][i],
+          nc_info[["validdate"]][i],
+          nc_info[["leadtime"]][i]
+        )
+
+        count[time_pos] <- 1
+
+        geofield_info[["time"]][["basedate"]] <- get_basedate(nc_times[1], nc_info[["time_units"]][i])
+        geofield_info[["time"]][["start"]]    <- nc_info[["leadtime"]][i] / 3600
+        geofield_info[["time"]][["end"]]      <- nc_info[["leadtime"]][i] / 3600
+        geofield_info[["time"]][["stepUnit"]] <- "h"
+      }
+
+      geofields[[i]] <- meteogrid::as.geofield(
+        orientate_data(
+          ncdf4::ncvar_get(nc_id, nc_info[["nc_param"]][i], start = start, count = count),
+          file_opts
+        ),
+        domain = nc_domain,
+        info   = geofield_info
       )
 
-      count[time_pos] <- 1
+    }
 
-      geofield_info[["time"]][["basedate"]] <- get_basedate(nc_times[1], nc_info[["time_units"]][x])
-      geofield_info[["time"]][["start"]]    <- nc_info[["leadtime"]][x] / 3600
-      geofield_info[["time"]][["end"]]      <- nc_info[["leadtime"]][x] / 3600
-      geofield_info[["time"]][["stepUnit"]] <- "h"
+    if (length(geofields) > 1) {
+      names(geofields) <- nc_info[["func_var"]]
+      nc_geofield <- do.call(nc_opts[[1]][["func"]], geofields)
+    } else {
+      nc_geofield <- geofields[[1]]
     }
 
     result <- tibble::tibble(
-      fcdate       = ifelse(is.null(nc_info[["fcdate"]][x]), NA_real_, nc_info[["fcdate"]][x]),
-      validdate    = ifelse(is.null(nc_info[["validdate"]][x]), NA_real_, nc_info[["validdate"]][x]),
-      lead_time    = ifelse(is.null(nc_info[["leadtime"]][x]), NA_real_, nc_info[["leadtime"]][x]),
-      parameter    = ifelse(is.null(nc_info[["parameter"]][x]), NA_character_, nc_info[["parameter"]][x]),
-      level_type   = ifelse(is.null(nc_info[["level_type"]][x]), NA_character_, nc_info[["level_type"]][x]),
-      level        = ifelse(is.null(nc_info[["level"]][x]), NA_real_, nc_info[["level"]][x]),
-      units        = ifelse(is.null(nc_info[["units"]][x]), NA_character_, nc_info[["units"]][x]),
-      gridded_data = list(
-        meteogrid::as.geofield(
-          orientate_data(
-            ncdf4::ncvar_get(nc_id, nc_info[["nc_param"]][x], start = start, count = count),
-            nc_opts
-          ),
-          domain = nc_domain,
-          info   = geofield_info
-        )
-      )
+      fcdate       = ifelse(is.null(unique(nc_info[["fcdate"]])), NA_real_, unique(nc_info[["fcdate"]])),
+      validdate    = ifelse(is.null(unique(nc_info[["validdate"]])), NA_real_, unique(nc_info[["validdate"]])),
+      lead_time    = ifelse(is.null(unique(nc_info[["leadtime"]])), NA_real_, unique(nc_info[["leadtime"]])),
+      parameter    = ifelse(is.null(unique(nc_info[["parameter"]])), NA_character_, unique(nc_info[["parameter"]])),
+      level_type   = ifelse(is.null(unique(nc_info[["level_type"]])), NA_character_, unique(nc_info[["level_type"]])),
+      level        = ifelse(is.null(unique(nc_info[["level"]])), NA_real_, unique(nc_info[["level"]])),
+      units        = ifelse(is.null(unique(nc_info[["units"]])), NA_character_, unique(nc_info[["units"]])),
+      gridded_data = list(nc_geofield)
     )
 
     if (is.element("member", colnames(nc_info))) {
-      result[["members"]] <- nc_info[["member"]][x]
+      result[["members"]] <- unique(nc_info[["member"]])
     }
 
     result <- transform_geofield(result, transformation, opts)
 
-    if (show_progress) pb$tick()
-
     result
   }
 
-  if (first_only) nc_info <- nc_info[1, ]
+  if (first_only && nrow(nc_info) > 0) nc_info <- nc_info[1, ]
 
   if (show_progress) {
-    bar_info <- paste(param_info[["harp_param"]][["fullname"]], "[:bar] :percent eta: :eta")
-    pb       <- progress::progress_bar$new(format = bar_info, total = nrow(nc_info))
+    show_progress <- list(
+      name = cli::col_yellow("Reading nc file"),
+      show_after = 1
+    )
   }
+  nc_info <- split(nc_info, nc_info[["index"]])
 
-  purrr::map_dfr(
-    1:nrow(nc_info),
+  purrr::map(
+    nc_info,
     func,
     nc_id,
-    nc_info,
-    param_info[["opts"]],
+    param_info,
     nc_domain,
     transformation,
     opts,
-    show_progress
-  )
+    .progress = show_progress
+  ) %>%
+    purrr::list_rbind()
 
 }
 
@@ -494,7 +611,7 @@ select_nc_time <- function(nc_times, time_units, validdate, lead_time) {
 
 }
 
-get_basedate <- function (nc_time, time_units) {
+get_basedate <- function(nc_time, time_units) {
   if (grepl(" since", time_units)) {
     origin <- sub("^ ", "", gsub("[[:alpha:]]+ since", "", time_units))
     time_x <- substring(time_units, 1, 1)

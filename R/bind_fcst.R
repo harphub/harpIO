@@ -1,5 +1,9 @@
 #' Bind deterministic forecasts into a single data frame
 #'
+#' `r lifecycle::badge("deprecated")`
+#' This function was deprecated due to class definition changes. Use
+#' \code{\link[harpCore]{bind}} instead.
+#'
 #' Given a harp_fcst list, \code{bind_fcst} binds the data frames in the
 #' harp_fcst list into a single data frame for easy plotting. For ensemble
 #' forecasts, the member data are gathered into a single column.
@@ -9,8 +13,13 @@
 #' @return A data frame
 #' @export
 #'
-#' @examples
 bind_fcst <- function(.fcst) {
+
+  lifecycle::deprecate_stop(
+    "0.1.0",
+    "bind_fcst()",
+    "bind()"
+  )
   stopifnot(is.list(.fcst))
   stopifnot(!is.null(names(.fcst)))
   stopifnot(inherits(.fcst, "harp_fcst"))
@@ -23,7 +32,7 @@ bind_fcst <- function(.fcst) {
         forecast = !! fcst_col
       )
     } else {
-      .fcst <- harpPoint::gather_members(.fcst)
+      .fcst <- harpCore::pivot_members(.fcst)
     }
     .fcst[[list_name]] <- dplyr::mutate(.fcst[[list_name]], mname = list_name) %>%
       dplyr::select(.data$mname, dplyr::everything())

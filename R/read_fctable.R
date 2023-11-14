@@ -3,14 +3,14 @@
 
 read_fctable <- function(
   db_files,
-  start_date,
-  end_date,
+  dttm,
   lead_time           = NULL,
   stations            = NULL,
   members             = NULL,
   param               = NULL, # Passed as a parsed harp parameter
   get_latlon          = FALSE,
-  force_param_name    = FALSE
+  force_param_name    = FALSE,
+  use_dttm            = TRUE
 ) {
 
   level_col <- NULL
@@ -28,13 +28,15 @@ read_fctable <- function(
 
   for (db_file in db_files) {
 
-    meta_cols  <- c("SID", "fcdate", "leadtime", "validdate")
-
     message("Reading: ", db_file)
 
     fcst_db   <- DBI::dbConnect(RSQLite::SQLite(), db_file, flags = RSQLite::SQLITE_RO, synchronous = NULL)
 
     fcst_cols <- DBI::dbListFields(fcst_db, "FC")
+    meta_cols <- intersect(
+      c("SID", "fcdate", "fcst_dttm", "leadtime", "lead_time", "validdate", "valid_dttm"),
+      fcst_cols
+    )
     if (is.element("parameter", fcst_cols)) {
       meta_cols <- c(meta_cols, "parameter")
     }
@@ -57,18 +59,28 @@ read_fctable <- function(
       }
     }
     data_cols <- setdiff(fcst_cols, meta_cols)
+    fcst_lead <- intersect(c("lead_time", "leadtime"), fcst_cols)
+    fcst_dttm <- intersect(c("fcst_dttm", "fcdate"), fcst_cols)
 
     list_count <- list_count + 1
 
-    fcst <- dplyr::tbl(fcst_db, "FC") %>%
-      dplyr::filter(dplyr::between(.data$fcdate, start_date, end_date))
+    if (use_dttm) {
+      fcst <- dplyr::tbl(fcst_db, "FC") %>%
+        dplyr::filter(.data[[fcst_dttm]] %in% dttm)
+    } else {
+      start_dttm <- min(dttm)
+      end_dttm <- max(dttm)
+      fcst <- dplyr::tbl(fcst_db, "FC") %>%
+        dplyr::filter(dplyr::between(.data[[fcst_dttm]], start_dttm, end_dttm))
+    }
 
     if (!is.null(lead_time)) {
-      fcst <- dplyr::filter(fcst, .data$leadtime %in% lead_time)
+      lt <- lead_time
+      fcst <- dplyr::filter(fcst, .data[[fcst_lead]] %in% lt)
     }
 
     if (!is.null(stations)) {
-      fcst <- dplyr::filter(fcst, .data$SID %in% stations)
+      fcst <- dplyr::filter(fcst, .data[["SID"]] %in% stations)
     }
 
     if (!is.null(level_col) && param$level != -999) {
@@ -120,7 +132,7 @@ read_fctable <- function(
   if (nrow(fcst_out) > 0) {
     fcst_out <- dplyr::mutate(
       fcst_out,
-      fcst_cycle = substr(unixtime_to_str_datetime(.data$fcdate, YMDh), 9, 10)
+      fcst_cycle = substr(harpCore::as_YMDh(.data[[fcst_dttm]]), 9, 10)
     )
   }
 
