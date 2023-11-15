@@ -4,12 +4,6 @@ output: github_document
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<style>
-  body{
-    text-align: justify;
-  }
-</style>
-
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = FALSE,
@@ -18,7 +12,7 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-# harpIO <a href=#><img src='man/figures/harp_logo_dark.svg' align="right" height="131.5" style="margin-left:30px" /></a>
+# harpIO <img src='man/figures/harp_logo_dark.svg' align="right" width ="80" />
 
 
 {harpIO} provides a set of read and write functions for harp plus the option to transform gridded data to point data, cross sections or other grids at read time. {harpIO} is able to read _grib1_, _grib2_, _FA_, _NetCDF_ and _vfld_ files from weather forecast / climate models; station observations from _vobs_ files, radar / satellite observations from _HDF5_ files and in the future from in-house databases at selected meteorological institutes. Some of these formats require support packages to be installed and you will be given advice on which packages to install when you attempt to read those data.
