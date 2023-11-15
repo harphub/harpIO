@@ -1,13 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<style>
-  body{
-    text-align: justify;
-  }
-</style>
-
-# harpIO <a href=#><img src='man/figures/harp_logo_dark.svg' align="right" height="131.5" style="margin-left:30px" /></a>
+# harpIO <img src='man/figures/harp_logo_dark.svg' align="right" width ="80" />
 
 {harpIO} provides a set of read and write functions for harp plus the
 option to transform gridded data to point data, cross sections or other
@@ -65,7 +59,8 @@ If you include these environment variables in your .bashrc file, or
 equivalent, you won’t need to worry about it when you wish to install an
 update to meteogrid.
 
-Or you can set compiler and linker options in the file $HOME/.R/Makevars
+Or you can set compiler and linker options in the file
+\$HOME/.R/Makevars
 
 ``` bash
 CPPFLAGS=-I/path/to/proj/include
@@ -102,11 +97,11 @@ When data are interpolated to points it is possible to save the result
 to [SQLite](https://www.sqlite.org/) files. These are portable database
 files that allow fast access to the data with the ability to select and
 filter what you wish to read. You can tell `read_forecast()` to output
-point data to SQLite files by setting the argument `output_file_opts =
-sqlite_opts(path = "/path/to/output")`. These data can then be read with
-`read_point_forecast()`. For gridded data there is generally no
-advantage to outputting to another format, so this option is only
-available if data are either point data to begin with, or
+point data to SQLite files by setting the argument
+`output_file_opts = sqlite_opts(path = "/path/to/output")`. These data
+can then be read with `read_point_forecast()`. For gridded data there is
+generally no advantage to outputting to another format, so this option
+is only available if data are either point data to begin with, or
 `transformation = "interpolate"`.
 
 ## Reading observation data
