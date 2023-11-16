@@ -59,7 +59,7 @@
 <li><p>It includes many internal changes to make your experience smoother and includes more informative error messages.</p></li>
 </ul><div class="section level4">
 <h4 id="breaking-changes-0-2-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-2-0"></a></h4>
-<ul><li><p>Arguments <code>start_date</code>, <code>end_date</code>, and <code>by</code> to read functions are deprecated and replaced by <code>dttm</code>, to be used together with <code><a href="https://rdrr.io/pkg/harpCore/man/seq_dttm.html" class="external-link">seq_dttm()</a></code> to generate a sequence of date-time strings. Note that you can still use the old arguments, but will be periodically warned to change.</p></li>
+<ul><li><p>Arguments <code>start_date</code>, <code>end_date</code>, and <code>by</code> to read functions are deprecated and replaced by <code>dttm</code>, to be used together with <code>seq_dttm()</code> to generate a sequence of date-time strings. Note that you can still use the old arguments, but will be periodically warned to change.</p></li>
 <li><p>New column names in outputs to read functions</p></li>
 </ul><table class="table"><thead><tr class="header"><th align="left">Old name</th>
 <th align="left">New name</th>
@@ -69,9 +69,9 @@
 <td align="left">valid_dttm</td>
 </tr><tr class="odd"><td align="left">leadtime</td>
 <td align="left">lead_time</td>
-</tr></tbody></table><ul><li><p><code><a href="../reference/bind_fcst.html">bind_fcst()</a></code> is deprecated. <code><a href="https://rdrr.io/pkg/harpCore/man/bind.html" class="external-link">bind()</a></code> should be used instead.</p></li>
+</tr></tbody></table><ul><li><p><code><a href="../reference/bind_fcst.html">bind_fcst()</a></code> is deprecated. <code>bind()</code> should be used instead.</p></li>
 <li><p><code><a href="../reference/get_filenames.html">get_filenames()</a></code> is deprecated. <code><a href="../reference/generate_filenames.html">generate_filenames()</a></code> should be used instead.</p></li>
-<li><p><code><a href="../reference/msub.html">msub()</a></code> is deprecated. <code><a href="https://rdrr.io/pkg/harpCore/man/psub.html" class="external-link">psub()</a></code> should be used instead.</p></li>
+<li><p><code><a href="../reference/msub.html">msub()</a></code> is deprecated. <code>psub()</code> should be used instead.</p></li>
 <li><p><code><a href="../reference/read_det_interpolate.html">read_det_interpolate()</a></code> and <code><a href="../reference/read_eps_interpolate.html">read_eps_interpolate()</a></code> are defunct. <code>read_forecast(..., transformation = "interpolate")</code> should be used instead.</p></li>
 <li><p><code><a href="../reference/read_obs_convert.html">read_obs_convert()</a></code> is defunct. <code>read_obs(..., transformation = "...")</code> should be used instead.</p></li>
 </ul></div>
@@ -86,7 +86,7 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.9" id="harpio-009">harpIO 0.0.9<a class="anchor" aria-label="anchor" href="#harpio-009"></a></h2>
 <ul><li><p>This is the version that is basically unchanged since late 2021 / early 2022.</p></li>
-<li><p>It was officially tagged v0.9.0 in November 2023</p></li>
+<li><p>It was officially tagged v0.0.9 in November 2023</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9168" id="harpio-0009168">harpIO 0.0.0.9168<a class="anchor" aria-label="anchor" href="#harpio-0009168"></a></h2>
