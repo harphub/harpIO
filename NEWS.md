@@ -56,7 +56,7 @@ grib shortName. `{lead_time}` can be used to take the current lead time.
 
 * This is the version that is basically unchanged since late 2021 / early 2022.
 
-* It was officially tagged v0.9.0 in November 2023
+* It was officially tagged v0.0.9 in November 2023
 
 # harpIO 0.0.0.9168
 
