@@ -239,10 +239,12 @@ make_nc_info <- function(param, info_df, nc_id, file_name) {
 # Function to get nc info for a harp parameter
 get_nc_info <- function(nc_param, param, nc_id, info_df) {
   nc_dims_raw <- sapply(nc_id[["var"]][[nc_param]][["dim"]], function(x) x[["name"]])
+  param[["opts"]] <- dimnames_from_var(param[["opts"]], nc_dims_raw)
   nc_dims     <- sort(nc_dims_raw)
   opts_dims   <- sort(stats::na.omit(unlist(
     param[["opts"]][c("x_dim", "y_dim", "z_var", "member_var", "time_var")], use.names = FALSE
   )))
+
 
   # For WRF, variable dimensions aren't used. Therefore we need to check if the dimensions
   # for opts_dims match nc_dims
@@ -631,4 +633,33 @@ orientate_data <- function(x, opts) {
   if (opts[["x_rev"]]) x <- x[nrow(x):1, ]
   if (opts[["y_rev"]]) x <- x[, ncol(x):1]
   x
+}
+
+dimnames_from_var <- function(opts, var_dims) {
+
+  possible_dim_names <- list(
+    x_dim      = c("x", "longitude", "lon", "long"),
+    y_dim      = c("y", "latitude", "lat"),
+    z_var      = c(
+      "t", "surface", "height", "pressure", "model", "hybrid", "sigma"
+    ),
+    time_var   = c("time", "date", "datetime"),
+    member_var = c("ensemble_member", "member", "mbr")
+  )
+
+  for (dim_name in names(possible_dim_names)) {
+
+    nc_dim <- intersect(var_dims, possible_dim_names[[dim_name]])
+    if (length(nc_dim) == 1) {
+      opts[[dim_name]] <- nc_dim
+    }
+
+  }
+
+  opts
+
+}
+
+parse_dimname <- function(x) {
+  gsub("\\d", "", x)
 }
