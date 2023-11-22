@@ -212,7 +212,7 @@ read_point_obs <- function(
   attr(obs, "bad_obs") <- obs_removed
   colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
 
-  if (nrow(obs_removed) > 0) {
+  if (gross_error_check && nrow(obs_removed) > 0) {
     warning(
       nrow(obs_removed), " observations removed due to gross error check.",
       call. = FALSE
@@ -440,7 +440,7 @@ derive_24h_precip <- function(pcp_data) {
     dplyr::full_join(
       dplyr::transmute(
         pcp_data,
-        validdate = .data$validdate + 3600 * 12,
+        valid_dttm = .data$valid_dttm + 3600 * 12,
         .data$SID,
         .data$lon,
         .data$lat,
