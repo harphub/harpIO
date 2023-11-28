@@ -16,16 +16,19 @@ knitr::opts_chunk$set(
 
 _harpIO_ only includes functionality to read observations from _vobs_ files, 
 though observations could come in many formats. A simple format could be a 
-comma separated variables (CSV) text file. This vignette demonstrates how you 
-can make a function that `read_obs_file()` or `read_obs()` could call to read 
-in CSV files following a particular format. 
+comma separated variables (CSV) text file. harp is written in a way that you 
+can write your own functions that harp's read functions will call so that the 
+data formats you're working with in harp will always be the same regardless of 
+the file formats they came from. This vignette demonstrates how you can make a 
+function that `read_obs_file()` or `read_obs()` could call to read in CSV files 
+following a particular format. 
 
 Let's say our CSV data have columns for station ID ("stationId"), station 
 elevation ("stationElevation"), and columns for the variables 2m temperature 
 ("TA"), 10m wind speed ("FF10"), 1-hour precipitation ("RR1"), 2m relative 
 humidity, ("RH2") and mean sea level pressure ("MSLP"), and that there is one 
 file for each observation time, We'll begin by making a function to make some 
-fake data.
+fake data following these conventions.
 ```{r setup}
 library(harpIO)
 library(tibble)
