@@ -51,8 +51,8 @@ remotes::install_github(
 Alternatively you can set environment variables
 
 ``` bash
-export PROJ_LIBS=/path/to/proj/lib
-export PROJ_INCLUDE=/path/to/proj/include
+export PROJ_LIB_PATH=/path/to/proj/lib
+export PROJ_INCLUDE_PATH=/path/to/proj/include
 ```
 
 If you include these environment variables in your .bashrc file, or
@@ -68,7 +68,10 @@ LDFLAGS=-L/path/to/proj/lib -Wl,-rpath,/path/to/proj/lib
 ```
 
 In this case you only have to set them once and not worry about it when
-you wish to install an update to meteogrid.
+you wish to install an update to meteogrid… However, there is a danger
+that setting Makevars explicitly can impact the installation of other
+packages, so in general it is good practice to remove or rename
+\$HOME/.R/Makevars after successful installation.
 
 When setting environment variables or creating a Makevars file, R must
 be restarted for the changes to take effect before running
@@ -109,9 +112,53 @@ is only available if data are either point data to begin with, or
 For point observations, {harpIO} can currently only read from *vobs*
 files, as produced by the
 [HIRLAM](http://hirlam.org/index.php/hirlam-programme-53) consortium,
-and write them out to SQLite files using `read_obs_convert()` for faster
-access. The SQLite files can then be read with `read_point_obs()`. For
-gridded observations, data can be read from *NetCDF*, *grib* and some
-*HDF5* files using `read_grid()`. A new function, `read_obs()`, is
-currently under development to harmonise the reading and transforming of
-observations in the same way that forecast data are handled.
+and write them out to SQLite files using `read_obs()` for faster access.
+The SQLite files can then be read with `read_point_obs()`. For gridded
+observations, data can be read from *NetCDF*, *grib* and some *HDF5*
+files using `read_grid()` (note that you need to install the “ncdf4”
+package from CRAN to read NetCDF files, you need to install the
+[“Rgrib2”](https://harphub.github.io/Rgrib2) package with
+`remotes::install_github("harphub/Rgrib2")` to read grib files and you
+need to install the “hdf5r” package from CRAN to read HDF5 files).
+
+## A note about HDF5 files
+
+The [hdf5r](https://cran.r-project.org/web/packages/hdf5r/index.html)
+package is needed to read HDF5 files. Installation of the package
+requires the HDF5 system library. If this library not available in
+e.g. /usr/local/lib or /usr/lib or similar then the location of the HDF5
+library needs to be specified. Typically this can be done with
+
+``` r
+install.packages(
+  "hdf5r",
+  configure.args = "--with-hdf5=/path/to/hdf5"
+)
+```
+
+However, in some cases the appropriate link flags might no be set
+properly. In this case you should temporarily create a `~/.R/Makevars`
+file with the following content:
+
+``` bash
+PKG_LIBS = -L/path/to/hdf5/lib -Wl,-rpath,/path/to/hdf5/lib -lhdf5hl_fortran -lhdf5_hl_cpp -lhdf5_hl -lhdf5_fortran -lhdf5_cpp -lhdf5 -lm
+```
+
+then install hdf5r and remove the `~/.R/Makevars` file.
+
+On the **ECMWF Atos** platform you can put the following in
+`~/.R/Makevars`
+
+``` bash
+PKG_LIBS = $(HDF5_LIB)
+```
+
+And then
+
+``` bash
+module load hdf5
+module load R
+R
+> install.packages("hdf5r")
+> file.remove("~/.R/Makevars")
+```
