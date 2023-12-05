@@ -33,7 +33,7 @@ parse_harp_parameter <- function(
   ## TODO: radiation, surface properties...
   if (inherits(param, "harp_parameter")) return(param)
   # all comparisons are done in lower case
-  if (tolower(param) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh", "s", "d", "td")  |
+  if (tolower(param) %in% c("caf", "t", "z", "u", "v", "w", "q", "rh", "s", "d", "td", "ws")  |
       grepl("_ml$", param) | grepl("_pl$", param)) {
     if (is.na(vertical_coordinate)) {
       if (grepl("_ml$", param)) {

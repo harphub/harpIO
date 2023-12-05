@@ -64,10 +64,20 @@ get_netcdf_param_info <- function(
   }
 
   if (is.list(nc_param_info[["suffix"]])) {
-    nc_param_info[["name"]] <- paste0(
-      nc_param_info[["name"]],
-      nc_param_info[["suffix"]][[param[["level_type"]]]]
-    )
+
+      if (is.list(nc_param_info[["name"]])) {
+        nc_param_info[["name"]] <- lapply(
+          nc_param_info[["name"]],
+          paste0,
+          nc_param_info[["suffix"]][[param[["level_type"]]]]
+        )
+      } else {
+        nc_param_info[["name"]] <-paste0(
+          nc_param_info[["name"]],
+          nc_param_info[["suffix"]][[param[["level_type"]]]]
+        )
+      }
+
   }
 
   # if (grepl("^met_norway", opts[["options_set"]])) {

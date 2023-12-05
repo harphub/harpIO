@@ -72,7 +72,16 @@ get_clim <- function(opts, trans) {
 
   } else {
 
-    if (is.null(opts[["clim_file_opts"]])) {
+    if (length(opts[["clim_file_opts"]]) < 1) {
+      opts_fun <- paste0(opts[["clim_file_format"]], "_opts")
+      if (exists(opts_fun)) {
+        opts_fun <- get(opts_fun)
+        if (is.function(opts_fun)) {
+          opts[["clim_file_opts"]] <- opts_fun()
+        }
+      }
+    }
+    if (length(opts[["clim_file_opts"]]) < 1) {
       opts[["clim_file_opts"]] <- list()
     }
 

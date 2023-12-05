@@ -25,10 +25,10 @@ read_netcdf <- function(
   }
 
   if (is.null(format_opts) | length(format_opts) < 1) {
-    warning(
-      "No 'format_opts' passed for NetCDF file. Using default netcdf_opts()",
-      call. = FALSE, immediate. = TRUE
-    )
+    # warning(
+    #   "No 'format_opts' passed for NetCDF file. Using default netcdf_opts()",
+    #   call. = FALSE, immediate. = TRUE
+    # )
     format_opts <- netcdf_opts()
   }
 
@@ -649,9 +649,11 @@ dimnames_from_var <- function(opts, var_dims) {
 
   for (dim_name in names(possible_dim_names)) {
 
-    nc_dim <- intersect(var_dims, possible_dim_names[[dim_name]])
-    if (length(nc_dim) == 1) {
-      opts[[dim_name]] <- nc_dim
+    dim_index <- which(
+      parse_dimname(var_dims) %in% possible_dim_names[[dim_name]]
+    )
+    if (length(dim_index) == 1) {
+      opts[[dim_name]] <- var_dims[dim_index]
     }
 
   }
