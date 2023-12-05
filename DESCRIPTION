@@ -1,6 +1,6 @@
 Package: harpIO
 Title: IO functions and data wrangling for harp
-Version: 0.2.1.9000
+Version: 0.2.1
 Authors@R: as.person(c(
     "Andrew Singleton <andrewts@met.no> [aut, cre]", 
     "Alex Deckmyn <alex.deckmyn@meteo.be> [aut]"
@@ -9,7 +9,7 @@ Description: Functions for reading and writing data in the harp framework.
     Readable formats include grib, netCDF, FA, vfld, vobs, SQLite FCTABLE files and
     writeable formats are SQLite FCTABLE files.
 Depends:
-    harpCore (>= 0.2.0),
+    harpCore (>= 0.2.1),
     R (>= 3.3.1)
 License: Apache License (>= 2.0)
 Encoding: UTF-8
@@ -53,8 +53,8 @@ Remotes:
     harphub/harpData,
     harphub/meteogrid,
     harphub/Rgrib2,
-    harphub/harpVis@develop,
-    harphub/harpCore@develop
+    harphub/harpVis@0.2.1,
+    harphub/harpCore@0.2.1
 URL: https://github.com/harphub/harpIO
 BugReports: https://github.com/harphub/harpIO/issues
 VignetteBuilder: knitr
