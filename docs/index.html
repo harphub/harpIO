@@ -30,7 +30,7 @@
     
     <a class="navbar-brand me-2" href="index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="articles/file_options.html">Options for file formats</a>
+    <a class="dropdown-item" href="articles/read_csv_obs.html">Read observations from CSV files</a>
     <a class="dropdown-item" href="articles/read_raw_forecast.html">Reading forecast model data</a>
     <a class="dropdown-item" href="articles/transformations.html">Transforming forecast model data</a>
     <a class="dropdown-item" href="articles/write_forecast_data.html">Writing forecast model data</a>
@@ -98,13 +99,13 @@
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Alternatively you can set environment variables</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="bu">export</span> <span class="va">PROJ_LIBS</span><span class="op">=</span>/path/to/proj/lib</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="bu">export</span> <span class="va">PROJ_INCLUDE</span><span class="op">=</span>/path/to/proj/include</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="bu">export</span> <span class="va">PROJ_LIB_PATH</span><span class="op">=</span>/path/to/proj/lib</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="bu">export</span> <span class="va">PROJ_INCLUDE_PATH</span><span class="op">=</span>/path/to/proj/include</span></code></pre></div>
 <p>If you include these environment variables in your .bashrc file, or equivalent, you won’t need to worry about it when you wish to install an update to meteogrid.</p>
 <p>Or you can set compiler and linker options in the file $HOME/.R/Makevars</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="va">CPPFLAGS</span><span class="op">=</span>-I/path/to/proj/include</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="va">LDFLAGS</span><span class="op">=</span>-L/path/to/proj/lib <span class="ex">-Wl,-rpath,/path/to/proj/lib</span></span></code></pre></div>
-<p>In this case you only have to set them once and not worry about it when you wish to install an update to meteogrid.</p>
+<p>In this case you only have to set them once and not worry about it when you wish to install an update to meteogrid… However, there is a danger that setting Makevars explicitly can impact the installation of other packages, so in general it is good practice to remove or rename $HOME/.R/Makevars after successful installation.</p>
 <p>When setting environment variables or creating a Makevars file, R must be restarted for the changes to take effect before running <code>remotes::install_github("harphub/harpIO")</code>.</p>
 </div>
 </div>
@@ -118,7 +119,28 @@
 <div class="section level2">
 <h2 id="reading-observation-data">Reading observation data<a class="anchor" aria-label="anchor" href="#reading-observation-data"></a>
 </h2>
-<p>For point observations, {harpIO} can currently only read from <em>vobs</em> files, as produced by the <a href="http://hirlam.org/index.php/hirlam-programme-53" class="external-link">HIRLAM</a> consortium, and write them out to SQLite files using <code><a href="reference/read_obs_convert.html">read_obs_convert()</a></code> for faster access. The SQLite files can then be read with <code><a href="reference/read_point_obs.html">read_point_obs()</a></code>. For gridded observations, data can be read from <em>NetCDF</em>, <em>grib</em> and some <em>HDF5</em> files using <code><a href="reference/read_grid.html">read_grid()</a></code>. A new function, <code><a href="reference/read_obs.html">read_obs()</a></code>, is currently under development to harmonise the reading and transforming of observations in the same way that forecast data are handled.</p>
+<p>For point observations, {harpIO} can currently only read from <em>vobs</em> files, as produced by the <a href="http://hirlam.org/index.php/hirlam-programme-53" class="external-link">HIRLAM</a> consortium, and write them out to SQLite files using <code><a href="reference/read_obs.html">read_obs()</a></code> for faster access. The SQLite files can then be read with <code><a href="reference/read_point_obs.html">read_point_obs()</a></code>. For gridded observations, data can be read from <em>NetCDF</em>, <em>grib</em> and some <em>HDF5</em> files using <code><a href="reference/read_grid.html">read_grid()</a></code> (note that you need to install the “ncdf4” package from CRAN to read NetCDF files, you need to install the <a href="https://harphub.github.io/Rgrib2" class="external-link">“Rgrib2”</a> package with <code>remotes::install_github("harphub/Rgrib2")</code> to read grib files and you need to install the “hdf5r” package from CRAN to read HDF5 files).</p>
+</div>
+<div class="section level2">
+<h2 id="a-note-about-hdf5-files">A note about HDF5 files<a class="anchor" aria-label="anchor" href="#a-note-about-hdf5-files"></a>
+</h2>
+<p>The <a href="https://cran.r-project.org/web/packages/hdf5r/index.html" class="external-link">hdf5r</a> package is needed to read HDF5 files. Installation of the package requires the HDF5 system library. If this library not available in e.g. /usr/local/lib or /usr/lib or similar then the location of the HDF5 library needs to be specified. Typically this can be done with</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span></span>
+<span>  <span class="st">"hdf5r"</span>,</span>
+<span>  configure.args <span class="op">=</span> <span class="st">"--with-hdf5=/path/to/hdf5"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>However, in some cases the appropriate link flags might no be set properly. In this case you should temporarily create a <code>~/.R/Makevars</code> file with the following content:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">PKG_LIBS</span> = <span class="at">-L</span>/path/to/hdf5/lib <span class="at">-Wl,-rpath,</span>/path/to/hdf5/lib <span class="at">-lhdf5hl_fortran</span> <span class="at">-lhdf5_hl_cpp</span> <span class="at">-lhdf5_hl</span> <span class="at">-lhdf5_fortran</span> <span class="at">-lhdf5_cpp</span> <span class="at">-lhdf5</span> <span class="at">-lm</span></span></code></pre></div>
+<p>then install hdf5r and remove the <code>~/.R/Makevars</code> file.</p>
+<p>On the <strong>ECMWF Atos</strong> platform you can put the following in <code>~/.R/Makevars</code></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">PKG_LIBS</span> = <span class="va">$(</span><span class="ex">HDF5_LIB</span><span class="va">)</span></span></code></pre></div>
+<p>And then</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">module</span> load hdf5</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">module</span> load R</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="ex">R</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="op">&gt;</span> install.packages<span class="kw">(</span><span class="st">"hdf5r"</span><span class="kw">)</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="op">&gt;</span> file.remove<span class="kw">(</span><span class="st">"~/.R/Makevars"</span><span class="kw">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

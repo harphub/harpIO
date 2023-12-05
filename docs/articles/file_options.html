@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/file_options.html">Options for file formats</a>
+    <a class="dropdown-item" href="../articles/read_csv_obs.html">Read observations from CSV files</a>
     <a class="dropdown-item" href="../articles/read_raw_forecast.html">Reading forecast model data</a>
     <a class="dropdown-item" href="../articles/transformations.html">Transforming forecast model data</a>
     <a class="dropdown-item" href="../articles/write_forecast_data.html">Writing forecast model data</a>
@@ -866,7 +867,7 @@ element of the time dimension from each subsequent element.</p>
 <pre><code><span><span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
 <pre><code><span><span class="co">#&gt; Warning: No 'format_opts' passed for NetCDF file. Using default netcdf_opts()</span></span></code></pre>
 <pre><code><span><span class="co">#&gt; Warning: Requested dimensions do not match for 'T2m' in /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc.</span></span>
-<span><span class="co">#&gt; Requested dimensions: (time, x, y)</span></span>
+<span><span class="co">#&gt; Requested dimensions: (ensemble_member, time, x, y)</span></span>
 <span><span class="co">#&gt; Dimensions in file: (ensemble_member, height1, time, x, y).</span></span></code></pre>
 <pre><code><span><span class="co">#&gt; Error: Cannot read from netcdf file: /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
 <p>The error tells you what dimension names you have given - in this
@@ -1030,13 +1031,25 @@ netcdf options we currently have, we will get an error as <em>z_var</em>
 <span>  data_frame       <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
-<pre><code><span><span class="co">#&gt; Warning: Requested dimensions do not match for 'specific_humidity_ml' in /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc.</span></span>
-<span><span class="co">#&gt; Requested dimensions: (ensemble_member, height1, time, x, y)</span></span>
-<span><span class="co">#&gt; Dimensions in file: (ensemble_member, hybrid, time, x, y).</span></span></code></pre>
-<pre><code><span><span class="co">#&gt; Error: Cannot read from netcdf file: /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 325 × 9</span></span></span>
+<span><span class="co">#&gt;    fcst_dttm           valid_dttm          lead_time parameter        level_type</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 specific_humidi… pressure  </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 315 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: level &lt;dbl&gt;, units &lt;chr&gt;, gridded_data &lt;geolist&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   members &lt;int[1d]&gt;</span></span></span></code></pre>
 <p>So, to change <em>z_var</em> to “hybrid” we use
 <code><a href="../reference/modify_opts.html">modify_opts()</a></code>:</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_file</span>, </span>
 <span>  <span class="st">"specific_humidity_ml"</span>,</span>

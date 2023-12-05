@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/file_options.html">Options for file formats</a>
+    <a class="dropdown-item" href="../articles/read_csv_obs.html">Read observations from CSV files</a>
     <a class="dropdown-item" href="../articles/read_raw_forecast.html">Reading forecast model data</a>
     <a class="dropdown-item" href="../articles/transformations.html">Transforming forecast model data</a>
     <a class="dropdown-item" href="../articles/write_forecast_data.html">Writing forecast model data</a>
@@ -87,11 +88,11 @@ digits).</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">unixtime_to_str_datetime</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, <span class="va">YMD</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "20231115"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "20231205"</span>
 <span class="r-in"><span><span class="fu">unixtime_to_str_datetime</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, <span class="va">YMDh</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "2023111515"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "2023120513"</span>
 <span class="r-in"><span><span class="fu">unixtime_to_str_datetime</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>, <span class="va">YMDhm</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "202311151533"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "202312051315"</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

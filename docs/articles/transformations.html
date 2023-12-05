@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/file_options.html">Options for file formats</a>
+    <a class="dropdown-item" href="../articles/read_csv_obs.html">Read observations from CSV files</a>
     <a class="dropdown-item" href="../articles/read_raw_forecast.html">Reading forecast model data</a>
     <a class="dropdown-item" href="../articles/transformations.html">Transforming forecast model data</a>
     <a class="dropdown-item" href="../articles/write_forecast_data.html">Writing forecast model data</a>
@@ -284,24 +285,28 @@ file.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>To show the effect of the correction to 2m temperature, we can just
 show the relevant columns using the <code>select</code> method from the
-dplyr package.</p>
+dplyr package, and bringing T2m and T2m_uncorrected into their own
+columns using the <code><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider()</a></code> function from the tidyr
+package.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">t2m</span>, <span class="va">SID</span>, <span class="va">lead_time</span>, <span class="va">parameter</span>, <span class="va">fcst</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;">::deterministic point forecast:: </span><span style="color: #949494;"># A tibble: 102 × 4</span></span></span>
-<span><span class="co">#&gt;      SID lead_time parameter        fcst</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  <span style="text-decoration: underline;">1</span>003         0 T2m_uncorrected  277.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  <span style="text-decoration: underline;">1</span>004         0 T2m_uncorrected  277.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  <span style="text-decoration: underline;">1</span>006         0 T2m_uncorrected  278.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  <span style="text-decoration: underline;">1</span>003         3 T2m_uncorrected  277.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  <span style="text-decoration: underline;">1</span>004         3 T2m_uncorrected  276.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  <span style="text-decoration: underline;">1</span>006         3 T2m_uncorrected  278.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  <span style="text-decoration: underline;">1</span>003         6 T2m_uncorrected  277.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">1</span>004         6 T2m_uncorrected  276.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">1</span>006         6 T2m_uncorrected  278.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">1</span>003         9 T2m_uncorrected  277.</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 92 more rows</span></span></span></code></pre>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">t2m</span>, <span class="va">SID</span>, <span class="va">lead_time</span>, <span class="va">parameter</span>, <span class="va">fcst</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">parameter</span>, values_from <span class="op">=</span> <span class="va">fcst</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 51 × 4</span></span></span>
+<span><span class="co">#&gt;      SID lead_time T2m_uncorrected   T2m</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  <span style="text-decoration: underline;">1</span>003         0            277.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  <span style="text-decoration: underline;">1</span>004         0            277.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  <span style="text-decoration: underline;">1</span>006         0            278.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  <span style="text-decoration: underline;">1</span>003         3            277.  277.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  <span style="text-decoration: underline;">1</span>004         3            276.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  <span style="text-decoration: underline;">1</span>006         3            278.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  <span style="text-decoration: underline;">1</span>003         6            277.  277.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">1</span>004         6            276.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">1</span>006         6            278.  276.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">1</span>003         9            277.  277.</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 41 more rows</span></span></span></code></pre>
 <p>As you will see the uncorrected temperatures are higher as we set
 artificially high elevations for the elevation in my_stations.</p>
 </div>
@@ -358,21 +363,24 @@ the harpVis package.</p>
 <pre><code><span><span class="co">#&gt; Loading required package: ggplot2</span></span></code></pre>
 <pre><code><span><span class="co">#&gt; Loading required package: shiny</span></span></code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># plot_field(</span></span>
-<span><span class="co">#   s10m, </span></span>
-<span><span class="co">#   fcst_model = "AROME_Arctic", </span></span>
-<span><span class="co">#   plot_col   = gridded_data, </span></span>
-<span><span class="co">#   lead_time  = 0, </span></span>
-<span><span class="co">#   breaks     = seq(0, 20, 2)</span></span>
-<span><span class="co"># )</span></span>
-<span><span class="co"># </span></span>
-<span><span class="co"># plot_field(</span></span>
-<span><span class="co">#   s10m, </span></span>
-<span><span class="co">#   fcst_model = "AROME_Arctic", </span></span>
-<span><span class="co">#   plot_col   = regridded_data, </span></span>
-<span><span class="co">#   lead_time  = 0, </span></span>
-<span><span class="co">#   breaks     = seq(0, 20, 2)</span></span>
-<span><span class="co"># )</span></span></code></pre></div>
+<code class="sourceCode R"><span> <span class="fu"><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html" class="external-link">plot_field</a></span><span class="op">(</span></span>
+<span>   <span class="va">s10m</span>, </span>
+<span>   fcst_model <span class="op">=</span> <span class="st">"AROME_Arctic"</span>, </span>
+<span>   plot_col   <span class="op">=</span> <span class="va">gridded_data</span>, </span>
+<span>   lead_time  <span class="op">=</span> <span class="fl">0</span>, </span>
+<span>   breaks     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">20</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span> <span class="op">)</span></span></code></pre></div>
+<p><img src="transformations_files/figure-html/plot-1.png" width="768"></p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># </span></span>
+<span> <span class="fu"><a href="https://rdrr.io/pkg/harpVis/man/plot_field.html" class="external-link">plot_field</a></span><span class="op">(</span></span>
+<span>   <span class="va">s10m</span>, </span>
+<span>   fcst_model <span class="op">=</span> <span class="st">"AROME_Arctic"</span>, </span>
+<span>   plot_col   <span class="op">=</span> <span class="va">regridded_data</span>, </span>
+<span>   lead_time  <span class="op">=</span> <span class="fl">0</span>, </span>
+<span>   breaks     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">20</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span> <span class="op">)</span></span></code></pre></div>
+<p><img src="transformations_files/figure-html/plot-2.png" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="xsection">Xsection<a class="anchor" aria-label="anchor" href="#xsection"></a>

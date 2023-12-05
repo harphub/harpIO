@@ -3,8 +3,9 @@ pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   file_options: file_options.html
+  read_csv_obs: read_csv_obs.html
   read_raw_forecast: read_raw_forecast.html
   transformations: transformations.html
   write_forecast_data: write_forecast_data.html
-last_built: 2023-11-15T15:29Z
+last_built: 2023-12-05T13:11Z
 

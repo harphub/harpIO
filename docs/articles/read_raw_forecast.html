@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/file_options.html">Options for file formats</a>
+    <a class="dropdown-item" href="../articles/read_csv_obs.html">Read observations from CSV files</a>
     <a class="dropdown-item" href="../articles/read_raw_forecast.html">Reading forecast model data</a>
     <a class="dropdown-item" href="../articles/transformations.html">Transforming forecast model data</a>
     <a class="dropdown-item" href="../articles/write_forecast_data.html">Writing forecast model data</a>
@@ -202,14 +203,6 @@ argument.</p>
 <span>  file_format_opts <span class="op">=</span> <span class="fu"><a href="../reference/netcdf_opts.html">netcdf_opts</a></span><span class="op">(</span>options_set <span class="op">=</span> <span class="st">"met_norway_eps"</span><span class="op">)</span>,</span>
 <span>  return_data      <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
-<pre><code><span><span class="co">#&gt; Warning: There was 1 warning in `dplyr::mutate()`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In argument: `forecast_data = purrr::map2(.data[["file_name"]],</span></span>
-<span><span class="co">#&gt;   .data[["data"]], safe_read_grid)`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In group 1: `file_name =</span></span>
-<span><span class="co">#&gt;   "/home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc"`.</span></span>
-<span><span class="co">#&gt; Caused by warning:</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Lead times: 15h,18h,21h,24h,27h,30h,33h,36h,39h,42h,45h,48h for 'T2m' not found in file.</span></span></code></pre>
 <pre><code><span><span class="co">#&gt; <span style="color: #00BB00;">::ensemble gridded forecast:: </span><span style="color: #949494;"># A tibble: 5 × 14</span></span></span>
 <span><span class="co">#&gt;   fcst_model fcst_dttm           lead_time parameter valid_dttm         </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>             </span></span>
@@ -227,7 +220,7 @@ every three hours. The forecast data are in columns with the name of the
 forecast model with a suffix “_mbrXXX” where XXX is the member number.
 We could also ask for a limited set of lead times and ensemble
 members:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span><span class="op">(</span></span>
 <span>  <span class="fl">2018071000</span>,</span>
 <span>  <span class="st">"AAEPS"</span>,</span>
@@ -239,7 +232,6 @@ members:</p>
 <span>  file_format_opts <span class="op">=</span> <span class="fu"><a href="../reference/netcdf_opts.html">netcdf_opts</a></span><span class="op">(</span>options_set <span class="op">=</span> <span class="st">"met_norway_eps"</span><span class="op">)</span>,</span>
 <span>  return_data      <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
 <pre><code><span><span class="co">#&gt; <span style="color: #00BB00;">::ensemble gridded forecast:: </span><span style="color: #949494;"># A tibble: 3 × 12</span></span></span>
 <span><span class="co">#&gt;   fcst_model fcst_dttm           lead_time parameter valid_dttm         </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>             </span></span>
@@ -267,7 +259,7 @@ information to <code>read_forecast</code> and the lags aer assumed to be
 in the same order as the <code>members</code> argument. Note also that
 the dates for CMEPS data are different to the ones that have been used
 before.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_forecast.html">read_forecast</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/harpCore/man/seq_dttm.html" class="external-link">seq_dttm</a></span><span class="op">(</span><span class="fl">2019021700</span>, <span class="fl">2019021718</span>, <span class="st">"6h"</span><span class="op">)</span>,</span>
 <span>  <span class="st">"CMEPS_prod"</span>,</span>

@@ -16,7 +16,7 @@ through ..."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs
     
     <a class="navbar-brand me-2" href="../index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@ through ..."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/file_options.html">Options for file formats</a>
+    <a class="dropdown-item" href="../articles/read_csv_obs.html">Read observations from CSV files</a>
     <a class="dropdown-item" href="../articles/read_raw_forecast.html">Reading forecast model data</a>
     <a class="dropdown-item" href="../articles/transformations.html">Transforming forecast model data</a>
     <a class="dropdown-item" href="../articles/write_forecast_data.html">Writing forecast model data</a>
@@ -165,7 +166,7 @@ substitution.</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">generate_filenames</span><span class="op">(</span>fcst_model <span class="op">=</span> <span class="st">"my_model"</span>, parameter <span class="op">=</span> <span class="st">"T2m"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/2023/11/FCTABLE_T2m_202311_00.sqlite"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/2023/12/FCTABLE_T2m_202312_00.sqlite"</span>
 <span class="r-in"><span><span class="fu">generate_filenames</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  fcst_model     <span class="op">=</span> <span class="st">"my_model"</span>,</span></span>
 <span class="r-in"><span>  lead_time      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>,</span></span>
@@ -175,103 +176,103 @@ substitution.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 13 × 5</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     fcst_dttm lags  fcst_model lead_time file_name                              </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           0 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           1 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           2 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           3 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           4 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           5 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           6 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           7 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           8 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model           9 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model          10 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model          11 /home/andrewts/harp-packages/harpIO/do…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> <span style="text-decoration: underline;">1</span>700<span style="text-decoration: underline;">006</span>400 0s    my_model          12 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           0 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           1 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           2 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           3 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           4 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           5 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           6 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           7 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           8 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model           9 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model          10 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model          11 /home/andrewts/harp-packages/harpIO/do…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> <span style="text-decoration: underline;">1</span>701<span style="text-decoration: underline;">734</span>400 0s    my_model          12 /home/andrewts/harp-packages/harpIO/do…</span>
 <span class="r-in"><span><span class="fu">generate_filenames</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  sub_model      <span class="op">=</span> <span class="st">"my_model"</span>,</span></span>
 <span class="r-in"><span>  lead_time      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">12</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  file_template  <span class="op">=</span> <span class="st">"vfld_eps"</span>,</span></span>
 <span class="r-in"><span>  members        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150000"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [2] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150000"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [3] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150000"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [4] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150000"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [5] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150000"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [6] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150000"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150001"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150001"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150001"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [10] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150001"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [11] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150001"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [12] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150001"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [13] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150002"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [14] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150002"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [15] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150002"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [16] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150002"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [17] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150002"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [18] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150002"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [19] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150003"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [20] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150003"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [21] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150003"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [22] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150003"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [23] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150003"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [24] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150003"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [25] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150004"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [26] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150004"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [27] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150004"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [28] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150004"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [29] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150004"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [30] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150004"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [31] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150005"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [32] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150005"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [33] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150005"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [34] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150005"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [35] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150005"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [36] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150005"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [37] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150006"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [38] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150006"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [39] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150006"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [40] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150006"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [41] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150006"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [42] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150006"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [43] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150007"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [44] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150007"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [45] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150007"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [46] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150007"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [47] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150007"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [48] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150007"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [49] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150008"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [50] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150008"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [51] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150008"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [52] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150008"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [53] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150008"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [54] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150008"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [55] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150009"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [56] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150009"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [57] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150009"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [58] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150009"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [59] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150009"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [60] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150009"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [61] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150010"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [62] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150010"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [63] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150010"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [64] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150010"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [65] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150010"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [66] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150010"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [67] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150011"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [68] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150011"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [69] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150011"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [70] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150011"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [71] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150011"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [72] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150011"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [73] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202311150012"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [74] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202311150012"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [75] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202311150012"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [76] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202311150012"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [77] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202311150012"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [78] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202311150012"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050000"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [2] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050000"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [3] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050000"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [4] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050000"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [5] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050000"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050000"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050001"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050001"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050001"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [10] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050001"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [11] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050001"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [12] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050001"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [13] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050002"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [14] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050002"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [15] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050002"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [16] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050002"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [17] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050002"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [18] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050002"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [19] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050003"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [20] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050003"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [21] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050003"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [22] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050003"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [23] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050003"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [24] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050003"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [25] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050004"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [26] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050004"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [27] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050004"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [28] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050004"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [29] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050004"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [30] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050004"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [31] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050005"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [32] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050005"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [33] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050005"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [34] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050005"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [35] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050005"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [36] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050005"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [37] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050006"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [38] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050006"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [39] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050006"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [40] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050006"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [41] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050006"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [42] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050006"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [43] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050007"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [44] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050007"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [45] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050007"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [46] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050007"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [47] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050007"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [48] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050007"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [49] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050008"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [50] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050008"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [51] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050008"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [52] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050008"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [53] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050008"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [54] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050008"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [55] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050009"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [56] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050009"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [57] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050009"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [58] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050009"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [59] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050009"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [60] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050009"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [61] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050010"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [62] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050010"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [63] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050010"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [64] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050010"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [65] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050010"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [66] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050010"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [67] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050011"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [68] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050011"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [69] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050011"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [70] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050011"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [71] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050011"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [72] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050011"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [73] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr000202312050012"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [74] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr001202312050012"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [75] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr002202312050012"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [76] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr003202312050012"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [77] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr004202312050012"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [78] "/home/andrewts/harp-packages/harpIO/docs/reference/my_model/vfldmy_modelmbr005202312050012"</span>
 <span class="r-in"><span><span class="fu">generate_filenames</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  start_date     <span class="op">=</span> <span class="fl">2020010100</span>,</span></span>
 <span class="r-in"><span>  end_date       <span class="op">=</span> <span class="fl">2020013100</span>,</span></span>
