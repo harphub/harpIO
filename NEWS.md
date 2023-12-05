@@ -1,3 +1,31 @@
+# harpIO 0.2.1
+
+* HOTFIX Released 5th December 2024
+
+* This version includes some improvements for reading NetCDF files and bug fixes
+
+### Bug fixes
+
+* Fix a bug whereby `read_point_obs()` failed when not all accumulation periods
+are available in the SQLite file
+
+* Add "ws" to list of known parameters in `parse_harp_parameter()`
+
+### NetCDF improvements
+
+* When no projection string is available, get the projection information from
+CF compliant attributes
+
+* Get dimension names from variables. In general this means that dimension names
+no longer need to be set via `netcdf_opts()`
+
+### Documentation improvements
+
+* Vignette added to describing how to read point observations from .csv files
+
+* Extra note added to help users install the `hsf5r` package
+
+
 # harpIO 0.2.0
 
 * This version was released in November 2023

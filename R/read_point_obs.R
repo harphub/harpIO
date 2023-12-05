@@ -161,18 +161,18 @@ read_point_obs <- function(
     ) {
 
     metadata_cols <- rlang::syms(colnames(obs)[colnames(obs) != parameter])
-    message("Deriving 6h precipitation from 12h precipitation")
+    #message("Attempting to derive 6h precipitation from 12h precipitation")
     obs <- derive_6h_precip(obs, available_files, dttm, stations)
     if (parameter %in% c("AccPcp12h","AccPcp24h")) {
-      message("Deriving 12h precipitation from 6h precipitation")
+      #message("Attempting to derive 12h precipitation from 6h precipitation")
       obs <- derive_12h_precip(obs)
     }
     if (parameter == "AccPcp3h") {
-      message("Deriving 3h precipitation from 6h precipitation")
+      #message("Attempting to derive 3h precipitation from 6h precipitation")
       obs <- derive_3h_precip(obs)
     }
     if (parameter == "AccPcp24h") {
-      message("Deriving 24h precipitation from 12h precipitation")
+      #message("Attempting to derive 24h precipitation from 12h precipitation")
       obs <- derive_24h_precip(obs)
     }
     obs <- obs %>%
@@ -212,7 +212,7 @@ read_point_obs <- function(
   attr(obs, "bad_obs") <- obs_removed
   colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
 
-  if (nrow(obs_removed) > 0) {
+  if (gross_error_check && nrow(obs_removed) > 0) {
     warning(
       nrow(obs_removed), " observations removed due to gross error check.",
       call. = FALSE
@@ -351,12 +351,20 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
   )
 
   for (pcp_acc in acc) {
-    message("Getting ", pcp_acc, " observations.")
     acc_sym <- rlang::sym(pcp_acc)
     assign(
       paste0("pcp_", pcp_acc),
-      read_obstable(obs_files, !!acc_sym, "SYNOP", dttm, station_ids)
+      dplyr::rename_with(
+        suppressMessages(suppressWarnings(
+          read_obstable(obs_files, !!acc_sym, "SYNOP", dttm, station_ids),
+        )),
+        ~gsub("validdate", "valid_dttm", .x)
+      )
     )
+  }
+
+  if (!is.element("AccPcp6h", colnames(pcp_AccPcp6h))) {
+    return(pcp_data)
   }
 
   pcp_AccPcp6h <- dplyr::full_join(
@@ -398,6 +406,9 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
 }
 
 derive_12h_precip <- function(pcp_data) {
+  if (!is.element("AccPcp6h", colnames(pcp_data))) {
+    return(pcp_data)
+  }
   pcp_data %>%
     dplyr::full_join(
       dplyr::transmute(
@@ -419,6 +430,9 @@ derive_12h_precip <- function(pcp_data) {
 }
 
 derive_3h_precip <- function(pcp_data) {
+  if (!is.element("AccPcp6h", colnames(pcp_data))) {
+    return(pcp_data)
+  }
   pcp_data %>%
     dplyr::full_join(
       dplyr::transmute(
@@ -436,11 +450,14 @@ derive_3h_precip <- function(pcp_data) {
 }
 
 derive_24h_precip <- function(pcp_data) {
+  if (!is.element("AccPcp12h", colnames(pcp_data))) {
+    return(pcp_data)
+  }
   pcp_data %>%
     dplyr::full_join(
       dplyr::transmute(
         pcp_data,
-        validdate = .data$validdate + 3600 * 12,
+        valid_dttm = .data$valid_dttm + 3600 * 12,
         .data$SID,
         .data$lon,
         .data$lat,

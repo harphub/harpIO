@@ -60,7 +60,7 @@ The last column in the data frame, named AROME_Arctic_det is the forecast data, 
 ## Ensemble forecasts
 Reading ensemble forecasts works in exactly the same way. harpData includes output from the AROME-Arctic ensemble model, AAEPS, for the same dates as before, but this time stored in a single netcdf file. Since the data are in a netcdf file, and netcdf files can use many different dimension names and variable names, `read_forecast()` needs some information about the structure of the netcdf file. This structure information is generated with the function `netcdf_opts()`, and since the data come from an EPS model produced by MET Norway we can use one of the built it options sets: `netcdf_opts(options_set = "met_norway_eps")`. All lead times and ensemble members are in the same file, so if you want to read all members from the file you don't have to pass the members as an argument.
 
-```{r aaeps_nc}
+```{r aaeps_nc, message=FALSE, warning=FALSE}
 read_forecast(
   2018071000,
   "AAEPS",
@@ -74,7 +74,7 @@ read_forecast(
 
 You will see that there is a warning about missing lead times. This is because the default behaviour is to ask for lead times 0 - 48 hours, every three hours. The forecast data are in columns with the name of the forecast model with a suffix "_mbrXXX" where XXX is the member number. We could also ask for a limited set of lead times and ensemble members:
 
-```{r aaeps_nc_mem}
+```{r aaeps_nc_mem, message=FALSE}
 read_forecast(
   2018071000,
   "AAEPS",

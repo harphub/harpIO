@@ -1,0 +1,187 @@
+---
+title: "Read observations from CSV files"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Read observations from CSV files}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+_harpIO_ only includes functionality to read observations from _vobs_ files, 
+though observations could come in many formats. A simple format could be a 
+comma separated variables (CSV) text file. harp is written in a way that you 
+can write your own functions that harp's read functions will call so that the 
+data formats you're working with in harp will always be the same regardless of 
+the file formats they came from. This vignette demonstrates how you can make a 
+function that `read_obs_file()` or `read_obs()` could call to read in CSV files 
+following a particular format. 
+
+Let's say our CSV data have columns for station ID ("stationId"), station 
+elevation ("stationElevation"), and columns for the variables 2m temperature 
+("TA"), 10m wind speed ("FF10"), 1-hour precipitation ("RR1"), 2m relative 
+humidity, ("RH2") and mean sea level pressure ("MSLP"), and that there is one 
+file for each observation time, We'll begin by making a function to make some 
+fake data following these conventions.
+```{r setup}
+library(harpIO)
+library(tibble)
+```
+
+```{r fake-data-func}
+make_fake_data <- function(num_stn) {
+
+  set.seed(num_stn) # so stationElevation is the same every time
+  station_elevs <- round(runif(num_stn, 0, 350)) 
+  set.seed(Sys.time())
+
+  tibble::tibble(
+    stationId        = seq_len(num_stn),
+    stationElevation = station_elevs,
+    TA               = round(runif(num_stn, 5, 35), 1),
+    FF10             = round(runif(num_stn, 0.25, 35), 1),
+    RR1              = round(round(rgamma(num_stn, 1, 1)) * runif(num_stn, 1, 2), 1),
+    RH2              = round(runif(num_stn, 0.5, 1), 2),
+    MSLP             = round(runif(num_stn, 970, 1030))
+  )
+}
+```
+
+And then another function to call `make_fake_data()` that will write those data 
+to CSV files for a range of date-times. 
+
+```{r write-fake-data}
+make_csv_files <- function(dttm, num_stn, file_path) {
+
+  invisible(lapply(
+    dttm,
+    \(x) {
+      df <- make_fake_data(num_stn)
+      file_name <- file.path(file_path, paste0("obs_", x, ".csv"))
+      write.table(df, file_name, sep = ",", row.names = FALSE)
+    }
+  ))
+}
+```
+
+And run the function to create 24 hours of fake data, saving to `tempdir()`.
+
+```{r run-fake-data}
+make_csv_files(seq_dttm(2023112800, 2023112823), 30, tempdir())
+```
+
+Now we have a bunch of CSV files we need to function that will read them in and 
+return data in a format that `read_obs_file()` and `read_obs()` can use. There 
+are a couple of important things to remember - the function should return a 
+named list of data frames and those data frames should be one for the data 
+themselves and one that contains information about the units and accumulation 
+times of the observations. We will call these data frames "synop" for the data 
+and "synop_params" for the information about units. "synop" is chosen so that 
+harp knows that these are near surface observations akin to official SYNOP 
+meteorological observations. We should also use a parameter naming convention
+that harp knows (see `show_param_defs()`) as well as column names "SID" for 
+station ID and "elev" for station elevation. Note that we use namespaces for all 
+functions from packages to future proof the function in case we want to use it 
+in a package in the future. 
+
+```{r read-function}
+read_csv_obs <- function(file_name, dttm, parameter = NULL, ...) {
+  
+  # read the csv data using read.csv
+  obs_data <- read.csv(file_name)
+  
+  # add a column for the date-time
+  obs_data <- dplyr::mutate(
+    obs_data, valid_dttm = dttm, .before = dplyr::everything()
+  )
+  
+  # Change column names to names harp knows about using psub()
+  # We wrap in suppressWarnings as we don't want it to warn about 
+  # substitutions that don't exist in case not all files contain all the 
+  # expected columnn names. 
+  colnames(obs_data) <- suppressWarnings(psub(
+    colnames(obs_data),
+    c("stationId", "stationElevation", "TA", "FF10", "RR1", "RH2", "MSLP"),
+    c("SID", "elev", "T2m", "S10m", "AccPcp1h", "RH2m", "Pmsl")
+  ))
+  
+  # Only return parameters that have been asked for
+  if (length(parameter) > 0 && !all(is.na(parameter))) {
+    parameter <- stats::na.omit(parameter)
+    obs_data <- dplyr::select(
+      obs_data, 
+      dplyr::any_of(c("valid_dttm", "SID", "elev", parameter))
+    )
+  }
+  
+  # Make a data frame for parameter units
+  obs_units <- tibble::tribble(
+    ~parameter, ~accum_hours, ~units,
+    "T2m"     , 0           , "degC",
+    "S10m"    , 0           , "m/s",
+    "AccPcp1h", 1           , "kg/m^2",
+    "RH2m"    , 0           , "fraction",
+    "Pmsl"    , 0           , "hPa",
+  )
+  
+  # Filter the obs_units data frame to only those parameters that are in the 
+  # data
+  obs_units <- dplyr::filter(obs_units, .data$parameter %in% colnames(obs_data))
+  
+  # return the data as a named list
+  list(synop = obs_data, synop_params = obs_units)
+}
+```
+
+We can now test the `read_csv_obs()` function on its own or called by 
+`read_obs_file()` by setting `file_format = "csv_obs"`.
+
+```{r basic-read}
+read_csv_obs(file.path(tempdir(), "obs_2023112812.csv"), 2023112812)
+read_obs_file(
+  file.path(tempdir(), "obs_2023112812.csv"), NULL, 
+  dttm = 2023112812, file_format = "csv_obs"
+)
+read_obs_file(
+  file.path(tempdir(), "obs_2023112812.csv"), c("T2m", "S10m"), 
+  dttm = 2023112812, file_format = "csv_obs"
+)
+```
+Note the difference in the valid_dttm column. `read_csv_obs()` returns the date 
+times that were given to it, whereas `read_obs_file()` converts the 
+__valid_dttm__ column to UNIX epoch time format - that is number of seconds 
+since 00:00:00 1 Januray 1970. This is because this is the most efficient way 
+to store and process date-time data. 
+
+If we want to use the observations throughout harp, for example for point 
+observations, it is most efficient to convert the observations to SQLite format, 
+which is much quicker to access and filter to what we need using 
+`read_point_obs()`. This process is done using `read_obs()` and setting 
+output_format_opts. 
+
+```{r read-obs}
+read_obs(
+  seq_dttm(2023112800, 2023112823), 
+  NULL, 
+  file_format        = "csv_obs", 
+  file_path          = tempdir(),
+  file_template      = "obs_{YYYY}{MM}{DD}{HH}.csv",
+  output_format_opts = obstable_opts(file.path(tempdir(), "OBSTABLE"))
+)
+```
+
+And then read the data back in using `read_point_obs()`
+
+```{r read-point-obs}
+read_point_obs(
+  seq_dttm(2023112803, 2023112819), "T2m", 
+  obs_path = file.path(tempdir(), "OBSTABLE"), stations = c(4, 6, 9)
+)
+```
+
