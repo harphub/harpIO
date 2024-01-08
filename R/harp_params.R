@@ -1781,6 +1781,7 @@ define_harp_params <- function() {
 	)
 
   )
+)
 
 }
 
