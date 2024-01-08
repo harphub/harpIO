@@ -7,7 +7,7 @@
 
 read_obsoul <- function(
   file_name,
-  param_defs = get("harp_params"),
+  param_defs = harp_params()),
   ...
 ) {
 
@@ -24,8 +24,7 @@ read_obsoul <- function(
     sapply(param_defs, function(x) is.element("obsoul", names(x)))
   ]
 
-  # Get the country from the file nam2
-  country <- strsplit(basename(file_name), "_")[[1]][4]
+
 
   file_connection <- file(file_name, "r")
   on.exit(close(file_connection))
@@ -58,6 +57,8 @@ read_obsoul <- function(
   obs_df <- dplyr::mutate(
     obs_df,
     type = dplyr::case_when(
+      str_sub(.data[["xx"]],-2,-1) == 14  ~ "synop", 
+      str_sub(.data[["xx"]],-2,-1) == 24  ~ "ship",
       .data[["type"]] == 1   ~ "synop",
       .data[["type"]] == 2   ~ "airep",
       .data[["type"]] == 3   ~ "satob",
@@ -81,7 +82,7 @@ read_obsoul <- function(
   # for other obs types
   if (!is.null(obs_df[["synop"]])) {
     synop <- tidy_obsoul_synop(
-      obs_df[["synop"]], param_defs, country, max_obs
+      obs_df[["synop"]], param_defs, max_obs
     )
   } else {
     synop = list(synop = NULL)
@@ -94,13 +95,13 @@ read_obsoul <- function(
 ###
 # Function to tidy synop data
 ###
-tidy_obsoul_synop <- function(synop_df, param_defs, country, max_obs) {
+tidy_obsoul_synop <- function(synop_df, param_defs, max_obs) {
 
   # Modify SID depending on country, set valid_dttm in unix time
   # and convert parameter codes to names
   synop_df <- dplyr::mutate(
     synop_df,
-    SID  = modify_sid(.data[["SID"]], country),
+    SID  = modify_sid(.data[["SID"]]),
     valid_dttm = suppressMessages(
       harpCore::as_unixtime(
         paste0(
@@ -251,22 +252,19 @@ obsoul_param_code_to_name <- function(x, param_defs) {
 
 ###
 # Function to add a country indicator to site IDs
-modify_sid <- function(x, country) {
+modify_sid <- function(x) {
 
-  country_codes <- list(
-    at = 90,
-    cr = 91,
-    cz = 92,
-    hu = 93,
-    pl = 94,
-    ro = 95,
-    si = 96,
-    sk = 97
+  x <- str_replace_all(x,
+    c("^AT" = "90",
+      "^CR" = "91",
+      "^CZ" = "92",
+      "^HU" = "93",
+      "^PL" = "94",
+      "^RO" = "95",
+      "^SI" = "96",
+      "^SK" = "97"
+      )
   )
-
-  x <- gsub("[[:alpha:]]|", "", x)
-  x <- paste0(country_codes[[country]], x)
-
   as.numeric(x)
 
 }
