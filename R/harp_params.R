@@ -1778,9 +1778,9 @@ define_harp_params <- function() {
         units     = "cm",
         harp_name = "Snow"		
 	
-	)
-
+	  )
   )
+)
 
 }
 
