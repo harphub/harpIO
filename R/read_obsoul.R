@@ -57,8 +57,8 @@ read_obsoul <- function(
   obs_df <- dplyr::mutate(
     obs_df,
     type = dplyr::case_when(
-      str_sub(.data[["xx"]],-2,-1) == 14  ~ "synop", 
-      str_sub(.data[["xx"]],-2,-1) == 24  ~ "ship",
+      substr(.data[["xx"]],7,11) == 14  ~ "synop", 
+      substr(.data[["xx"]],7,11) == 24  ~ "ship",
       .data[["type"]] == 1   ~ "synop",
       .data[["type"]] == 2   ~ "airep",
       .data[["type"]] == 3   ~ "satob",
@@ -254,18 +254,16 @@ obsoul_param_code_to_name <- function(x, param_defs) {
 # Function to add a country indicator to site IDs
 modify_sid <- function(x) {
 
-  x <- str_replace_all(x,
-    c("^AT" = "90",
-      "^CR" = "91",
-      "^CZ" = "92",
-      "^HU" = "93",
-      "^PL" = "94",
-      "^RO" = "95",
-      "^SI" = "96",
-      "^SK" = "97"
-      )
-  )
-  as.numeric(x)
+  x <- gsub("^AT","90",
+       gsub("^CR","91",
+       gsub("^CZ","92",
+       gsub("^HU","93",
+       gsub("^PL","94",
+       gsub("^RO","95",
+       gsub("^SI","96",
+       gsub("^SK","97", x ))))))))
+ 
+       as.numeric(x)
 
 }
 
