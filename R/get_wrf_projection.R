@@ -33,10 +33,22 @@ get_wrf_projection <- function(wrf_file) {
 
   proj4_string <- switch(
     as.character(wrf_proj),
-    "0" = paste0("+proj=eqc +lon_0=", lon0, " +lat0=", lat0, " +lat_ts=", lat1),
-    "1" = paste0("+proj=lcc +lon_0=", lon0, " +lat0=", lat0, " +lat_1=", lat1, " +lat_2=", lat2),
-    "2" = paste0("+proj=stere +lon_0=", lon0, " +lat0=", lat0, " +lat_ts=", lat1),
-    "3" = paste0("+proj=merc +lon_0=", lon0, " +lat_ts=", lat1),
+    "0" = paste0(
+      "+proj=eqc +lon_0=", lon0, " +lat_0=", lat0, " +lat_ts=", lat1,
+      " +R=6370000 +a=6370000 +b=6370000"
+    ),
+    "1" = paste0(
+      "+proj=lcc +lon_0=", lon0, " +lat_0=", lat0, " +lat_1=", lat1,
+      " +lat_2=", lat2, " +R=6370000 +a=6370000 +b=6370000"
+    ),
+    "2" = paste0(
+      "+proj=stere +lon_0=", lon0, " +lat_0=", lat0, " +lat_ts=", lat1,
+      " +R=6370000 +a=6370000 +b=6370000"
+    ),
+    "3" = paste0(
+      "+proj=merc +lon_0=", lon0, " +lat_ts=", lat1,
+      " +R=6370000 +a=6370000 +b=6370000"
+    ),
     "6" = "+proj=latlong",
     NA
   )
@@ -47,6 +59,9 @@ get_wrf_projection <- function(wrf_file) {
 
   if (was_closed) ncdf4::nc_close(wrf_id)
 
-  paste(proj4_string, "+R=6.371e+06")
+  if (!grepl(" \\+R=", proj4_string) && !grepl(" \\+a=", proj4_string)) {
+    return(paste(proj4_string, "+R=6.371e+06"))
+  }
+  proj4_string
 
 }

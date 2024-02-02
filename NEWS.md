@@ -1,6 +1,16 @@
+# harpIO 0.2.2
+
+* HOTFIX Released 2nd February 2024
+
+* New parameters added to OBSOUL reading.
+
+* Partial fix of bug that resulted in errors when extracting domain information
+from WRF output files - care should be taken when reading data from WRF files 
+as this is not fully tested.
+
 # harpIO 0.2.1
 
-* HOTFIX Released 5th December 2024
+* HOTFIX Released 5th December 2023
 
 * This version includes some improvements for reading NetCDF files and bug fixes
 
