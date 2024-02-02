@@ -34,7 +34,7 @@ show_param_defs <- function(
     }
 
     if (file_format == "fa") {
-      stop("Doesn't work FA params yet", call. = FALSE)
+      stop("Doesn't work for FA params yet", call. = FALSE)
     }
 
     params <- dplyr::arrange(

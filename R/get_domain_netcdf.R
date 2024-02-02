@@ -69,12 +69,19 @@ get_domain_netcdf <- function(file_name, opts) {
       stop("Cannot retrieve DY from WRF file.", call. = FALSE)
     }
     dy    <- dy[["value"]]
-    if (is.null(lon_var)) {
-      stop("'lon_var' must be passed for WRF files.", call. = FALSE)
-    }
-    if (is.null(lat_var)) {
-      stop("'lat_var' must be passed for WRF files.", call. = FALSE)
-    }
+    clon  <- ncdf4::ncatt_get(nc_id, 0, "CEN_LON")[["value"]]
+    clat  <- ncdf4::ncatt_get(nc_id, 0, "CEN_LAT")[["value"]]
+    if (was_closed) ncdf4::nc_close(nc_id)
+    return(
+      harpCore::define_domain(
+        centre_lon = clon,
+        centre_lat = clat,
+        nxny       = c(nx, ny),
+        dxdy       = c(dx, dy),
+        proj       = proj4
+      )
+    )
+
   } else {
     if (nc_id[["dim"]][[x_dim]][["create_dimvar"]]) {
       x  <- ncdf4::ncvar_get(nc_id, x_dim)
