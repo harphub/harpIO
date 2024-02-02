@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">harpIO</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -865,11 +865,21 @@ element of the time dimension from each subsequent element.</p>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span><span class="va">nc_file</span>, <span class="st">"T2m"</span>, data_frame <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
-<pre><code><span><span class="co">#&gt; Warning: No 'format_opts' passed for NetCDF file. Using default netcdf_opts()</span></span></code></pre>
-<pre><code><span><span class="co">#&gt; Warning: Requested dimensions do not match for 'T2m' in /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc.</span></span>
-<span><span class="co">#&gt; Requested dimensions: (ensemble_member, time, x, y)</span></span>
-<span><span class="co">#&gt; Dimensions in file: (ensemble_member, height1, time, x, y).</span></span></code></pre>
-<pre><code><span><span class="co">#&gt; Error: Cannot read from netcdf file: /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
+<pre><code><span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 25 × 9</span></span></span>
+<span><span class="co">#&gt;    fcst_dttm           valid_dttm          lead_time parameter level_type level</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">00:00:00</span>         0 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">00:00:00</span>         0 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">00:00:00</span>         0 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">00:00:00</span>         0 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">00:00:00</span>         0 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 2018-07-10 <span style="color: #949494;">00:00:00</span> 2018-07-10 <span style="color: #949494;">03:00:00</span>         3 T2m       height         2</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 15 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: units &lt;chr&gt;, gridded_data &lt;geolist&gt;, members &lt;int[1d]&gt;</span></span></span></code></pre>
 <p>The error tells you what dimension names you have given - in this
 case (time, x, y) - the defaults from <code><a href="../reference/netcdf_opts.html">netcdf_opts()</a></code>, and
 what dimensions it found in the file: (ensemble_member, height1, time,
@@ -878,7 +888,7 @@ alphabetical order, it us up to you to decide which dimension they
 should go with.</p>
 <p>So, now if we use our modified options to read the file, we should
 get a result:</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span><span class="va">nc_file</span>, <span class="st">"T2m"</span>, file_format_opts <span class="op">=</span> <span class="va">my_nc_opts</span>, data_frame <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">ends_with</a></span><span class="op">(</span><span class="st">"dttm"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">#&gt; Reading /home/andrewts/R/x86_64-pc-linux-gnu-library/4.3/harpData/netcdf/AAEPS/fc2018071000.nc</span></span></code></pre>
@@ -897,7 +907,7 @@ get a result:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>         3 T2m       height         2 K      <span style="color: #949494;">[100 × 100]</span>         4</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 15 more rows</span></span></span></code></pre>
 <p>We can also select specific members and lead times:</p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_file</span>, </span>
 <span>  <span class="st">"T2m"</span>,</span>
@@ -940,7 +950,7 @@ MET Norway</li>
 </ul>
 <p>You can, for example, use the “met_norway_det” options set when
 reading data from the MET Norway thredds server:</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span></span>
 <span>  <span class="st">"https://thredds.met.no/thredds/dodsC/aromearcticarchive/2021/03/01/arome_arctic_extracted_2_5km_20210301T21Z.nc"</span>, </span>
 <span>  <span class="st">"T2m"</span>,</span>
@@ -967,7 +977,7 @@ because when the file is on disk an initial scan of the file is done to
 try and guess the format, but this is not possible with external files.
 For demonstration purposes we could do the same using
 <code><a href="../reference/read_forecast.html">read_forecast()</a></code></p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">url</span>      <span class="op">&lt;-</span> <span class="st">"https://thredds.met.no/thredds/dodsC/aromearcticarchive"</span></span>
 <span><span class="va">template</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span></span>
 <span>  <span class="st">"{YYYY}/{MM}/{DD}/"</span>,</span>
@@ -1022,7 +1032,7 @@ variable we wish to read from the file. To address this, the function
 we try to read “specific_humidity_ml” from our example file with the
 netcdf options we currently have, we will get an error as <em>z_var</em>
 = “height1”, but for this variable it needs to be “hybrid”:</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_file</span>, </span>
 <span>  <span class="st">"specific_humidity_ml"</span>, </span>
@@ -1049,7 +1059,7 @@ netcdf options we currently have, we will get an error as <em>z_var</em>
 <span><span class="co">#&gt; <span style="color: #949494;">#   members &lt;int[1d]&gt;</span></span></span></code></pre>
 <p>So, to change <em>z_var</em> to “hybrid” we use
 <code><a href="../reference/modify_opts.html">modify_opts()</a></code>:</p>
-<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/read_grid.html">read_grid</a></span><span class="op">(</span></span>
 <span>  <span class="va">nc_file</span>, </span>
 <span>  <span class="st">"specific_humidity_ml"</span>,</span>
