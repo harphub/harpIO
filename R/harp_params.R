@@ -124,6 +124,12 @@ define_harp_params <- function() {
       fa = list(
         name  = pad_string("CLSMINI.TEMPERAT", 16),
         units = "K"
+      ),
+
+      obsoul = list(
+        name = 81,
+        units = "K",
+        harp_name = "Tmin"
       )
     ),
 
@@ -156,6 +162,12 @@ define_harp_params <- function() {
       fa = list(
         name  = pad_string("CLSMAXI.TEMPERAT", 16),
         units = "K"
+),
+
+      obsoul = list(
+        name = 82,
+        units = "K",
+        harp_name = "Tmax"
       )
     ),
     ###
@@ -1151,6 +1163,12 @@ define_harp_params <- function() {
       fa = list(
         name  = pad_string("SURFNEBUL.TOTALE", 16),
         units = "fraction"
+),
+
+      obsoul = list(
+        name = 91,
+        units = "percent",
+        harp_name = "NN"
       )
     ),
 
@@ -1353,6 +1371,13 @@ define_harp_params <- function() {
         name        = "PE1",
         param_units = "kg/m^2",
         type        = "SYNOP"
+),
+
+      obsoul = list(
+        name = 79,
+        units = "mm",
+        harp_name = "AccPcp1h"
+        
       )
     ),
     ###
@@ -1385,6 +1410,13 @@ define_harp_params <- function() {
         name        = "PE6",
         param_units = "kg/m^2",
         type        = "SYNOP"
+),
+
+      obsoul = list(
+        name = 80,
+        units = "mm",
+        harp_name = "AccPcp6h"
+
       )
     ),
     ###
@@ -1734,10 +1766,21 @@ define_harp_params <- function() {
         units = "J/kg"
       )
 
-    )
+    ),
     ###
 
+      snow = list (
+
+      description = "Snow depth",	
+  
+      obsoul = list(
+	      name      = 92,
+        units     = "cm",
+        harp_name = "Snow"		
+	
+	  )
   )
+)
 
 }
 
