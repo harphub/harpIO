@@ -132,8 +132,23 @@ get_domain_netcdf <- function(file_name, opts) {
     y_end   <- 1
   }
 
+  # If variables are given for latitude and longitude, check if they exist.
+  # If not, set to NULL.
+
+  if (!is.null(lon_var)) {
+    if (is.null(nc_id[["var"]][[lon_var]])) {
+      lon_var <- NULL
+    }
+  }
+
+  if (!is.null(lat_var)) {
+    if (is.null(nc_id[["var"]][[lat_var]])) {
+      lat_var <- NULL
+    }
+  }
+
   # If lat and lon variables are not defined try and get the corners from x and y
-  if (is.null(lon_var) && is.null(lat_var)) {
+  if (is.null(lon_var) || is.null(lat_var)) {
 
     projected_x <- c(
       ncdf4::ncvar_get(nc_id, x_dim, start = x_start, count = 1),
