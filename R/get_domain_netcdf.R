@@ -158,7 +158,7 @@ get_domain_netcdf <- function(file_name, opts) {
       ncdf4::ncvar_get(nc_id, y_dim, start = y_start, count = 1),
       ncdf4::ncvar_get(nc_id, y_dim, start = y_end, count = 1)
     )
-    if (proj4[["proj"]] %in% c("latlong", "merc")) {
+    if (proj4[["proj"]] %in% c("latlong", "longlat", "lalo")) {
       SW <- c(projected_x[1], projected_y[1])
       NE <- c(projected_x[2], projected_y[2])
     } else {

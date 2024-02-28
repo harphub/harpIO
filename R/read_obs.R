@@ -207,6 +207,12 @@ read_obs <- function(
         next()
       }
 
+      if (!is.null(stations)) {
+        table_data <- dplyr::filter(
+          table_data, .data[["SID"]] %in% stations
+        )
+      }
+
       param_name <- paste0(table_name, "_params")
       table_params <- dplyr::distinct(
         purrr::map_dfr(obs_data[["obs"]], param_name)
