@@ -359,7 +359,7 @@ read_forecast <- function(
         file_name           = .x,
         parameter           = .y[["parameter"]],
         is_forecast         = is_forecast,
-        dttm                = fcst_dttm,
+        dttm                = harpCore::as_str_dttm(.y[["fcst_dttm"]]),
         file_format         = unique(.y[["file_format"]]),
         file_format_opts    = file_format_opts,
         vertical_coordinate = vertical_coordinate,
