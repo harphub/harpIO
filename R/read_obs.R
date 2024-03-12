@@ -189,7 +189,8 @@ read_obs <- function(
             list(
               param_defs       = param_defs,
               file_format      = file_format,
-              file_format_opts = file_format_opts
+              file_format_opts = file_format_opts,
+              stations         = stations
             )
           )
         )
