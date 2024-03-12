@@ -539,9 +539,11 @@ read_and_transform_netcdf <- function(
         info   = geofield_info
       )
 
+      geofields[[i]] <- harpCore:::latlong_fudge(geofields[[i]])
+
     }
 
-    if (length(geofields) > 1) {
+    if (is.function(nc_opts[[1]][["func"]])) {
       names(geofields) <- nc_info[["func_var"]]
       nc_geofield <- do.call(nc_opts[[1]][["func"]], geofields)
     } else {
