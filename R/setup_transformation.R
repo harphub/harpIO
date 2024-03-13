@@ -29,7 +29,9 @@ setup_transformation <- function(trans, opts) {
     return(opts)
   }
 
-  if (!file.exists(opts[["clim_file"]])) {
+  url_link <- grepl("https://|http://", opts[["clim_file"]])
+
+  if (!url_link && !file.exists(opts[["clim_file"]])) {
     stop("Cannot find 'clim_file': ", opts[["clim_file"]], call. = FALSE)
   }
 
