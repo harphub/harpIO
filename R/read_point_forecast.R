@@ -615,7 +615,7 @@ read_point_forecast <- function(
       dplyr::matches("^p$"), dplyr::matches("^m$"), dplyr::matches("^z$"),
       dplyr::matches("_det$"),
       dplyr::matches("_mbr[[:digit:]]+$"),
-      dplyr::matches("_mbr[[:digit:]]+_lag[[:digit:]]*$"),
+      dplyr::matches("_mbr[[:digit:]]+_lag[[:digit:]]*"),
       dplyr::everything()
     ) %>%
       harpCore::as_harp_df()
@@ -732,6 +732,22 @@ lag_and_join <- function(fcst_list, lags_df) {
       inner_list[[1]]
     }
   }
+
+  # Add a lag suffix to all lagged members
+  lag_suffix <- function(chr_lag) {
+    if (harpCore::to_seconds(chr_lag) == 0) {
+      return("")
+    }
+    paste0("_lag", chr_lag)
+  }
+
+  fcst_list <- purrr::map2(
+    fcst_list,
+    lags_df[["lag"]],
+    function(a, b) dplyr::rename_with(
+      a, ~paste0(.x, lag_suffix(b)), dplyr::matches("_mbr[[:digit:]]{3}")
+    )
+  )
 
   fcst_list <- split(fcst_list, lags_df$fcst_model) %>%
     purrr::map(join_lags)
