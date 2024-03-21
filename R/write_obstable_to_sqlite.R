@@ -8,6 +8,7 @@ write_obstable_to_sqlite <- function(
   params_table = NULL,
   synchronous  = "off",
   journal_mode = "delete",
+  dir_mode     = "0750",
   ...
 ) {
 
@@ -22,7 +23,7 @@ write_obstable_to_sqlite <- function(
   newfile <- FALSE
   if (!file.exists(file_name)) {
     newfile <- TRUE
-    if (!dir.exists(dirname(file_name))) dir.create(dirname(file_name), recursive = TRUE, mode = "0750")
+    if (!dir.exists(dirname(file_name))) dir.create(dirname(file_name), recursive = TRUE, mode = dir_mode)
     message("\n***\nNew SQLITE obs file created: ", file_name, "\n***\n")
   }
 

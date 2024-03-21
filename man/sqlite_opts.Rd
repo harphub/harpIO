@@ -12,6 +12,7 @@ sqlite_opts(
   index_cols = c("fcst_dttm", "lead_time", "SID"),
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  dir_mode = "0750",
   remove_model_elev = FALSE
 )
 
@@ -21,6 +22,7 @@ fctable_opts(
   index_cols = c("fcst_dttm", "lead_time", "SID"),
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  dir_mode = "0750",
   remove_model_elev = FALSE
 )
 
@@ -29,7 +31,8 @@ obstable_opts(
   template = "obstable",
   index_cols = "auto",
   synchronous = c("off", "normal", "full", "extra"),
-  journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off")
+  journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  dir_mode = "0750"
 )
 }
 \arguments{
@@ -54,6 +57,9 @@ information.}
 "delete", but can also be "truncate", "persist", "memory", "wal", or "off".
 See \url{https://www.sqlite.org/pragma.html#pragma_journal_mode} for more
 information.}
+
+\item{dir_mode}{The permissins mode to be used for creation of new
+directories on Unix-alike systems. The default is "0750".}
 
 \item{remove_model_elev}{Set to TRUE to not include model elevation in the
 sqlite output files. For multi model ensembles, members having different

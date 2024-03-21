@@ -23,6 +23,8 @@
 #'   "delete", but can also be "truncate", "persist", "memory", "wal", or "off".
 #'   See \url{https://www.sqlite.org/pragma.html#pragma_journal_mode} for more
 #'   information.
+#' @param dir_mode The permissins mode to be used for creation of new
+#'   directories on Unix-alike systems. The default is "0750".
 #' @param remove_model_elev Set to TRUE to not include model elevation in the
 #'   sqlite output files. For multi model ensembles, members having different
 #'   model elevations from each other will make it impossible to include all
@@ -43,6 +45,7 @@ sqlite_opts <- function(
   index_cols        = c("fcst_dttm", "lead_time", "SID"),
   synchronous       = c("off", "normal", "full", "extra"),
   journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
+  dir_mode          = "0750",
   remove_model_elev = FALSE
 ) {
 
@@ -55,6 +58,7 @@ sqlite_opts <- function(
     index_cols        = index_cols,
     synchronous       = synchronous,
     journal_mode      = journal_mode,
+    dir_mode          = formatC(as.numeric(dir_mode), width = 4, flag = "0"),
     remove_model_elev = remove_model_elev
   )
 
@@ -69,6 +73,7 @@ fctable_opts <- function(
     index_cols        = c("fcst_dttm", "lead_time", "SID"),
     synchronous       = c("off", "normal", "full", "extra"),
     journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
+    dir_mode          = "0750",
     remove_model_elev = FALSE
 ) {
 
@@ -81,6 +86,7 @@ fctable_opts <- function(
     index_cols        = index_cols,
     synchronous       = synchronous,
     journal_mode      = journal_mode,
+    dir_mode          = formatC(as.numeric(dir_mode), width = 4, flag = "0"),
     remove_model_elev = remove_model_elev
   )
 
@@ -93,7 +99,8 @@ obstable_opts <- function(
     template          = "obstable",
     index_cols        = "auto",
     synchronous       = c("off", "normal", "full", "extra"),
-    journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off")
+    journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
+    dir_mode          = "0750"
 ) {
 
   synchronous  <- match.arg(synchronous)
@@ -104,6 +111,7 @@ obstable_opts <- function(
     template          = template,
     index_cols        = index_cols,
     synchronous       = synchronous,
+    dir_mode          = formatC(as.numeric(dir_mode), width = 4, flag = "0"),
     journal_mode      = journal_mode
   )
 

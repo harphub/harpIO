@@ -6,6 +6,8 @@
 #'   called Verification inside the working directory.
 #' @param verif_file_template A template for the verification data file. For
 #'   consistency with the default shiny app to plot verification, this should not be changed.
+#' @param dir_mode The permissions mode to be used for creation of new
+#'   directories on Unix-alike systems. The default is "0750".
 #' @param ... Non default variables used in \code{verif_file_template}.
 #'
 #' @export
@@ -18,6 +20,7 @@ save_point_verif <- function(
   verif_data,
   verif_path          = "./Verification",
   verif_file_template = "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
+  dir_mode            = "0750",
   ...
 ) {
 
@@ -46,7 +49,7 @@ save_point_verif <- function(
 
   file_name <- stringr::str_glue(verif_file_template)
   if (!dir.exists(dirname(file_name))) {
-    dir.create(dirname(file_name), recursive = TRUE, mode = "0750")
+    dir.create(dirname(file_name), recursive = TRUE, mode = dir_mode)
   }
 
   message("Saving point verification scores to: \n", file_name)

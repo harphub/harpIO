@@ -19,7 +19,9 @@ write_fctable_to_sqlite <- function(
   primary_key       = c("fcst_dttm", "lead_time", "SID"),
   synchronous       = "off",
   journal_mode      = "delete",
-  remove_model_elev = FALSE
+  dir_mode          = "0750",
+  remove_model_elev = FALSE,
+  ...
 ) {
 
   if (all(is.na(data[["forecast"]]))) return()
@@ -39,7 +41,7 @@ write_fctable_to_sqlite <- function(
   newfile <- FALSE
   if (!file.exists(filename)) {
     newfile <- TRUE
-    if (!dir.exists(dirname(filename))) dir.create(dirname(filename), recursive = TRUE, mode = "0750")
+    if (!dir.exists(dirname(filename))) dir.create(dirname(filename), recursive = TRUE, mode = dir_mode)
   }
 
   if (remove_model_elev && is.element("model_elevation", colnames(data))) {
