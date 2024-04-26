@@ -120,34 +120,37 @@ read_obs <- function(
     list_counter    <- 0
   }
 
-  dttm <- split(
-    dttm,
-    (seq_along(dttm) - 1) %/% reads_per_write
+  all_data_files <- generate_filenames(
+    file_path      = file_path,
+    file_date      = dttm,
+    parameter      = parameter,
+    file_template  = file_template,
+    filenames_only = FALSE,
+    ...
   )
 
-  for (iter_dttm in dttm) {
+  colnames(all_data_files)[colnames(all_data_files) == "fcst_dttm"] <- "dttm"
+
+  all_data_files[["dttm"]] <- harpCore::unixtime_to_str_dttm(
+    all_data_files[["dttm"]]
+  )
+
+  all_data_files <- all_data_files[colnames(all_data_files) != "lags"]
+
+  all_data_files <- dplyr::group_nest(all_data_files, .data[["file_name"]])
+
+
+  all_data_files <- split(
+    all_data_files,
+    (seq_len(nrow(all_data_files)) - 1) %/% reads_per_write
+  )
+
+  for (data_files in all_data_files) {
 
     if (return_data) {
       list_counter <- list_counter + 1
       function_output[[list_counter]] <- list()
     }
-
-    data_files <- generate_filenames(
-      file_path      = file_path,
-      file_date      = iter_dttm,
-      parameter      = parameter,
-      file_template  = file_template,
-      filenames_only = FALSE,
-      ...
-    )
-
-    names(data_files)[names(data_files) == "fcst_dttm"] <- "dttm"
-
-    data_files[["dttm"]] <- harpCore::unixtime_to_str_dttm(data_files[["dttm"]])
-
-    data_files <- data_files[colnames(data_files) != "lags"]
-
-    data_files <- dplyr::group_nest(data_files, .data[["file_name"]])
 
     missing_files <- which(!file.exists(data_files[["file_name"]]))
     if (length(missing_files) > 0) {
