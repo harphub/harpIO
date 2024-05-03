@@ -27,6 +27,26 @@ write_obstable_to_sqlite <- function(
     message("\n***\nNew SQLITE obs file created: ", file_name, "\n***\n")
   }
 
+  sqlite_db <- dbopen(file_name)
+
+  # Make sure column names in data match those in the file - handling the
+  # update of column names in v0.2 -
+  # validdate -> valid_dttm
+  if (!newfile) {
+
+    db_col_names <- colnames(dplyr::tbl(sqlite_db, table_name))
+
+    old_validdate <- is.element("validdate", db_col_names)
+
+    new_valid_dttm <- is.element("valid_dttm", colnames(obs_data))
+
+    if (old_validdate && new_valid_dttm) {
+      colnames(obs_data)[colnames(obs_data) == "valid_dttm"] <- "validdate"
+      primary_key[primary_key == "valid_dttm"] <- "validdate"
+    }
+
+  }
+
   col_names    <- colnames(obs_data)
   meta_cols    <- c(primary_key, "lat", "lon", "elev")
   data_cols    <- setdiff(col_names, meta_cols)
@@ -43,7 +63,6 @@ write_obstable_to_sqlite <- function(
 
   message("Writing to: ", table_name, " in ", file_name, "\n")
 
-  sqlite_db <- dbopen(file_name)
   dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
   create_obs_table <- function() {

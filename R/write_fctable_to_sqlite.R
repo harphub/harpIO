@@ -61,14 +61,44 @@ write_fctable_to_sqlite <- function(
   data <- data %>%
     tidyr::spread(.data$member, .data$forecast)
 
-  column_names  <- colnames(data)
-
-  primary_key <- intersect(primary_key, column_names)
-
-  message("Opening connection to: ", filename)
-
   sqlite_db <- dbopen(filename)
 
+  # Make sure column names in data match those in the file - handling the
+  # update of column names in v0.2 -
+  # fcdate    -> fcst_dttm
+  # validdate -> valid_dttm
+  # leadtime  -> lead_time
+  if (!newfile) {
+    db_col_names <- colnames(dplyr::tbl(sqlite_db, tablename))
+
+    old_fcdate    <- is.element("fcdate", db_col_names)
+    old_validdate <- is.element("validdate", db_col_names)
+    old_leadtime  <- is.element("leadtime", db_col_names)
+
+    new_fcst_dttm  <- is.element("fcst_dttm", colnames(data))
+    new_valid_dttm <- is.element("valid_dttm", colnames(data))
+    new_lead_time  <- is.element("lead_time", colnames(data))
+
+    if (old_fcdate && new_fcst_dttm) {
+      colnames(data)[colnames(data) == "fcst_dttm"] <- "fcdate"
+      primary_key[primary_key == "fcst_dttm"] <- "fcdate"
+    }
+
+    if (old_validdate && new_valid_dttm) {
+      colnames(data)[colnames(data) == "valid_dttm"] <- "validdate"
+      primary_key[primary_key == "valid_dttm"] <- "validdate"
+    }
+
+    if (old_leadtime && new_lead_time) {
+      colnames(data)[colnames(data) == "lead_time"] <- "leadtime"
+      primary_key[primary_key == "lead_time"] <- "leadtime"
+    }
+
+  }
+
+  column_names  <- colnames(data)
+
+  message("Opening connection to: ", filename)
 
   dbquery(sqlite_db, paste("PRAGMA synchronous =", toupper(synchronous)))
 
