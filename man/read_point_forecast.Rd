@@ -7,7 +7,6 @@
 read_point_forecast(
   dttm,
   fcst_model,
-  fcst_type,
   parameter,
   lead_time = seq(0, 48, 3),
   lags = "0s",
@@ -34,9 +33,6 @@ vector of equally spaced date-time strings.}
 
 \item{fcst_model}{The forecast model to read - this is typically used to
 construct the file name. Can be a character vector of model names.}
-
-\item{fcst_type}{The type of forecast to read. Set to "det" for deterministic
-or "eps" for ensemble.}
 
 \item{parameter}{The forecast parameter to read. This is usually only used to
 construct the filename, and in accumumlating precipitation.}
@@ -137,7 +133,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date = 2019021700,
     end_date   = 2019021718,
     fcst_model = "AROME_Arctic_prod",
-    fcst_type  = "det",
     parameter  = "S10m",
     by         = "6h",
     file_path  = system.file("FCTABLE/deterministic", package = "harpData")
@@ -148,7 +143,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date = 2019021700,
     end_date   = 2019021718,
     fcst_model = c("AROME_Arctic_prod", "MEPS_prod"),
-    fcst_type  = "det",
     parameter  = "S10m",
     by         = "6h",
     file_path  = system.file("FCTABLE/deterministic", package = "harpData")
@@ -161,7 +155,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date    = 2019021700,
     end_date      = 2019021718,
     fcst_model    = "MEPS_prod",
-    fcst_type     = "eps",
     parameter     = "T2m",
     lead_time     = seq(0, 12, 3),
     by            = "6h",
@@ -174,7 +167,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date    = 2019021700,
     end_date      = 2019021718,
     fcst_model    = "MEPS_prod",
-    fcst_type     = "eps",
     parameter     = "T2m",
     lead_time     = seq(0, 12, 3),
     by            = "6h",
@@ -188,7 +180,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date          = 2019021700,
     end_date            = 2019021718,
     fcst_model          = "MEPS_prod",
-    fcst_type           = "eps",
     parameter           = "T",
     lead_time           = seq(0, 12, 3),
     by                  = "6h",
@@ -205,7 +196,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date    = 2019021700,
     end_date      = 2019021718,
     fcst_model    = "CMEPS_prod",
-    fcst_type     = "EPS",
     parameter     = "T2m",
     lead_time     = seq(0, 12, 3),
     by            = "6h",
@@ -220,7 +210,6 @@ if (requireNamespace("harpData", quietly = TRUE)) {
     start_date    = 2019021700,
     end_date      = 2019021718,
     fcst_model    = c("CMEPS_prod", "MEPS_prod"),
-    fcst_type     = "EPS",
     parameter     = "T2m",
     lead_time     = seq(0, 12, 3),
     by            = "6h",

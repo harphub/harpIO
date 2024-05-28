@@ -17,8 +17,6 @@
 #'   vector of equally spaced date-time strings.
 #' @param fcst_model The forecast model to read - this is typically used to
 #'   construct the file name. Can be a character vector of model names.
-#' @param fcst_type The type of forecast to read. Set to "det" for deterministic
-#'   or "eps" for ensemble.
 #' @param parameter The forecast parameter to read. This is usually only used to
 #'   construct the filename, and in accumumlating precipitation.
 #' @param lead_time The lead times to be retrieved. Can be used to construct the
@@ -73,6 +71,8 @@
 #'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
 #'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 #'   spaced date-times.
+#' @param fcst_type `r lifecycle::badge("deprecated")` `fcst_type` is no longer
+#'   required and this its use is deprecated and will be removed as an argument.
 #' @return A list with an element for each forecast model, or in the case of a
 #'   multi model ensemble, another list with an element for each sub model. The
 #'   list elements each contain a data frame with columns for station ID (SID),
@@ -91,7 +91,6 @@
 #'     start_date = 2019021700,
 #'     end_date   = 2019021718,
 #'     fcst_model = "AROME_Arctic_prod",
-#'     fcst_type  = "det",
 #'     parameter  = "S10m",
 #'     by         = "6h",
 #'     file_path  = system.file("FCTABLE/deterministic", package = "harpData")
@@ -102,7 +101,6 @@
 #'     start_date = 2019021700,
 #'     end_date   = 2019021718,
 #'     fcst_model = c("AROME_Arctic_prod", "MEPS_prod"),
-#'     fcst_type  = "det",
 #'     parameter  = "S10m",
 #'     by         = "6h",
 #'     file_path  = system.file("FCTABLE/deterministic", package = "harpData")
@@ -115,7 +113,6 @@
 #'     start_date    = 2019021700,
 #'     end_date      = 2019021718,
 #'     fcst_model    = "MEPS_prod",
-#'     fcst_type     = "eps",
 #'     parameter     = "T2m",
 #'     lead_time     = seq(0, 12, 3),
 #'     by            = "6h",
@@ -128,7 +125,6 @@
 #'     start_date    = 2019021700,
 #'     end_date      = 2019021718,
 #'     fcst_model    = "MEPS_prod",
-#'     fcst_type     = "eps",
 #'     parameter     = "T2m",
 #'     lead_time     = seq(0, 12, 3),
 #'     by            = "6h",
@@ -142,7 +138,6 @@
 #'     start_date          = 2019021700,
 #'     end_date            = 2019021718,
 #'     fcst_model          = "MEPS_prod",
-#'     fcst_type           = "eps",
 #'     parameter           = "T",
 #'     lead_time           = seq(0, 12, 3),
 #'     by                  = "6h",
@@ -159,7 +154,6 @@
 #'     start_date    = 2019021700,
 #'     end_date      = 2019021718,
 #'     fcst_model    = "CMEPS_prod",
-#'     fcst_type     = "EPS",
 #'     parameter     = "T2m",
 #'     lead_time     = seq(0, 12, 3),
 #'     by            = "6h",
@@ -174,7 +168,6 @@
 #'     start_date    = 2019021700,
 #'     end_date      = 2019021718,
 #'     fcst_model    = c("CMEPS_prod", "MEPS_prod"),
-#'     fcst_type     = "EPS",
 #'     parameter     = "T2m",
 #'     lead_time     = seq(0, 12, 3),
 #'     by            = "6h",
@@ -189,7 +182,6 @@
 read_point_forecast <- function(
   dttm,
   fcst_model,
-  fcst_type,
   parameter,
   lead_time           = seq(0, 48, 3),
   lags                = "0s",
@@ -205,7 +197,8 @@ read_point_forecast <- function(
   force_param_name    = FALSE,
   start_date          = NULL,
   end_date            = NULL,
-  by                  = "6h"
+  by                  = "6h",
+  fcst_type           = NULL
 ) {
 
   use_dttm <- TRUE
@@ -228,26 +221,14 @@ read_point_forecast <- function(
     dttm <- harpCore::seq_dttm(start_date, end_date, by)
   }
 
-  switch(tolower(fcst_type),
-    "eps" = {
-      if (is.null(file_template)) file_template <- "fctable_eps"
-      member_regexp <- "[[:graph:]]+(?=_mbr[[:digit:]]+)"
-      fcst_suffix   <- "_mbr"
-    },
-    "det" = {
-      if (is.null(file_template)) file_template <- "fctable_det"
-      member_regexp <- "[[:graph:]]+(?=_det)"
-      fcst_suffix   <- "_det"
-    },
-    {
-      file_template <- NULL
-      member_regexp <- NULL
-      fcst_suffix   <- NULL
-    }
-  )
-  if (is.null(member_regexp)) {
-    stop("Unknown fcst_type argument: ", fcst_type, ". \nMust be one of 'eps' or 'det'", call. = FALSE)
+  if (!is.null(fcst_type)) {
+    lifecycle::deprecate_warn(
+      "0.2.3",
+      "read_point_forecast(fcst_type)"
+    )
   }
+
+  fcst_suffix <- "_mbr[[:digit:]]{3}|_det$"
 
   if (any(readr::parse_number(unlist(lags)) != 0)) {
     lags_passed <- TRUE
@@ -470,7 +451,7 @@ read_point_forecast <- function(
     fcst      <- fcst[which(!no_members)]
   }
 
-  fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
+  fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::matches(fcst_suffix)), drop_function)
 
   if (parameter$accum > 0 && accumulate) {
 
@@ -479,7 +460,7 @@ read_point_forecast <- function(
     fcst_accum <- purrr::map(
       fcst,
       ~ accumulate_forecast(
-        tidyr::gather(.x, dplyr::contains(fcst_suffix), key = "member", value = "forecast"),
+        tidyr::gather(.x, dplyr::matches(fcst_suffix), key = "member", value = "forecast"),
         accum,
         parameter$acc_unit
       )
@@ -527,7 +508,7 @@ read_point_forecast <- function(
           param      = parameter,
           get_latlon = get_lat_and_lon
         )
-      ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::contains(fcst_suffix)), drop_function)
+      ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::matches(fcst_suffix)), drop_function)
 
       no_data_for_accum <- which(vapply(fcst_lead_time_accum, nrow, numeric(1)) < 1)
 
@@ -543,7 +524,7 @@ read_point_forecast <- function(
       fcst_accum[unread_leads] <- purrr::map(
         fcst[unread_leads],
         ~ accumulate_forecast(
-          tidyr::gather(.x, dplyr::contains(fcst_suffix), key = "member", value = "forecast"),
+          tidyr::gather(.x, dplyr::matches(fcst_suffix), key = "member", value = "forecast"),
           accum,
           parameter$acc_unit,
           check_leads = FALSE
