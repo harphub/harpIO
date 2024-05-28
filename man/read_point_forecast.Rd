@@ -22,7 +22,8 @@ read_point_forecast(
   force_param_name = FALSE,
   start_date = NULL,
   end_date = NULL,
-  by = "6h"
+  by = "6h",
+  fcst_type = NULL
 )
 }
 \arguments{
@@ -101,6 +102,9 @@ name to be used in the file name set to TRUE.}
 \code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
 with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 spaced date-times.}
+
+\item{fcst_type}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} \code{fcst_type} is no longer
+required and this its use is deprecated and will be removed as an argument.}
 }
 \value{
 A list with an element for each forecast model, or in the case of a
