@@ -1838,7 +1838,7 @@ NULL
 #'
 add_param_def <- function(
   param,
-  param_defs  = get("harp_params"),
+  param_defs  = getExportedValue("harpIO", "harp_params"),
   description = "",
   min         = -Inf,
   max         = Inf,
@@ -1894,7 +1894,7 @@ add_param_def <- function(
 #' my_params$pmsl
 modify_param_def <- function(
   param,
-  param_defs  = get("harp_params"),
+  param_defs  = getExportedValue("harpIO", "harp_params"),
   description = NULL,
   min         = NULL,
   max         = NULL,

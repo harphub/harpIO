@@ -12,7 +12,10 @@
 #
 # @examples
 #
-read_vobs <- function(file_name, dttm, opts, param_defs = get("harp_params"), ...) {
+read_vobs <- function(
+  file_name, dttm, opts,
+  param_defs = getExportedValue("harpIO", "harp_params"), ...
+) {
 
   if (length(opts) < 0) {
     opts <- vfile_opts(type = "vobs")

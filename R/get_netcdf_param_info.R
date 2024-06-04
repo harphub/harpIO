@@ -11,7 +11,7 @@
 
 get_netcdf_param_info <- function(
   param, vc = NA_character_, opts = netcdf_opts(),
-  param_defs = get("harp_params")
+  param_defs = getExportedValue("harpIO", "harp_params")
 ) {
 
   if (!inherits(param, "harp_parameter")) {

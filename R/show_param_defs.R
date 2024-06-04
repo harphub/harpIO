@@ -10,7 +10,7 @@
 #' show_param_defs("grib")
 #' show_param_defs("netcdf")
 show_param_defs <- function(
-  file_format = NULL, param_defs = get("harp_params")
+  file_format = NULL, param_defs = getExportedValue("harpIO", "harp_params")
 ) {
   if (is.null(file_format)) {
     params <- dplyr::arrange(

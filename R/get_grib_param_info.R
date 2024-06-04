@@ -12,7 +12,8 @@
 # #'   \code{level_type}, \code{level_numbe.r}
 # #'
 get_grib_param_info <- function(
-  param, vertical_coordinate = NA_character_, param_defs = get("harp_params")
+  param, vertical_coordinate = NA_character_,
+  param_defs = getExportedValue("harpIO", "harp_params")
 ) {
 
   if (!inherits(param, "harp_parameter")) {

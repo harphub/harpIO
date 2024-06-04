@@ -7,7 +7,7 @@
 
 read_obsoul <- function(
   file_name,
-  param_defs = get("harp_params"),
+  param_defs = getExportedValue("harpIO", "harp_params"),
   ...
 ) {
 
@@ -57,7 +57,7 @@ read_obsoul <- function(
   obs_df <- dplyr::mutate(
     obs_df,
     type = dplyr::case_when(
-      substr(.data[["xx"]],7,11) == 14  ~ "synop", 
+      substr(.data[["xx"]],7,11) == 14  ~ "synop",
       substr(.data[["xx"]],7,11) == 24  ~ "ship",
       .data[["type"]] == 1   ~ "synop",
       .data[["type"]] == 2   ~ "airep",
@@ -262,7 +262,7 @@ modify_sid <- function(x) {
        gsub("^RO","95",
        gsub("^SI","96",
        gsub("^SK","97", x ))))))))
- 
+
        as.numeric(x)
 
 }

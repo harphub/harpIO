@@ -1,5 +1,5 @@
 get_function <- function(
-  param, file_format, param_defs = get("harp_params")
+  param, file_format, param_defs = getExportedValue("harpIO", "harp_params")
 ) {
 
   param_info <- param_defs[[param]][[file_format]]
