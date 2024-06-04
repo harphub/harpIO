@@ -9,7 +9,7 @@ read_netcdf <- function(
     transformation      = "none",
     transformation_opts = list(),
     format_opts         = netcdf_opts(),
-    param_defs          = get("harp_params"),
+    param_defs          = getExportedValue("harpIO", "harp_params"),
     show_progress       = FALSE,
     ...
 ) {

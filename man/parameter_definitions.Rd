@@ -10,7 +10,7 @@
 \usage{
 add_param_def(
   param,
-  param_defs = get("harp_params"),
+  param_defs = getExportedValue("harpIO", "harp_params"),
   description = "",
   min = -Inf,
   max = Inf,
@@ -25,7 +25,7 @@ add_param_def(
 
 modify_param_def(
   param,
-  param_defs = get("harp_params"),
+  param_defs = getExportedValue("harpIO", "harp_params"),
   description = NULL,
   min = NULL,
   max = NULL,
@@ -38,9 +38,16 @@ modify_param_def(
   ...
 )
 
-get_param_def(param, file_format = NULL, param_defs = get("harp_params"))
+get_param_def(
+  param,
+  file_format = NULL,
+  param_defs = getExportedValue("harpIO", "harp_params")
+)
 
-show_param_defs(file_format = NULL, param_defs = get("harp_params"))
+show_param_defs(
+  file_format = NULL,
+  param_defs = getExportedValue("harpIO", "harp_params")
+)
 }
 \arguments{
 \item{param}{The name of a parameter to extract from \code{param_defs}}

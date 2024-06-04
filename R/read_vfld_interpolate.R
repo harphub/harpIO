@@ -44,7 +44,7 @@ read_vfld_interpolate <- function(
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   init                = list(),
   format_opts         = vfile_opts(),
-  param_defs          = get("harp_params"),
+  param_defs          = getExportedValue("harpIO", "harp_params"),
   ...
 ) {
 

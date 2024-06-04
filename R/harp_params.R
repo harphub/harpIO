@@ -1945,7 +1945,8 @@ modify_param_def <- function(
 #' # Aliases also work - stored in the \code{other_names} entry
 #' get_param_def("terrain")
 get_param_def <- function(
-  param, file_format = NULL, param_defs = get("harp_params")
+  param, file_format = NULL,
+  param_defs = getExportedValue("harpIO", "harp_params")
 ) {
 
   res <- param_defs[[param]]
@@ -2055,7 +2056,8 @@ new_obsoul_param <- function(name, harp_param, units) {
 }
 
 check_param_defs <- function(
-  param_defs = get("harp_params"), caller = rlang::caller_env()
+  param_defs = getExportedValue("harpIO", "harp_params"),
+  caller = rlang::caller_env()
 ) {
   params_with_func <- vapply(
     param_defs, function(x) !is.null(x[["func"]]), logical(1)

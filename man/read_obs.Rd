@@ -7,7 +7,7 @@
 read_obs(
   dttm,
   parameter,
-  param_defs = get("harp_params"),
+  param_defs = getExportedValue("harpIO", "harp_params"),
   stations = NULL,
   file_path = getwd(),
   file_format = NULL,

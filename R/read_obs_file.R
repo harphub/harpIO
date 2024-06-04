@@ -39,7 +39,7 @@
 read_obs_file <- function(
   file_name,
   parameter,
-  param_defs       = get("harp_params"),
+  param_defs       = getExportedValue("harpIO", "harp_params"),
   dttm             = NULL,
   stations         = NULL,
   file_format      = NULL,

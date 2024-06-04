@@ -49,7 +49,7 @@ read_grib <- function(
   transformation      = "none",
   transformation_opts = list(),
   format_opts         = grib_opts(),
-  param_defs          = get("harp_params"),
+  param_defs          = getExportedValue("harpIO", "harp_params"),
   show_progress       = FALSE,
   ...
 ) {

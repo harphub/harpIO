@@ -84,7 +84,7 @@ read_grid <- function(
   members             = NULL,
   transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = list(),
-  param_defs          = get("harp_params"),
+  param_defs          = getExportedValue("harpIO", "harp_params"),
   show_progress       = TRUE,
   data_frame          = FALSE,
   readable_times      = TRUE,

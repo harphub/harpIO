@@ -28,7 +28,7 @@ read_analysis <- function(
   file_format_opts    = list(),
   transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts = NULL,
-  param_defs          = get("harp_params"),
+  param_defs          = getExportedValue("harpIO", "harp_params"),
   output_file_opts    = sqlite_opts(),
   return_data         = TRUE,
   merge_lags          = TRUE,

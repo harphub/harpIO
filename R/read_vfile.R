@@ -8,7 +8,7 @@ read_vfile <- function(
   missing_value = -99.0,
   synop_cols    = NULL,
   temp_cols     = NULL,
-  param_defs    = get("harp_params")
+  param_defs    = getExportedValue("harpIO", "harp_params")
 ) {
 
   v_type <- match.arg(v_type)
