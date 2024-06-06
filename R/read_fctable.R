@@ -26,6 +26,8 @@ read_fctable <- function(
   fcst_out   <- list()
   list_count <- 0
 
+  read_members <- TRUE
+
   for (db_file in db_files) {
 
     message("Reading: ", db_file)
@@ -33,6 +35,12 @@ read_fctable <- function(
     fcst_db   <- DBI::dbConnect(RSQLite::SQLite(), db_file, flags = RSQLite::SQLITE_RO, synchronous = NULL)
 
     fcst_cols <- DBI::dbListFields(fcst_db, "FC")
+
+    # Do not try to read members if there are only deterministic columns
+    if (length(grep("_mbr[[:digit:]]{3}", fcst_cols)) < 1) {
+      read_members <- FALSE
+    }
+
     meta_cols <- intersect(
       c("SID", "fcdate", "fcst_dttm", "leadtime", "lead_time", "validdate", "valid_dttm"),
       fcst_cols
@@ -88,7 +96,7 @@ read_fctable <- function(
       fcst           <- dplyr::filter(fcst, .data[[level_col]] == vertical_level)
     }
 
-    if (!is.null(members)) {
+    if (read_members && !is.null(members)) {
 
       if (is.list(members)) {
         col_members <- purrr::map2(
