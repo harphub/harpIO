@@ -20,6 +20,7 @@ read_point_forecast(
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   get_lat_and_lon = FALSE,
   force_param_name = FALSE,
+  meta_only = FALSE,
   start_date = NULL,
   end_date = NULL,
   by = "6h",
@@ -97,6 +98,10 @@ in the file template. For upper air data it is assumed that vertical
 profiles of the data are in the files so the vertical level information is
 removed when constructing the file name. If you want the full parameter
 name to be used in the file name set to TRUE.}
+
+\item{meta_only}{Logical. Default id FALSE. Set to TRUE to only read the
+metadata. This is useful as a preprocessing step to identify which cases
+exist for each \code{fcst_model}.}
 
 \item{start_date, end_date, by}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The use of
 \code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
