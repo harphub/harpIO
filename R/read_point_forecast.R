@@ -67,6 +67,9 @@
 #'   profiles of the data are in the files so the vertical level information is
 #'   removed when constructing the file name. If you want the full parameter
 #'   name to be used in the file name set to TRUE.
+#' @param meta_only Logical. Default id FALSE. Set to TRUE to only read the
+#'   metadata. This is useful as a preprocessing step to identify which cases
+#'   exist for each `fcst_model`.
 #' @param start_date,end_date,by `r lifecycle::badge("deprecated")` The use of
 #'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
 #'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
@@ -195,6 +198,7 @@ read_point_forecast <- function(
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   get_lat_and_lon     = FALSE,
   force_param_name    = FALSE,
+  meta_only           = FALSE,
   start_date          = NULL,
   end_date            = NULL,
   by                  = "6h",
@@ -244,14 +248,16 @@ read_point_forecast <- function(
 
   vertical_coordinate <- match.arg(vertical_coordinate)
 
-  parameter  <- parse_harp_parameter(parameter, vertical_coordinate)
-  param_name <- parameter$fullname
-  if (parameter$accum > 0 && accumulate) {
-    param_name <- parameter$basename
-    lead_time  <- lead_time[lead_time >= parse_accum(parameter)]
-  }
-  if (is_temp(parameter) && !force_param_name) {
-    param_name <- parameter$basename
+  if (!is.null(parameter)) {
+    parameter  <- parse_harp_parameter(parameter, vertical_coordinate)
+    param_name <- parameter$fullname
+    if (parameter$accum > 0 && accumulate) {
+      param_name <- parameter$basename
+      lead_time  <- lead_time[lead_time >= parse_accum(parameter)]
+    }
+    if (is_temp(parameter) && !force_param_name) {
+      param_name <- parameter$basename
+    }
   }
 
   if (length(lead_time) < 1) {
@@ -430,111 +436,114 @@ read_point_forecast <- function(
       param            = parameter,
       get_latlon       = get_lat_and_lon,
       force_param_name = force_param_name,
-      use_dttm         = use_dttm
+      use_dttm         = use_dttm,
+      meta_only        = meta_only,
+      complete_cases   = drop_any_na
     )
   )
 
-
-  no_members <- sapply(fcst, function(x) !any(grepl(fcst_suffix, names(x))))
-  no_members_warning <- function(mname, lag_time, mbr, no_mbrs) {
-    if (no_mbrs) {
-      warning("Members ", paste(mbr, collapse = ","), " not found for ", mname, ", lag: ", lag_time, immediate. = TRUE, call. = FALSE)
-    }
-  }
-  if (any(no_members)) {
-    purrr::pwalk(
-      list(lag_table$fcst_model, lag_table$lag, lag_table$members, no_members),
-      no_members_warning
-    )
-    message("Dropping entries with no members")
-    lag_table <- lag_table[which(!no_members),]
-    fcst      <- fcst[which(!no_members)]
-  }
-
-  fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::matches(fcst_suffix)), drop_function)
-
-  if (parameter$accum > 0 && accumulate) {
-
-    accum <- parse_accum(parameter)
-
-    fcst_accum <- purrr::map(
-      fcst,
-      ~ accumulate_forecast(
-        tidyr::gather(.x, dplyr::matches(fcst_suffix), key = "member", value = "forecast"),
-        accum,
-        parameter$acc_unit
-      )
-    )
-
-    # accumulate_forecast returns a vector of missing lead times rather than data if some lead times
-    # to compute an accumlation are missing.
-
-
-    if (any(purrr::map_lgl(fcst_accum, is.numeric))) {
-      lead_time_accum <- fcst_accum
-      unread_leads <- which(purrr::map_lgl(fcst_accum, is.numeric))
-
-      file_names <- purrr::pmap(
-        list(
-          lag_table$fcst_model[unread_leads],
-          lag_table$lag[unread_leads],
-          lead_time_accum[unread_leads],
-          lag_table$file_template[unread_leads]
-        ),
-        ~generate_filenames(
-          file_path     = file_path,
-          file_date     = dttm,
-          lags          = .y,
-          parameter     = param_name,
-          fcst_model    = gsub("_unshifted", "", .x),
-          lead_time     = ..3 - readr::parse_number(.y),
-          file_template = ..4
-        )
-      )
-
-      fcst_lead_time_accum <- purrr::pmap(
-        list(
-          purrr::map(file_names, ~ .x[file.exists(.x)]),
-          lag_table$lag[unread_leads],
-          lead_time_accum[unread_leads],
-          lag_table$members[unread_leads]
-        ),
-        ~ read_fctable(
-          .x,
-          harpCore::as_unixtime(dttm) - harpCore::to_seconds(.y),
-          lead_time  = ..3,
-          stations   = stations,
-          members    = ..4,
-          param      = parameter,
-          get_latlon = get_lat_and_lon
-        )
-      ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::matches(fcst_suffix)), drop_function)
-
-      no_data_for_accum <- which(vapply(fcst_lead_time_accum, nrow, numeric(1)) < 1)
-
-      if (any(no_data_for_accum)) {
-        missing_leads <- unique(unlist(lead_time_accum))
-        cli::cli_abort(c(
-          "Unable to find data to compute accumulations.",
-          "x" = "Cannot find lead times: {missing_leads} in sqlite files."
-        ))
+  if (!meta_only) {
+    no_members <- sapply(fcst, function(x) !any(grepl(fcst_suffix, names(x))))
+    no_members_warning <- function(mname, lag_time, mbr, no_mbrs) {
+      if (no_mbrs) {
+        warning("Members ", paste(mbr, collapse = ","), " not found for ", mname, ", lag: ", lag_time, immediate. = TRUE, call. = FALSE)
       }
+    }
+    if (any(no_members)) {
+      purrr::pwalk(
+        list(lag_table$fcst_model, lag_table$lag, lag_table$members, no_members),
+        no_members_warning
+      )
+      message("Dropping entries with no members")
+      lag_table <- lag_table[which(!no_members),]
+      fcst      <- fcst[which(!no_members)]
+    }
 
-      fcst[unread_leads]       <- purrr::map2(fcst[unread_leads], fcst_lead_time_accum, dplyr::bind_rows)
-      fcst_accum[unread_leads] <- purrr::map(
-        fcst[unread_leads],
+    fcst <- purrr::map(fcst, dplyr::filter_at, dplyr::vars(dplyr::matches(fcst_suffix)), drop_function)
+
+    if (parameter$accum > 0 && accumulate) {
+
+      accum <- parse_accum(parameter)
+
+      fcst_accum <- purrr::map(
+        fcst,
         ~ accumulate_forecast(
           tidyr::gather(.x, dplyr::matches(fcst_suffix), key = "member", value = "forecast"),
           accum,
-          parameter$acc_unit,
-          check_leads = FALSE
+          parameter$acc_unit
         )
       )
 
+      # accumulate_forecast returns a vector of missing lead times rather than data if some lead times
+      # to compute an accumlation are missing.
+
+
+      if (any(purrr::map_lgl(fcst_accum, is.numeric))) {
+        lead_time_accum <- fcst_accum
+        unread_leads <- which(purrr::map_lgl(fcst_accum, is.numeric))
+
+        file_names <- purrr::pmap(
+          list(
+            lag_table$fcst_model[unread_leads],
+            lag_table$lag[unread_leads],
+            lead_time_accum[unread_leads],
+            lag_table$file_template[unread_leads]
+          ),
+          ~generate_filenames(
+            file_path     = file_path,
+            file_date     = dttm,
+            lags          = .y,
+            parameter     = param_name,
+            fcst_model    = gsub("_unshifted", "", .x),
+            lead_time     = ..3 - readr::parse_number(.y),
+            file_template = ..4
+          )
+        )
+
+        fcst_lead_time_accum <- purrr::pmap(
+          list(
+            purrr::map(file_names, ~ .x[file.exists(.x)]),
+            lag_table$lag[unread_leads],
+            lead_time_accum[unread_leads],
+            lag_table$members[unread_leads]
+          ),
+          ~ read_fctable(
+            .x,
+            harpCore::as_unixtime(dttm) - harpCore::to_seconds(.y),
+            lead_time  = ..3,
+            stations   = stations,
+            members    = ..4,
+            param      = parameter,
+            get_latlon = get_lat_and_lon
+          )
+        ) %>% purrr::map(dplyr::filter_at, dplyr::vars(dplyr::matches(fcst_suffix)), drop_function)
+
+        no_data_for_accum <- which(vapply(fcst_lead_time_accum, nrow, numeric(1)) < 1)
+
+        if (any(no_data_for_accum)) {
+          missing_leads <- unique(unlist(lead_time_accum))
+          cli::cli_abort(c(
+            "Unable to find data to compute accumulations.",
+            "x" = "Cannot find lead times: {missing_leads} in sqlite files."
+          ))
+        }
+
+        fcst[unread_leads]       <- purrr::map2(fcst[unread_leads], fcst_lead_time_accum, dplyr::bind_rows)
+        fcst_accum[unread_leads] <- purrr::map(
+          fcst[unread_leads],
+          ~ accumulate_forecast(
+            tidyr::gather(.x, dplyr::matches(fcst_suffix), key = "member", value = "forecast"),
+            accum,
+            parameter$acc_unit,
+            check_leads = FALSE
+          )
+        )
+
+      }
+
+      fcst <- purrr::map(fcst_accum, tidyr::spread, .data$member, .data$forecast)
+
     }
-
-    fcst <- purrr::map(fcst_accum, tidyr::spread, .data$member, .data$forecast)
-
   }
 
   ### Multimodel ensembles should be handled by the verification functions
@@ -568,7 +577,7 @@ read_point_forecast <- function(
   # fcst <- purrr::map(fcst, split_sub_models, member_regexp)
 
   if (merge_lags) {
-    fcst <- lag_and_join(fcst, lag_table)
+    fcst <- lag_and_join(fcst, lag_table, meta_only)
   } else {
     fcst <- merge_names_df(fcst, lag_table$fcst_model)
   }
@@ -673,7 +682,7 @@ merge_names_df <- function(df_list, df_names) {
 }
 
 # Adjust fcdate and lead time of lagged members and join to unlagged.
-lag_and_join <- function(fcst_list, lags_df) {
+lag_and_join <- function(fcst_list, lags_df, meta_only) {
 
   lag_seconds <- purrr::map2_dbl(
     as.numeric(gsub("\\D", "", lags_df$lag)),
@@ -722,13 +731,15 @@ lag_and_join <- function(fcst_list, lags_df) {
     paste0("_lag", chr_lag)
   }
 
-  fcst_list <- purrr::map2(
-    fcst_list,
-    lags_df[["lag"]],
-    function(a, b) dplyr::rename_with(
-      a, ~paste0(.x, lag_suffix(b)), dplyr::matches("_mbr[[:digit:]]{3}")
+  if (!meta_only) {
+    fcst_list <- purrr::map2(
+      fcst_list,
+      lags_df[["lag"]],
+      function(a, b) dplyr::rename_with(
+        a, ~paste0(.x, lag_suffix(b)), dplyr::matches("_mbr[[:digit:]]{3}")
+      )
     )
-  )
+  }
 
   fcst_list <- split(fcst_list, lags_df$fcst_model) %>%
     purrr::map(join_lags)

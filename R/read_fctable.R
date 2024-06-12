@@ -10,8 +10,14 @@ read_fctable <- function(
   param               = NULL, # Passed as a parsed harp parameter
   get_latlon          = FALSE,
   force_param_name    = FALSE,
-  use_dttm            = TRUE
+  use_dttm            = TRUE,
+  meta_only           = FALSE,
+  complete_cases      = FALSE
 ) {
+
+  if (is.null(param)) {
+    param <- list(level_type = NA_character_)
+  }
 
   level_col <- NULL
   if (!is.na(param$level_type) && is_temp(param) && !force_param_name) {
@@ -120,6 +126,18 @@ read_fctable <- function(
       wanted_cols <- colnames(fcst)[!colnames(fcst) %in% c("lat", "lon")]
       fcst        <- dplyr::select_at(fcst, wanted_cols)
       meta_cols   <- setdiff(meta_cols, c("lat", "lon"))
+    }
+
+    if (complete_cases) {
+      fcst_col_regex <- "_mbr[[:digit:]]{3}|_det$"
+      fcst           <- dplyr::filter(
+        fcst,
+        dplyr::if_all(dplyr::matches(fcst_col_regex), ~!is.na(.x))
+      )
+    }
+
+    if (meta_only) {
+      fcst <- dplyr::select(fcst, dplyr::any_of(meta_cols))
     }
 
 
