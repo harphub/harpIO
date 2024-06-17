@@ -32,7 +32,7 @@ write_obstable_to_sqlite <- function(
   # Make sure column names in data match those in the file - handling the
   # update of column names in v0.2 -
   # validdate -> valid_dttm
-  if (!newfile) {
+  if (!newfile && DBI::dbExistsTable(sqlite_db, table_name)) {
 
     db_col_names <- colnames(dplyr::tbl(sqlite_db, table_name))
 
