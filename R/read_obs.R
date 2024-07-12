@@ -256,6 +256,7 @@ read_obs <- function(
         )) %>%
           dplyr::group_nest(.data[["file_name"]])
 
+        index_cols_cache <- output_format_opts[["index_cols"]]
         if (
           !is.null(output_format_opts[["index_cols"]]) &&
             output_format_opts[["index_cols"]][1] == "auto"
@@ -291,6 +292,8 @@ read_obs <- function(
             )
           )
         )
+
+        output_format_opts[["index_cols"]] <- index_cols_cache
 
       }
 
