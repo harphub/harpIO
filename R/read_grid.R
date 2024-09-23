@@ -45,7 +45,7 @@
 #'   members into a column for each member.
 #' @param ... All arguments passed to the specified reader function.
 #'
-#' @return A geofield or (possibly) a plain  matrix.
+#' @return A geofield or, if `data_frame = TRUE`, a `harp_df` data frame.
 #' @export
 #'
 #' @examples
@@ -304,6 +304,11 @@ read_grid <- function(
       ~gsub("leadtime", "lead_time", .x),
       dplyr::matches("^leadtime$")
     )
+
+    if (readable_times) {
+      gridded_data <- harpCore::as_harp_df(gridded_data)
+    }
+
   }
 
   gridded_data

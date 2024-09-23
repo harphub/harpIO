@@ -87,7 +87,7 @@ members into a column for each member.}
 \item{...}{All arguments passed to the specified reader function.}
 }
 \value{
-A geofield or (possibly) a plain  matrix.
+A geofield or, if \code{data_frame = TRUE}, a \code{harp_df} data frame.
 }
 \description{
 \code{read_grid} is a generic function to read gridded data from a file. A
