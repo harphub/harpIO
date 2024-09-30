@@ -28,7 +28,8 @@ read_forecast(
   is_forecast = TRUE,
   start_date = NULL,
   end_date = NULL,
-  by = "6h"
+  by = "6h",
+  ...
 )
 }
 \arguments{
@@ -160,6 +161,8 @@ functionality.}
 \code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
 with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 spaced date-times.}
+
+\item{...}{All arguments passed to the specified reader function.}
 }
 \value{
 When \code{return_date = TRUE}, a harp_fcst object.

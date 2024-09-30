@@ -114,6 +114,7 @@
 #'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 #'   spaced date-times.
 #'
+#' @inheritParams read_grid
 #' @return When \code{return_date = TRUE}, a harp_fcst object.
 #' @export
 #'
@@ -211,8 +212,8 @@ read_forecast <- function(
   is_forecast          = TRUE,
   start_date           = NULL,
   end_date             = NULL,
-  by                   = "6h"
-
+  by                   = "6h",
+  ...
 ){
 
   if (missing(dttm)) {
@@ -355,24 +356,27 @@ read_forecast <- function(
     )
 
     safe_read_grid <- purrr::possibly(
-      ~read_grid(
-        file_name           = .x,
-        parameter           = .y[["parameter"]],
-        is_forecast         = is_forecast,
-        dttm                = harpCore::as_str_dttm(.y[["fcst_dttm"]]),
-        file_format         = unique(.y[["file_format"]]),
-        file_format_opts    = file_format_opts,
-        vertical_coordinate = vertical_coordinate,
-        lead_time           = .y[["lead_time"]],
-        members             = .y[["members"]],
-        transformation      = transformation,
-        transformation_opts = transformation_opts,
-        param_defs          = param_defs,
-        show_progress       = show_progress,
-        data_frame          = TRUE,
-        readable_times      = FALSE
-      ),
-      FALSE
+      function(.x, .y) {
+        read_grid(
+          file_name           = .x,
+          parameter           = .y[["parameter"]],
+          is_forecast         = is_forecast,
+          dttm                = harpCore::as_str_dttm(.y[["fcst_dttm"]]),
+          file_format         = unique(.y[["file_format"]]),
+          file_format_opts    = file_format_opts,
+          vertical_coordinate = vertical_coordinate,
+          lead_time           = .y[["lead_time"]],
+          members             = .y[["members"]],
+          transformation      = transformation,
+          transformation_opts = transformation_opts,
+          param_defs          = param_defs,
+          show_progress       = show_progress,
+          data_frame          = TRUE,
+          readable_times      = FALSE,
+          ...
+        )
+      },
+      FALSE, quiet = FALSE
     )
 
     # Read the required data from the files

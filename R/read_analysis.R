@@ -36,7 +36,8 @@ read_analysis <- function(
   stop_on_fail        = FALSE,
   start_date          = NULL,
   end_date            = NULL,
-  by                  = "6h"
+  by                  = "6h",
+  ...
 ) {
 
   if (missing(dttm)) {
@@ -75,7 +76,8 @@ read_analysis <- function(
     merge_lags          = merge_lags,
     show_progress       = show_progress,
     stop_on_fail        = stop_on_fail,
-    is_forecast         = FALSE
+    is_forecast         = FALSE,
+    ...
   )
 
   num_members <- length(members)
