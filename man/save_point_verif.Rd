@@ -2,7 +2,8 @@
 % Please edit documentation in R/save_point_verif.R
 \name{save_point_verif}
 \alias{save_point_verif}
-\title{Save verification data}
+\alias{read_point_verif}
+\title{Save and read verification data}
 \usage{
 save_point_verif(
   verif_data,
@@ -12,13 +13,25 @@ save_point_verif(
   dir_mode = "0750",
   ...
 )
+
+read_point_verif(
+  start_dttm,
+  end_dttm,
+  fcst_model,
+  parameter,
+  verif_path,
+  verif_file_template =
+    "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
+  ...
+)
 }
 \arguments{
 \item{verif_data}{A verification object produced by one of the harpPoint
 verification functions.}
 
-\item{verif_path}{The path to save the data to. The default is a directory
-called Verification inside the working directory.}
+\item{verif_path}{The path to save the data to or read the data from. For
+saving, the default is a directory called "Verification" inside the working
+directory.}
 
 \item{verif_file_template}{A template for the verification data file. For
 consistency with the default shiny app to plot verification, this should not be changed.}
@@ -27,9 +40,27 @@ consistency with the default shiny app to plot verification, this should not be 
 directories on Unix-alike systems. The default is "0750".}
 
 \item{...}{Non default variables used in \code{verif_file_template}.}
+
+\item{start_dttm, end_sttm}{The start and end date-time strings for which to
+read a verification file.}
+
+\item{fcst_model}{A vector of the names of the forecast models for which to
+read a verification file.}
+
+\item{parameter}{The parameter for which to read a verification file. This
+should match the parameter name used in the verification.}
+}
+\value{
+An object of class harp_verif - usually a list of data frames with
+verification scores.
 }
 \description{
-Save verification data
+\code{save_point_verif()} saves a verification object, as produced by one of
+harpPoint's verification functions, while \code{read_point_verif()} reads a
+saved verification object. The tempplate is very specific to point
+verification and generally should not be changed as harpVis's shiny app for
+point verification expects this template to be used. You should use the
+directory structure to add extra specification.
 }
 \examples{
 \dontrun{
