@@ -1,4 +1,4 @@
-# Methods for harp_forecast objects
+# Methods for harp_forecast objects and other miscellaneous IO related functions
 
 #' @export
 print.harp_fcst <- function(x, ...) {
@@ -201,4 +201,19 @@ dummy <- function() {
     "`:=` can only be used within dynamic dots.",
     call = rlang::caller_env()
   )
+}
+
+#' File Extension
+#'
+#' Gets the file extension for a file name.
+#'
+#' @param file_name Path to the file
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_file_ext <- function(file_name) {
+  pos <- regexpr("\\.([[:alnum:]]+)$", file_name)
+  ifelse(pos > -1L, substring(file_name, pos + 1L), "")
 }

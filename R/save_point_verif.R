@@ -146,6 +146,14 @@ generate_verif_filename <- function(
     }
   }
 
+  start_year  <- format(harpCore::as_dttm(start_date), "%Y")
+  start_month <- format(harpCore::as_dttm(start_date), "%m")
+  start_day   <- format(harpCore::as_dttm(start_date), "%d")
+
+  end_year  <- format(harpCore::as_dttm(end_date), "%Y")
+  end_month <- format(harpCore::as_dttm(end_date), "%m")
+  end_day   <- format(harpCore::as_dttm(end_date), "%d")
+
   stringr::str_glue(template)
 
 }
