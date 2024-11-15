@@ -55,6 +55,8 @@ read_analysis <- function(
 
   check_param_defs(param_defs)
 
+  gsub("analysis_model", "fcst_model", file_template)
+
   analysis <- read_forecast(
     dttm                = dttm,
     fcst_model          = analysis_model,

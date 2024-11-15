@@ -706,9 +706,7 @@ lag_and_join <- function(fcst_list, lags_df, meta_only) {
         .x,
         {{fc_dttm_col}} := .data[[fc_dttm_col]] + .y,
         {{lt_col}}      := .data[[lt_col]] - .y / 3600,
-        fcst_cycle = substr(
-          harpCore::unixtime_to_ymdh(.data[[fc_dttm_col]]), 9, 10
-        )
+        fcst_cycle = strftime(.data[[fc_dttm_col]], "%H", tz = "UTC")
       )
     }
   )
