@@ -13,7 +13,8 @@
 #'   saving, the default is a directory called "Verification" inside the working
 #'   directory.
 #' @param verif_file_template A template for the verification data file. For
-#'   consistency with the default shiny app to plot verification, this should not be changed.
+#'   consistency with the default shiny app to plot verification, this should
+#'   not be changed.
 #' @param dir_mode The permissions mode to be used for creation of new
 #'   directories on Unix-alike systems. The default is "0750".
 #' @param ... Non default variables used in \code{verif_file_template}.
@@ -27,7 +28,7 @@
 save_point_verif <- function(
   verif_data,
   verif_path          = "./Verification",
-  verif_file_template = "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
+  verif_file_template = "point_verif",
   dir_mode            = "0750",
   ...
 ) {
@@ -132,6 +133,17 @@ generate_verif_filename <- function(
   template,
   ...
 ) {
+
+  if (template == "point_verif") {
+    template <- paste(
+      "{verif_path}/harpPointVerif",
+      "{parameter}",
+      "{start_date}-{end_date}",
+      "{models}.rds",
+      sep = ".harp."
+    )
+  }
+
   multi_models <- stringr::str_extract(model_names, "\\([[:graph:]]+\\)") %>%
     stringr::str_replace("\\(", "") %>%
     stringr::str_replace("\\)", "")
