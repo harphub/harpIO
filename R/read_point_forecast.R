@@ -379,7 +379,11 @@ read_point_forecast <- function(
       lag_table$lag[purrr::map_int(available_files, length) < 1],
       sep = " - lag: "
     )
-    stop("No forecast files found for: \n", paste(model_with_no_files, collapse = "\n"), call. = FALSE)
+    action <- warning
+    if (all(purrr::map_int(available_files, length) < 1)) {
+      action <- stop
+    }
+    action("No forecast files found for: \n", paste(model_with_no_files, collapse = "\n"), call. = FALSE)
   }
 
   if (!is.null(members)) {
