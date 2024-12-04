@@ -420,6 +420,12 @@ read_point_forecast <- function(
     members <- tibble::tibble(fcst_model = fcst_model, members = list(NULL))
   }
 
+  fcst_model <- fcst_model[purrr::map_int(available_files, length) > 0]
+  available_files <- available_files[
+    purrr::map_int(available_files, length) > 0
+  ]
+  lag_table <- lag_table[lag_table[["fcst_model"]] %in% fcst_model, ]
+
   lag_table <- dplyr::left_join(
     lag_table, members,
     by = intersect(colnames(lag_table), colnames(members))
