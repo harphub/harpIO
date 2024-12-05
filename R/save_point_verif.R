@@ -162,12 +162,29 @@ generate_verif_filename <- function(
   start_month <- format(harpCore::as_dttm(start_date), "%m")
   start_day   <- format(harpCore::as_dttm(start_date), "%d")
   start_week  <- format(harpCore::as_dttm(start_date), "%V")
+  start_week_year <- week_year(start_year, start_month, start_week)
 
   end_year  <- format(harpCore::as_dttm(end_date), "%Y")
   end_month <- format(harpCore::as_dttm(end_date), "%m")
   end_day   <- format(harpCore::as_dttm(end_date), "%d")
   end_week  <- format(harpCore::as_dttm(end_date), "%V")
+  end_week_year <- week_year(end_year, end_month, end_week)
 
   stringr::str_glue(template)
 
+}
+
+week_year <- function(y, m, w) {
+
+  y <- as.numeric(y)
+  m <- as.numeric(m)
+  w <- as.numeric(w)
+
+  if (m == 12 && w == 1) {
+    y <- y + 1
+  }
+  if (m == 1 && w >= 51) {
+    y  <- y - 1
+  }
+  as.character(y)
 }
