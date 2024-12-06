@@ -170,6 +170,8 @@ generate_verif_filename <- function(
   end_week  <- format(harpCore::as_dttm(end_date), "%V")
   end_week_year <- week_year(end_year, end_month, end_week)
 
+  season <- unique_months(start_date, end_date)
+
   stringr::str_glue(template)
 
 }
@@ -187,4 +189,16 @@ week_year <- function(y, m, w) {
     y  <- y - 1
   }
   as.character(y)
+}
+
+unique_months <- function(begin, end) {
+  paste(
+    substring(
+      unique(
+        format(harpCore::as_dttm(harpCore::seq_dttm(begin, end, "1d")), "%b")
+      ),
+      1, 1
+    ),
+    collapse = ""
+  )
 }
