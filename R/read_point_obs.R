@@ -212,7 +212,7 @@ read_point_obs <- function(
   attr(obs, "bad_obs") <- obs_removed
   colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
 
-  if (gross_error_check && nrow(obs_removed) > 0) {
+  if (gross_error_check && is.data.frame(obs_removed) && nrow(obs_removed) > 0) {
     warning(
       nrow(obs_removed), " observations removed due to gross error check.",
       call. = FALSE
@@ -369,15 +369,15 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
 
   pcp_AccPcp6h <- dplyr::full_join(
     pcp_AccPcp6h,
-    dplyr::transmute(
-      pcp_AccPcp6h,
-      valid_dttm = .data$valid_dttm + 3600 * 6,
-      .data$SID,
-      .data$lon,
-      .data$lat,
-      .data$elev,
-      .data$units,
-      AccPcp6h_lag = .data$AccPcp6h
+    dplyr::select(
+      dplyr::mutate(
+        pcp_AccPcp6h,
+        valid_dttm = .data$valid_dttm + 3600 * 6,
+        AccPcp6h_lag = .data$AccPcp6h
+      ),
+      dplyr::any_of(
+        c("valid_dttm", "SID", "lon", "lat", "elev", "units", "AccPcp6h_lag")
+      )
     ),
     by = intersect(
       colnames(pcp_AccPcp6h),
@@ -411,15 +411,19 @@ derive_12h_precip <- function(pcp_data) {
   }
   pcp_data %>%
     dplyr::full_join(
-      dplyr::transmute(
-        pcp_data,
-        valid_dttm = .data$valid_dttm + 3600 * 6,
-        .data$SID,
-        .data$lon,
-        .data$lat,
-        .data$elev,
-        .data$units,
-        AccPcp6h_lag = .data$AccPcp6h
+      dplyr::select(
+        dplyr::mutate(
+          pcp_data,
+          valid_dttm = .data$valid_dttm + 3600 * 6,
+          AccPcp6h_lag = .data$AccPcp6h
+        ),
+        dplyr::any_of(
+          c("valid_dttm", "SID", "lon", "lat", "elev", "units", "AccPcp6h_lag")
+        )
+      ),
+      by = intersect(
+        colnames(pcp_data),
+        c("valid_dttm", "SID", "lon", "lat", "elev", "units")
       )
     ) %>% dplyr::mutate(
       AccPcp12h = dplyr::case_when(
@@ -435,11 +439,19 @@ derive_3h_precip <- function(pcp_data) {
   }
   pcp_data %>%
     dplyr::full_join(
-      dplyr::transmute(
-        pcp_data,
-        valid_dttm = .data$valid_dttm + 3600 * 3,
-        .data$SID,
-        AccPcp3h_lag = .data$AccPcp3h
+      dplyr::select(
+        dplyr::mutate(
+          pcp_data,
+          valid_dttm = .data$valid_dttm + 3600 * 3,
+          AccPcp3h_lag = .data$AccPcp3h
+        ),
+        dplyr::any_of(
+          c("valid_dttm", "SID", "lon", "lat", "elev", "units", "AccPcp3h_lag")
+        )
+      ),
+      by = intersect(
+        colnames(pcp_data),
+        c("valid_dttm", "SID", "lon", "lat", "elev", "units")
       )
     ) %>% dplyr::mutate(
       AccPcp3h = dplyr::case_when(
@@ -455,15 +467,19 @@ derive_24h_precip <- function(pcp_data) {
   }
   pcp_data %>%
     dplyr::full_join(
-      dplyr::transmute(
-        pcp_data,
-        valid_dttm = .data$valid_dttm + 3600 * 12,
-        .data$SID,
-        .data$lon,
-        .data$lat,
-        .data$elev,
-        .data$units,
-        AccPcp12h_lag = .data$AccPcp12h
+      dplyr::select(
+        dplyr::mutate(
+          pcp_data,
+          valid_dttm = .data$valid_dttm + 3600 * 12,
+          AccPcp12h_lag = .data$AccPcp12h
+        ),
+        dplyr::any_of(
+          c("valid_dttm", "SID", "lon", "lat", "elev", "units", "AccPcp12h_lag")
+        )
+      ),
+      by = intersect(
+        colnames(pcp_data),
+        c("valid_dttm", "SID", "lon", "lat", "elev", "units")
       )
     ) %>% dplyr::mutate(
       AccPcp24h = dplyr::case_when(
