@@ -379,7 +379,11 @@ read_point_forecast <- function(
       lag_table$lag[purrr::map_int(available_files, length) < 1],
       sep = " - lag: "
     )
-    stop("No forecast files found for: \n", paste(model_with_no_files, collapse = "\n"), call. = FALSE)
+    action <- warning
+    if (all(purrr::map_int(available_files, length) < 1)) {
+      action <- stop
+    }
+    action("No forecast files found for: \n", paste(model_with_no_files, collapse = "\n"), call. = FALSE)
   }
 
   if (!is.null(members)) {
@@ -415,6 +419,12 @@ read_point_forecast <- function(
   } else {
     members <- tibble::tibble(fcst_model = fcst_model, members = list(NULL))
   }
+
+  fcst_model <- fcst_model[purrr::map_int(available_files, length) > 0]
+  available_files <- available_files[
+    purrr::map_int(available_files, length) > 0
+  ]
+  lag_table <- lag_table[lag_table[["fcst_model"]] %in% fcst_model, ]
 
   lag_table <- dplyr::left_join(
     lag_table, members,
@@ -706,9 +716,7 @@ lag_and_join <- function(fcst_list, lags_df, meta_only) {
         .x,
         {{fc_dttm_col}} := .data[[fc_dttm_col]] + .y,
         {{lt_col}}      := .data[[lt_col]] - .y / 3600,
-        fcst_cycle = substr(
-          harpCore::unixtime_to_ymdh(.data[[fc_dttm_col]]), 9, 10
-        )
+        fcst_cycle = strftime(.data[[fc_dttm_col]], "%H", tz = "UTC")
       )
     }
   )
