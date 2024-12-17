@@ -206,6 +206,7 @@ generate_filenames <- function(
     )
     file_names_df[[lead_time_col]] <- leads_list[["time"]] + lags_in_lead_units
     file_names_df[["LDT"]]         <- file_names_df[[lead_time_col]]
+    file_names_df[["LDTM"]]        <- as.character(as.numeric(file_names_df[["LDT"]])*60)
   }
 
   file_names_df[["YYYY"]] <- lubridate::year(unix2datetime(file_names_df[["fcst_dttm"]]))
