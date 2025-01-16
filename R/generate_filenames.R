@@ -149,12 +149,15 @@ generate_filenames <- function(
 
     arg <- args[[i]]
 
-    if (!is.list(arg)) {
-      if (is.null(arg)) arg <- NA
-      arg <- list(arg)
+    unnest_col <- FALSE
+    if (length(arg) != nrow(file_names_df)) {
+      if (!is.list(arg)) {
+        if (is.null(arg)) arg <- NA
+        arg <- list(arg)
+      }
+      unnest_col <- TRUE
     }
 
-    unnest_col <- TRUE
     if (inherits(arg, "harp_parameter")) {
       arg <- list(arg)
       unnest_col <- FALSE
