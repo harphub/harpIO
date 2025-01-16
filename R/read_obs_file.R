@@ -101,7 +101,7 @@ read_obs_file <- function(
 
   read_func(
     file_name  = file_name,
-    parameter  = parameter,
+    parameter  = unique(parameter),
     param_defs = param_defs,
     dttm       = dttm,
     stations   = stations,
