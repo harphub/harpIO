@@ -3,7 +3,7 @@
 # Build: docker build  -t harpio -f Dockerfile .
 # Run: docker run -it --rm -v ./data:/data harpio
 
-FROM ubuntu:22.04
+FROM ubuntu
 
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
