@@ -40,13 +40,13 @@ parse_v_parameter <- function(
 parse_v_parameter_synop <- function(
   v_parameter, param_defs = getExportedValue("harpIO", "harp_params")
 ) {
-  parse_v_parameter(v_parameter, "SYNOP")
+  parse_v_parameter(v_parameter, "SYNOP", param_defs)
 }
 
 parse_v_parameter_temp <- function(
   v_parameter, param_defs = getExportedValue("harpIO", "harp_params")
 ) {
-  parse_v_parameter(v_parameter, "TEMP")
+  parse_v_parameter(v_parameter, "TEMP", param_defs)
 }
 
 select_elements <- function(el, x) {

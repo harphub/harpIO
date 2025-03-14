@@ -143,24 +143,22 @@ parse_harp_parameter <- function(
 }
 
 
-is_synop <- function(prm, vertical_coordinate = NA_character_) {
+is_synop <- function(prm, vertical_coordinate = NA_character_, param_defs) {
   # return TRUE if a parameter is a typical "synop"
   # ideally, we want this to be a "pure" logical: TRUE or FALSE, never "NA"
   if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
-  par.synop <- c("pmsl", "pcp", "ps",
-                 "u10m", "v10m", "s10m", "d10m", "g10m",
-                 "t2m", "q2m", "rh2m", "td2m",
-                 "tcc", "hcc", "mcc", "lcc", "cbase",
-                 "cctot", "cchigh", "ccmed", "cclow", "cbase",
-                 "n75", "vis",
-                 "tmax", "tmin", "gmax")
+  par.synop <- names(param_defs)[vapply(
+    param_defs,
+    function(x) !is.null(x$v) && tolower(x$v$type) == "synop",
+    logical(1)
+  )]
   sfc  <- switch(prm$level_type,
-                "sea"      =,
-                "cloud"    =,
+                "sea"      = ,
+                "cloud"    = ,
                 "surface"  = TRUE,
                 "height"   = prm$level %in% c(0, 2, 10, NA),
                 "isotherm" = prm$level == 0,
-                "model"    =,
+                "model"    = ,
                 "pressure" = FALSE,
                 FALSE
                 )
@@ -170,12 +168,16 @@ is_synop <- function(prm, vertical_coordinate = NA_character_) {
   result
 }
 
-is_temp <- function(prm, vertical_coordinate = NA_character_) {
+is_temp <- function(prm, vertical_coordinate = NA_character_, param_defs) {
   # return TRUE if a parameter is a typical "temp" (atmospheric)
   # infact you should look at level_type *and* level (not 0, 2 or 10)
   # ideally, we want this to be a "pure" logical: TRUE or FALSE, never "NA"
 #  return(!is.synop(prm))
-  par.atmo <- c("t", "z", "u", "v", "s", "d", "g", "q", "rh", "td")
+  par.atmo <- names(param_defs)[vapply(
+    param_defs,
+    function(x) !is.null(x$v) && tolower(x$v$type) == "temp",
+    logical(1)
+  )]
   if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
   atmo <- switch(prm$level_type,
                 "sea"      =,

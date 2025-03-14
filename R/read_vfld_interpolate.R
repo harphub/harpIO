@@ -110,8 +110,12 @@ read_vfld_interpolate <- function(
       parameter <- purrr::map(parameter, parse_harp_parameter, vertical_coordinate)
     }
 
-    synop_parameters <- parameter[which(purrr::map_lgl(parameter, is_synop))]
-    temp_parameters  <- parameter[which(purrr::map_lgl(parameter, is_temp))]
+    synop_parameters <- parameter[
+      which(purrr::map_lgl(parameter, is_synop, param_defs = param_defs))
+    ]
+    temp_parameters  <- parameter[
+      which(purrr::map_lgl(parameter, is_temp, param_defs = param_defs))
+    ]
 
     if (any(purrr::map_lgl(temp_parameters, ~.x$level != -999))) {
       stop(
@@ -214,7 +218,7 @@ read_vfld_interpolate <- function(
     dplyr::filter(!.data$parameter %in% unwanted_rows) %>%
     dplyr::mutate(
       param_basename = purrr::map_chr(purrr::map(.data$parameter, parse_harp_parameter, vertical_coordinate), "basename"),
-      synop_param    = purrr::map_lgl(param_units$parameter, is_synop, vertical_coordinate),
+      synop_param    = purrr::map_lgl(param_units$parameter, is_synop, vertical_coordinate, param_defs = param_defs),
       param_basename = dplyr::case_when(
         synop_param  ~ .data$parameter,
         grepl("Acc[[:alpha:]]+[[:digit:]]+[[:alpha:]]", .data$parameter, perl = TRUE) ~ .data$parameter,
