@@ -238,7 +238,7 @@ get_crs_from_attrs <- function(g) {
 
   vals <- sapply(g, function(i) i[1])
   vars <- names(vals)
-  if (any(vars %in% c("proj4", "crs_wkt", "spatial_ref"))) {
+  if (any(vars %in% c("proj4"))) { #, "crs_wkt", "spatial_ref"))) {
     crs <- vals[vars %in% c("proj4", "crs_wkt", "spatial_ref")][1]
     return(crs)
   }
