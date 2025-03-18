@@ -143,7 +143,7 @@ parse_harp_parameter <- function(
 }
 
 
-is_synop <- function(prm, vertical_coordinate = NA_character_, param_defs) {
+is_synop <- function(prm, vertical_coordinate = NA_character_, param_defs = getExportedValue("harpIO", "harp_params")) {
   # return TRUE if a parameter is a typical "synop"
   # ideally, we want this to be a "pure" logical: TRUE or FALSE, never "NA"
   if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
@@ -168,7 +168,7 @@ is_synop <- function(prm, vertical_coordinate = NA_character_, param_defs) {
   result
 }
 
-is_temp <- function(prm, vertical_coordinate = NA_character_, param_defs) {
+is_temp <- function(prm, vertical_coordinate = NA_character_, param_defs = getExportedValue("harpIO", "harp_params")) {
   # return TRUE if a parameter is a typical "temp" (atmospheric)
   # infact you should look at level_type *and* level (not 0, 2 or 10)
   # ideally, we want this to be a "pure" logical: TRUE or FALSE, never "NA"
