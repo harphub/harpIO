@@ -152,6 +152,16 @@ is_synop <- function(prm, vertical_coordinate = NA_character_, param_defs = getE
     function(x) !is.null(x$v) && tolower(x$v$type) == "synop",
     logical(1)
   )]
+  par.synop.other <- names(param_defs)[vapply(
+    param_defs,
+    function(x) !is.null(x$v) && tolower(x$v$type) == "synop" && !is.null(x$other_names),
+    logical(1)
+  )]
+  par.synop.other <- unlist(lapply(param_defs[par.synop.other],function(x) x$other_names),
+                            use.names = F)
+  if (!is.null(par.synop.other)) {
+    par.synop <- c(par.synop,par.synop.other)
+  }
   sfc  <- switch(prm$level_type,
                 "sea"      = ,
                 "cloud"    = ,
