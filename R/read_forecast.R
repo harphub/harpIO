@@ -488,6 +488,17 @@ read_forecast <- function(
 
     # Modify the members to mbrXXX format
     data_df <- mbr_to_char(data_df, c("members", "members_out"))
+    
+    # Do surface pressure correction if data are station data.
+    # This requires uncorrected T2m, which is checked in correct_ps.
+    if (
+      is.element("station_data", colnames(data_df)) &&
+      is.element("ps", unique(tolower(data_df[["parameter"]])))
+    ) {
+      data_df <- correct_ps(data_df, transformation_opts)
+      transformation_opts <- data_df[["opts"]]
+      data_df             <- data_df[["data_df"]]
+    }
 
     # Do 2m temperature correction if data are station data.
     if (
