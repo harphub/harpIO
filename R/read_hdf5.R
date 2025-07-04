@@ -285,8 +285,10 @@ Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, ...) {
 #  if (!hdf5r::existsDataSet(hf,data)) stop("Data not found.")
   # TODO: there may be multiple data sets -> make a loop? Maybe only in read_hdf5()
   #       if the path is not defined, we should LOOK FOR IT via the parameter? Or in read_hdf5()
-  my_data <- t(hf[[data_path]]$read())
-  my_data <- my_data[, ncol(my_data):1]  # transpose and put upside-down
+  ## Carlos (20250704) changing this line below to avoid upside down radar data
+  ### my_data <- t(hf[[data_path]]$read())
+  my_data <- hf[[data_path]]$read()
+  ## my_data <- my_data[, ncol(my_data):1]  # transpose and put upside-down (do not want this for DMI radar data)
   # ODIM-specific?
 
   # We need to find attributes that may be at different paths
