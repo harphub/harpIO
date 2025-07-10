@@ -10,8 +10,8 @@
 ### reading raw matrix will work for any HDF5 file, but meteogrid attributes only for ODIM !
 ### ODIM data also might be in .../quality1/data, but for now we don't consider that.
 
-hdf5_opts <- function(data_path=NULL, odim=TRUE, meta=TRUE, ...) {
-  list(data_path=data_path, odim=odim, meta=meta, ...)
+hdf5_opts <- function(data_path=NULL, odim=TRUE, meta=TRUE, invert_data=TRUE, ...) {
+  list(data_path=data_path, odim=odim, meta=meta, invert_data=invert_data, ...)
 }
 
 # get hdf5 parameter names according to ODIM standard
@@ -141,7 +141,8 @@ read_hdf5 <- function(
 #      level        = prm_list[[row_num]]$level,
 #      units        = prm_list[[row_num]]$units,
       gridded_data = list(Hdec(hdf5file, prm_list$data_path[row_num],
-                               odim=format_opts$odim, meta=format_opts$meta))
+                               odim=format_opts$odim, meta=format_opts$meta,
+			       invert_data=format_opts$invert_data))
     )
 
     result <- transform_geofield(result, transformation, transformation_opts)
@@ -264,7 +265,7 @@ Hopen <- function(file_name, odim=TRUE, meta=TRUE) {
 }
 
 # Main HDF5 decoding: filename & single data_path
-Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, ...) {
+Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, invert_data=TRUE, ...) {
 #    data="dataset1/data1/data", meta=TRUE, ...) {
   if (!requireNamespace("hdf5r", quietly=TRUE)) {
     stop("The hdf5r package is not installed!", "Please install from CRAN.")
@@ -285,8 +286,14 @@ Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, ...) {
 #  if (!hdf5r::existsDataSet(hf,data)) stop("Data not found.")
   # TODO: there may be multiple data sets -> make a loop? Maybe only in read_hdf5()
   #       if the path is not defined, we should LOOK FOR IT via the parameter? Or in read_hdf5()
-  my_data <- t(hf[[data_path]]$read())
-  my_data <- my_data[, ncol(my_data):1]  # transpose and put upside-down
+  #### my_data <- t(hf[[data_path]]$read())
+
+  if (invert_data){
+	  my_data <- t(hf[[data_path]]$read())
+	  my_data <- my_data[, ncol(my_data):1]  # transpose and put upside-down
+  } else {
+	  my_data <- hf[[data_path]]$read()
+  }
   # ODIM-specific?
 
   # We need to find attributes that may be at different paths
