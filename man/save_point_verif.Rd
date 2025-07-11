@@ -8,8 +8,7 @@
 save_point_verif(
   verif_data,
   verif_path = "./Verification",
-  verif_file_template =
-    "{verif_path}/harpPointVerif.harp.{parameter}.harp.{start_date}-{end_date}.harp.{models}.rds",
+  verif_file_template = "point_verif",
   dir_mode = "0750",
   ...
 )
@@ -34,7 +33,8 @@ saving, the default is a directory called "Verification" inside the working
 directory.}
 
 \item{verif_file_template}{A template for the verification data file. For
-consistency with the default shiny app to plot verification, this should not be changed.}
+consistency with the default shiny app to plot verification, this should
+not be changed.}
 
 \item{dir_mode}{The permissions mode to be used for creation of new
 directories on Unix-alike systems. The default is "0750".}

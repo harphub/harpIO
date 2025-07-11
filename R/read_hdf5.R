@@ -10,10 +10,6 @@
 ### reading raw matrix will work for any HDF5 file, but meteogrid attributes only for ODIM !
 ### ODIM data also might be in .../quality1/data, but for now we don't consider that.
 
-hdf5_opts <- function(data_path=NULL, odim=TRUE, meta=TRUE, invert_data=TRUE, iflag=NULL, pcp_quant="ACRR", pinfo=FALSE, ...) {
-  list(data_path=data_path, odim=odim, meta=meta, invert_data=invert_data, iflag=iflag, pcp_quant=pcp_quant, pinfo=pinfo, ...)
-}
-
 # get hdf5 parameter names according to ODIM standard
 get_hdf5_param_info <- function(param,pcp_quant="ACRR") {
   param <- parse_harp_parameter(param)
