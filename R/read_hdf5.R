@@ -10,15 +10,11 @@
 ### reading raw matrix will work for any HDF5 file, but meteogrid attributes only for ODIM !
 ### ODIM data also might be in .../quality1/data, but for now we don't consider that.
 
-hdf5_opts <- function(data_path=NULL, odim=TRUE, meta=TRUE, ...) {
-  list(data_path=data_path, odim=odim, meta=meta, ...)
-}
-
 # get hdf5 parameter names according to ODIM standard
-get_hdf5_param_info <- function(param) {
+get_hdf5_param_info <- function(param,pcp_quant="ACRR") {
   param <- parse_harp_parameter(param)
   result <- switch(tolower(param$basename),
-                     "pcp" = list(quantity="ACRR", units="mm"),
+                     "pcp" = list(quantity=pcp_quant, units="mm"),
                      "rr"  = list(quantity="RATE", units="mm/h"),
                      "u"   = list(quantity="UWIND", units="m/s"),
                      "v"   = list(quantity="VWIND", units="m/s"),
@@ -60,7 +56,7 @@ read_hdf5 <- function(
     parameter <- list(parameter)
   }
   parameter      <- lapply(parameter, parse_harp_parameter)
-  param_info     <- lapply(parameter, get_hdf5_param_info)
+  param_info     <- lapply(parameter, get_hdf5_param_info, pcp_quant = format_opts$pcp_quant)
   unknown_params <- which(sapply(param_info, function(x) x$quantity == "unknown" ))
   if (length(unknown_params) > 0) {
     lapply(
@@ -103,7 +99,8 @@ read_hdf5 <- function(
 #      gridded_data = list(Hdec(hdf5file, prm_list$data_path[row_num], meta=FALSE))
 #                     gdata <- Hdec(file_name, format_opts$data_path)
 
-  hdf5_info <- Hopen(file_name)
+  hdf5_info <- Hopen(file_name, iflag = format_opts$iflag)
+  if (format_opts$pinfo) {print(hdf5_info)}
   # We get a tibble with validdate, parameter, data_path,
   # now we select only those rows that we want to decode
   # for now, we make this very, very simple
@@ -115,6 +112,11 @@ read_hdf5 <- function(
   }
 #  class(hdf5_info) <- rev(class(hdf5_info))
   hdf5_info <- purrr::map2_dfr(parameter, param_info, filter_info, hdf5_info)
+  if (format_opts$pinfo) {print(hdf5_info)}
+  if (nrow(hdf5_info) == 0) {
+    if (format_opts$pinfo) {print(parameter); print(param_info)}
+    stop("No data found in hdf5_info - maybe try pcp_quant and pinfo for help.", call. = FALSE)
+  } 
 #  class(hdf5_info) <- rev(class(hdf5_info))
 
   # Function to read and transform data from HDF5 file to be used in map_dfr below.
@@ -141,7 +143,9 @@ read_hdf5 <- function(
 #      level        = prm_list[[row_num]]$level,
 #      units        = prm_list[[row_num]]$units,
       gridded_data = list(Hdec(hdf5file, prm_list$data_path[row_num],
-                               odim=format_opts$odim, meta=format_opts$meta))
+                               odim=format_opts$odim, meta=format_opts$meta,
+			                         invert_data=format_opts$invert_data,
+			                         iflag=format_opts$iflag))
     )
 
     result <- transform_geofield(result, transformation, transformation_opts)
@@ -179,7 +183,7 @@ read_hdf5 <- function(
 # And also Hopen: scan a hdf5 file for all data sets etc.
 #       could be very useful
 #
-Hopen <- function(file_name, odim=TRUE, meta=TRUE) {
+Hopen <- function(file_name, odim=TRUE, meta=TRUE, iflag = NULL) {
    # open hdf5 file
    # return: object pointer, data list, ...
    # try to make a list of parameter/data_path available in file
@@ -205,11 +209,15 @@ Hopen <- function(file_name, odim=TRUE, meta=TRUE) {
     data_list$accum <- NA
     data_list$edate <- as.POSIXct(NA)
     for(i in seq_along(data_list$data_path)) {
-      all_what <- do.call(c,
-                          lapply(c(sub("data$", "what", data_list$data_path[i]),
-                               sub("data[[:digit:]]+/data$", "what", data_list$data_path[i]),
-                               "what"),
-                      function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
+      if (!is.null(iflag)) {
+        all_what <- get_iflag_whatwhere(hf,data_list$data_path[i],iflag,ww="what")
+      } else {
+        all_what <- do.call(c,
+                            lapply(c(sub("data$", "what", data_list$data_path[i]),
+                                 sub("data[[:digit:]]+/data$", "what", data_list$data_path[i]),
+                                 "what"),
+                        function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
+      }
       data_list$quantity[i] <- all_what$quantity
       bdate <- all_what$startdate ## YYYYMMDD
       btime <- all_what$starttime ## HHMMSS
@@ -222,11 +230,15 @@ Hopen <- function(file_name, odim=TRUE, meta=TRUE) {
     }
     # extract domain information from first dataset
     if (meta) {
-      all_where <- do.call(c,
-                        lapply(c(sub("data$", "where", data_list$data_path[i]),
-                                 sub("data[[:digit:]]+/data$", "where", data_list$data_path[i]),
-                                 "where"),
-                        function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
+      if (!is.null(iflag)) {
+        all_where <- get_iflag_whatwhere(hf,data_list$data_path[i],iflag,ww="where")
+      } else {
+        all_where <- do.call(c,
+                          lapply(c(sub("data$", "where", data_list$data_path[i]),
+                                   sub("data[[:digit:]]+/data$", "where", data_list$data_path[i]),
+                                   "where"),
+                          function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
+      }
 
       pp <- all_where$projdef
       dx <- all_where$xscale
@@ -264,7 +276,7 @@ Hopen <- function(file_name, odim=TRUE, meta=TRUE) {
 }
 
 # Main HDF5 decoding: filename & single data_path
-Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, ...) {
+Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, invert_data=TRUE, iflag=NULL, ...) {
 #    data="dataset1/data1/data", meta=TRUE, ...) {
   if (!requireNamespace("hdf5r", quietly=TRUE)) {
     stop("The hdf5r package is not installed!", "Please install from CRAN.")
@@ -280,30 +292,46 @@ Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, ...) {
 
   hf <- hdf5r::H5File$new(file_name, "r")
   on.exit(tryCatch(ff$close_all(), error=function(e){}, warning=function(w){}))
+  
+  # We need to find attributes that may be at different paths
+  # so we start by setting up the hierarchy of 'where' and 'what' groups in 1 list
+  if (!is.null(iflag)) {
+    all_what  <- get_iflag_whatwhere(hf,data_path,iflag,ww="what")
+    all_where <- get_iflag_whatwhere(hf,data_path,iflag,ww="where")
+  } else {
+    all_what <- do.call(c,
+                        lapply(c(sub("data$", "what", data_path),
+                                 sub("data[[:digit:]]+/data$", "what", data_path),
+                                 "what"),
+                               function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
+    all_where <- do.call(c,
+                         lapply(c(sub("data$", "where", data_path),
+                                  sub("data[[:digit:]]+/data$", "where", data_path),
+                                  "where"),
+                                function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
+  }
+  
+  # we now have vectors with all attributes
+  # BUT: what if there are duplicates? apparantly, all_what[NAME] will give the first -> OK
 
   # 1. get data itself
 #  if (!hdf5r::existsDataSet(hf,data)) stop("Data not found.")
   # TODO: there may be multiple data sets -> make a loop? Maybe only in read_hdf5()
   #       if the path is not defined, we should LOOK FOR IT via the parameter? Or in read_hdf5()
-  my_data <- t(hf[[data_path]]$read())
-  my_data <- my_data[, ncol(my_data):1]  # transpose and put upside-down
+  #### my_data <- t(hf[[data_path]]$read())
+
+  if (invert_data){
+	  my_data <- t(hf[[data_path]]$read())
+	  my_data <- my_data[, ncol(my_data):1]  # transpose and put upside-down
+  } else {
+	  my_data <- hf[[data_path]]$read()
+	  if (!is.null(iflag)) {
+	    if (isTRUE(all_where$flip_y)) {
+	      my_data <- my_data[, ncol(my_data):1]
+	    }
+	  }
+  }
   # ODIM-specific?
-
-  # We need to find attributes that may be at different paths
-  # so we start by setting up the hierarchy of 'where' and 'what' groups in 1 list
-  all_what <- do.call(c,
-                      lapply(c(sub("data$", "what", data_path),
-                               sub("data[[:digit:]]+/data$", "what", data_path),
-                               "what"),
-                      function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
-  all_where <- do.call(c,
-                      lapply(c(sub("data$", "where", data_path),
-                               sub("data[[:digit:]]+/data$", "where", data_path),
-                               "where"),
-                      function(x) if (hdf5r::existsGroup(hf,x)) hdf5r::h5attributes(hf[[x]]) else NULL))
-
-  # we now have vectors with all attributes
-  # BUT: what if there are duplicates? apparantly, all_what[NAME] will give the first -> OK
 
   # ODIM-specific?
   # offset and gain
@@ -394,4 +422,121 @@ Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, ...) {
 
   # that's all, folks
   return(result)
+}
+
+get_iflag_whatwhere <- function(df,data_path,iflag,ww = "what") {
+  
+  if (!(ww %in% c("what","where"))) {
+    stop("Only recognises what/where!")
+  }
+  
+  if (tolower(iflag) == "knmi") {
+    
+    if (ww == "what") {
+      
+      quant_info  <- get_hdf5_attr(df,sub("image_data","",data_path))
+      time_info   <- get_hdf5_attr(df,"overview")
+      time_start  <- get_iflag_time(time_info$product_datetime_start,iflag)
+      time_end    <- get_iflag_time(time_info$product_datetime_end,iflag)
+      calibration <- get_hdf5_attr(df,paste0(sub("image_data","",data_path),"calibration"))
+      # Define the offset, gain, nodata
+      # Assuming cal_formula=gain*X+offset
+      cal_formula <- calibration$calibration_formulas
+      cal_formula <- gsub(" ","",cal_formula)
+      cal_formula <- strsplit(cal_formula,"=")[[1]][2] 
+      gain        <- as.numeric(strsplit(cal_formula,"\\*")[[1]][1])
+      offset      <- as.numeric(strsplit(cal_formula,"\\+")[[1]][2])
+      nodata      <- as.numeric(calibration$calibration_out_of_image)
+      # Apply scaling to this
+      nodata      <- gain*nodata + offset
+    
+      return(list("quantity"  = quant_info$image_geo_parameter,
+                  "startdate" = time_start$yyyymmdd,
+                  "starttime" = time_start$hhmmss,
+                  "enddate"   = time_end$yyyymmdd,
+                  "endtime"   = time_end$hhmmss,
+                  "gain"      = gain,
+                  "offset"    = offset,
+                  "nodata"    = nodata))
+      
+    } else if (ww == "where") {
+    
+      geo        <- get_hdf5_attr(df,"geographic")
+      geo_proj   <- get_hdf5_attr(df,"geographic/map_projection")
+      # projection may be missing a '+' before the y
+      pp    <- geo_proj$projection_proj4_params
+      pp    <- gsub(" y_0"," +y_0",pp)
+      # geo_pixel_size_x/y - in KM!
+      dx    <- geo$geo_pixel_size_x 
+      dy    <- geo$geo_pixel_size_y
+      nx    <- geo$geo_number_columns
+      ny    <- geo$geo_number_rows
+      SWlon <- geo$geo_product_corners[1]
+      SWlat <- geo$geo_product_corners[2]
+      NElon <- geo$geo_product_corners[5]
+      NElat <- geo$geo_product_corners[6]
+      
+      # If dy is negative, this indicates that data should be flipped.
+      flip_y <- FALSE
+      if (dy < 0) {
+        dy <- abs(dy)
+        flip_y <- TRUE
+      }
+    
+      return(list("projdef" = pp,
+                  "xscale"  = dx,
+                  "yscale"  = dy,
+                  "xsize"   = nx,
+                  "ysize"   = ny,
+                  "LL_lon"  = SWlon,
+                  "LL_lat"  = SWlat,
+                  "UR_lon"  = NElon,
+                  "UR_lat"  = NElat,
+                  "flip_y"  = flip_y))
+      
+    }
+      
+
+  } else {
+    
+    stop("iflag ",iflag," not recognised in get_iflag_whatwhere")
+    
+  }
+  
+}
+
+get_iflag_time <- function(time_str,iflag) {
+  
+  if (tolower(iflag) == "knmi") {
+    
+    dt   <- gsub("-|;|:","",time_str)
+    DD   <- substr(dt,1,2)
+    MM   <- substr(dt,3,5)
+    YYYY <- substr(dt,6,9)
+    HH   <- substr(dt,10,11)
+    mm   <- substr(dt,12,13)
+    ss   <- substr(dt,14,15)
+    MM   <- paste0(substr(MM,1,1),tolower(substr(MM,2,3)))
+    ds   <- paste0(YYYY,"-",MM,"-",DD," ",HH,":",mm,":",ss)
+    ds   <- as.POSIXct(ds,
+                       "%Y-%b-%d %H:%M:%OS",
+                       tryFormats = "%Y-%b-%d %H:%M:%OS") %>% harpCore::as_ymdhms()
+    
+    return(list("yyyymmdd" = substr(ds,1,8),
+                "hhmmss"   = substr(ds,9,14)))
+    
+  } else {
+    
+    stop("iflag ",iflag," not recognised in get_iflag_time")
+    
+  }
+  
+}
+  
+get_hdf5_attr <- function(hf,x) {
+  if (hdf5r::existsGroup(hf,x)) {
+    return(hdf5r::h5attributes(hf[[x]]))
+  } else {
+    return(NULL)
+  }
 }
