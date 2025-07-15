@@ -57,6 +57,12 @@
 #' @param weights Interpolation weights if they have already been calculated.
 #' @param keep_raw_data Logical. Whether to keep the untransformed full gridded
 #'   data field. The default is FALSE.
+#' @param correct_ps Logical. Whether to make a height correction to surface
+#'   pressure to account for differences between the model elevation and the
+#'   station elevation. This correction also requires uncorrected T2m.
+#'   Only relevant when reading vfld and/or converting to sqlite. 
+#' @param keep_model_ps Logical. Whether to keep the uncorrected surface pressure
+#'   if \code{correct_ps = TRUE}.
 #'
 #' @return A list of options that will be used in the transformation.
 #' @export
@@ -75,7 +81,9 @@ interpolate_opts <- function(
   clim_param       = "sfc_geo",
   use_mask         = FALSE,
   weights          = NULL,
-  keep_raw_data    = FALSE
+  keep_raw_data    = FALSE,
+  correct_ps       = TRUE,
+  keep_model_ps    = FALSE
 ) {
 
   if (missing(stations)) {
@@ -102,6 +110,15 @@ interpolate_opts <- function(
     )
     correct_t2m <- FALSE
   }
+  
+  if (correct_ps && !is.element("elev", stations_cols)) {
+    warning(
+      "No 'elev' column found in stations, and correct_ps = TRUE. Setting correct_ps = FALSE",
+      call.      = FALSE,
+      immediate. = TRUE
+    )
+    correct_ps <- FALSE
+  }
 
   if (use_mask && !is.element("lsm", stations_cols)) {
     stop("For interpolation with a mask, 'stations' must contain an 'lsm' column.")
@@ -121,7 +138,9 @@ interpolate_opts <- function(
     clim_param       = clim_param,
     use_mask         = use_mask,
     weights          = weights,
-    keep_raw_data    = keep_raw_data
+    keep_raw_data    = keep_raw_data,
+    correct_ps       = correct_ps,
+    keep_model_ps    = keep_model_ps
   )
 
 }
