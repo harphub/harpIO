@@ -14,146 +14,66 @@
 #'   denoting the components (e.g. total precipitation may be the sum of up to 4
 #'   fields).
 #' @export
-get_fa_param_info <- function(param, fa_type="arome", fa_vector=TRUE, rotate_wind = FALSE){
-  ### FA names are very inconsistent ("_" vs "." separators...)
-  ### so we have to do some hard-coding
-  hardcoded_fields <- c("t2m", "u10m", "v10m", "s10m", "d10m", "rh2m",
-                        "g10m", "pmsl", "td2m",
-                        "z0m", "sfc_geo", "lsm",
-                        "cape", "cien", "tmin", "tmax", "tmax2m", "tmin2m")
-  # strictly speaking, there *could* be fields like H00002TEMPERATURE, I guess
-  if (!inherits(param, "harp_parameter")) param <- parse_harp_parameter(param)
+get_fa_param_info <- function(
+  param, vertical_coordinate = NA_character_, 
+  param_defs = getExportedValue("harpIO", "harp_params")
+) {
+
+  if (!inherits(param, "harp_parameter")) {
+    param <- parse_harp_parameter(
+      param, vertical_coordinate = vertical_coordinate
+    )
+  }
+
   # NOTE: the following allows for local exceptions to be implemented:
-  if (existsFunction("fa_override")) {
-    if (!is.null(fa_override(param$fullname))) return(fa_override(param$fullname))
+  # OBSOLETE --- get_param_info
+  #if (existsFunction("fa_override")) {
+  #  if (!is.null(fa_override(param$fullname))) return(fa_override(param$fullname))
+  #}
+  fa_info <- harpIO:::get_param_info(param, "fa", param_defs)
+  func    <- fa_info[["param_func"]]
+  fa_info <- fa_info[["param_info"]]
+
+  if (is.null(fa_info[["level_type"]])) {
+    fa_info[["level_type"]] <- param[["level_type"]]
   }
 
+  # If level_type has many possibilities (grib gives c("surface", "model", "height", ...) )
+  #   make sure to select only the desired one.
+#  if (is.list(fa_info[["level_type"]])) {
+#    grib_info[["level_type"]] <-
+#      grib_info[["level_type"]][[param[["level_type"]]]]
+#  }
+
+  if (is.null(fa_info[["level"]])) {
+    if (is.null(param[["level"]]) || is.na(param[["level"]])) {
+      fa_info[["level"]] <- -999
+    } else {
+      fa_info[["level"]] <- param[["level"]]
+    }
+  }
+
+  # -999 signifies "all available levels"
+  # NOTE: for model level, you can not pass "-999" in only 3 characters...
+  # Find a better way to signal "all available levels" in this case?
+  # or leave this to be resolved in read_fa
+
+  # NOTE: there may be alaro/arome entries, so fa_info$name might be a LIST
   # generic templates (there are exceptions!)
-  if (tolower(param$fullname) %in% hardcoded_fields) {
-    FAname <- switch(tolower(param$fullname),
-                     "t2m"  = "CLSTEMPERATURE  ",
-                     "u10m" = if (rotate_wind) c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN")
-                              else "CLSVENT.ZONAL   ",
-                     "v10m" = if (rotate_wind) c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN")
-                              else "CLSVENT.MERIDIEN",
-                     "s10m" = c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN"),
-                     "d10m" = c("CLSVENT.ZONAL   ","CLSVENT.MERIDIEN"),
-                     "rh2m" = "CLSHUMI.RELATIVE",
-                     "pmsl" = "MSLPRESSURE     ",
-                     "g10m" = c("CLSU.RAF.MOD.XFU", "CLSV.RAF.MOD.XFU"),
-                     "td2m" = c("CLSHUMI.RELATIVE", "CLSTEMPERATURE  "),
-                     "z0m"  = ,
-                     "sfc_geopotential" = ,
-                     "sfc_geo" = "SURFGEOPOTENTIEL",
-                     "lsm"  = "SURFIND.TERREMER",
-                     "cape" = "SURFCAPE.POS.F00", # "SURFCAPE.MOD.XFU"
-                     "cien" = "SURFCIEN.POS.F00",
-                     "tmin2m" = ,
-                     "tmin" = "CLSMINI.TEMPERAT",
-                     "tmax2m" = ,
-                     "tmax" = "CLSMAXI.TEMPERAT",
-                     stop("unknown parameter ", param$fullname))
-  } else if (param$level_type %in% c("model", "pressure", "height", "isotherm") ) {
-    if (param$level_type != "pressure") plev <- param$level
-    else if (param$level < 1000) plev <- param$level * 100
-    else plev <- param$level * 100 - 100000
-    ## In FA files, pressure level 1000hPa is written as "P00000TEMPERATUR"
-    ftemplate <- switch(param$level_type,
-      "pressure" = sprintf("P%05i%%-10.10s", plev),
-      "model"    = sprintf("S%03i%%-12.12s", plev),
-      "height"   = if (plev %in% c(2, 10)) "CLS%-13.13s" else
-        sprintf("H%05i%%-10.10s", plev),
-      "isotherm" = sprintf("KB%03i%%-11.11s", if (plev == 0) 273 else plev),
-      NULL)
-    #  if (tolower(param$fullname) %in% cls.fields) ftemplate <- "CLS%-13.13s"
 
-    FAbase <- switch(tolower(param$basename),
-      "t" = "TEMPERATURE",
-      "q" = "HUMI.SPECIFIQ",
-      "u" = if (rotate_wind) c("VENT_ZONAL   ","VENT_MERIDIEN") else "VENT_ZONAL",
-      "v" = if (rotate_wind) c("VENT_ZONAL   ","VENT_MERIDIEN") else "VENT_MERIDIEN",
-      "z" = "GEOPOTENTIEL",
-      "rh" = "HUMI_RELATIVE",
-      #
-      "s" = if (fa_vector) c("VENT_ZONAL   ","VENT_MERIDIEN") else "VITESSE.VENT",
-      "d" = if (fa_vector) c("VENT_ZONAL   ","VENT_MERIDIEN") else "DIR.VENT",
-      "g" = if (fa_vector) c("U.RAF.MOD.XFU","V.RAF.MOD.XFU") else "VIT.RAFALES",
-      #
-      "td" = c("HUMI_RELATIVE", "TEMPERATURE  "),
-      "UNKNOWN")
-    FAname <- sprintf(ftemplate, FAbase)
-  } else {
-    # -- no level information found: precip, clouds, radiation, CAPE...
-    FAname <- switch(tolower(param$basename),
-      "mslp" = ,
-      "pmsl" = "MSLPRESSURE     ",
-      "cctot"=,
-      "tcc"  = if (is.null(param$accum) || param$accum == 0) "SURFNEBUL.TOTALE" else "ATMONEBUL.TOTALE",
-      "cchigh"=,
-      "hcc"  = if (is.null(param$accum) || param$accum == 0) "SURFNEBUL.HAUTE " else "ATMONEBUL.HAUTE ",
-      "ccmed"=,
-      "mcc"  = if (is.null(param$accum) || param$accum == 0) "SURFNEBUL.MOYENN" else "ATMONEBUL.MOYENN",
-      "cclow"=,
-      "lcc"  = if (is.null(param$accum) || param$accum == 0) "SURFNEBUL.BASSE " else "ATMONEBUL.BASSE ",
-      "pcp"  = if (fa_type=="alaro") c("SURFPREC.EAU.GEC", "SURFPREC.EAU.CON",
-                                       "SURFPREC.NEI.GEC", "SURFPREC.NEI.CON")
-               else c("SURFACCPLUIE", "SURFACCNEIGE", "SURFACCGRAUPEL") ,
-      "snow" = if (fa_type=="alaro") c("SURFPREC.NEI.GEC", "SURFPREC.NEI.CON")
-               else "SURFACCNEIGE",
-      "rain" = if (fa_type=="alaro") c("SURFPREC.EAU.GEC", "SURFPREC.EAU.CON")
-               else "SURFACCPLUIE",
-      #
-#      "sfc_geo" = "SPECSURFGEOPOTEN",
-      # accumulated radiation fields:
-      "strd"  = ,
-      "lwrad" = "SURFRAYT THER DE",  # thermal
-      "ssrd"  = ,
-      "swrad" = "SURFRAYT SOLA DE", # direct + diffuse solar
-      param$fullname)
-  }
-  FAname <- format(FAname, width=16)
-  ## TODO: conversions : also some single fields need a conversion
-  ##   RH : 1-100 or 0-1 ?
-  ##   CC : 0-1 or 0-8 ?
-  ##   P : Pa or hPa ?
-  apply_function <- NULL
-  if (length(FAname)>1) {
-    # FIXME: MAYBE there are cases with 1 field that also need a function?
-    # add the function as an attribute
-    # it should be a function expecting a 3d geofield as input, not point wise!
-    # because "apply'ing" such a pointwise function would be SLOW.
-    # default is to take the sum of the fields
-    # fastest way (without C code) is rowSums()
-    # ATTENTION: when applying a function, you may loose all geofield information
-    # so we use a new wrapper "apply_geo3d"
-    apply_function <- switch(tolower(param$basename),
-              "s" = function(x) meteogrid::apply_geo3d(x, "norm", newname="Wind speed"),
-              "g" = function(x) meteogrid::apply_geo3d(x, "norm", newname="Wind gust speed"),
-              "d" = if (rotate_wind) {
-                function(x) meteogrid::apply_geo3d(x, "rotwdir", newname="Wind direction")
-              } else {
-                function(x) meteogrid::apply_geo3d(x, "wdir", newname="Wind direction")
-              } ,
-              "u" = function(x) meteogrid::apply_geo3d(x, "rotu", newname="U"),
-              "v" = function(x) meteogrid::apply_geo3d(x, "rotv", newname="V"),
-              "td" = function(x) meteogrid::as.geofield(rh2tdew(tc=x[,,2], rh=x[,,1]), domain=x),
-              "snow" = function(x) meteogrid::apply_geo3d(x, "sum", newname="Snow"),
-              "rain" = function(x) meteogrid::apply_geo3d(x, "sum", newname="Rain"),
-              "pcp" = function(x) meteogrid::apply_geo3d(x, "sum", newname="Precipitation"),
-              function(x) meteogrid::apply_geo3d(x, "sum", newname=param$basename))
-  }
-  ### NEW: add units (of the FA field!) as an attribute
-  units <- switch(tolower(param$basename),
-                 "t" = "K",
-                 "u" =,
-                 "v" =,
-                 "s" = "m/s",
-                 "cctot"=, "cchigh"=, "ccmed"=, "cclow"=,
-                 "tcc"=, "hcc"=, "mcc" =, "lcc"=,
-                 "rh" = "fraction",
-                 "rain"=, "snow" =,
-                 "pcp"="kg/m^2",
-                 "p" = "Pa",
-                 "unknown")
-  list(fa_name=FAname, apply_function=apply_function, units=units)
+  # final field name will be sprintf($fa_template, $level, $name)
+  # but we can not fill in the level yet, because it may be "-999"
+  # and that depends on the file itself.
+  # NOTE: 2m and 10m height, surface: only 1 component in the template, so use "%.0s" for level
+  # NOTE: the final option (e.g. "unknown") is just to keep the fa name.
+  # NOTE: We assume "CLS", "SURF" or other surface indicators are included inthe base name!
+  fa_info[["fa_template"]] <- switch(fa_info[["level_type"]],
+                        "model"    = "S%03i%-12.12s",
+                        "height"   = if (fa_info$level %in% c(2,10)) "%.0s%-16.16s" else "H%05i%-10.10s" ,
+                        "pressure" = "P%05i%-10.10s",
+                        "isotherm" = "KB%03i%-11.11s",
+                        "surface"  = "%.0s%-16.16s",
+                        "%.0s%-16.16s")
+
+  c(fa_info, list(func = func))
 }
