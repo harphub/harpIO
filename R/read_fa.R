@@ -145,6 +145,19 @@ read_fa <- function(
                                 fafile)
   ))
 
+  # are there any fields that can be decoded?
+  missing_fields <- vapply(fa_all_fields,
+                           function(x) length(x) == 0,
+                           FUN.VALUE = TRUE)
+  if (any(missing_fields)) {
+    pm <- parameter[missing_fields]
+    warning("No data available for fields ", names(pm))
+    fa_all_fields <- fa_all_fields[!missing_fields]
+  }
+  if (length(fa_all_fields) == 0) {
+    stop("None of the requested data could be read from FA file ", attr(fafile, "filename"))
+  }
+
   # prepare the transformation (interpolation, regrid...):
   if (transformation != "none") {
     domain <- attr(fafile, "domain")
@@ -345,14 +358,21 @@ filter_fa_info <- function(
   # %>%  lapply(function(x) x$level <- x$fa_lev)
   # TODO: is there a simple way to change $level in every entry without an explicit loop? Does it matter?
   names(result) <- paste(parameter$fullname, levlist)
+  # NOW CHECK WHETHER ALL FIELDS EXIST
+  fields_missing <- vapply(result,
+                           function(x) any(is.na(match(x$name, fafile$list$name))),
+                           FUN.VALUE=TRUE)
+  if (any(fields_missing)) {
+    warning("Can not read ", parameter$fullname, " for levels ",
+            paste(levlist[fields_missing], collapse = ","))
+    result <- result[!fields_missing]
+  }
+  if (length(result) == 0) {
+    warning("Field ", parameter$fullname, " not available.")
+  }
+
   result
-  # result2 <- tibble(par =  paste(param$full_name, levlist), fa_info=fa_info...
-  # TODO: should it be a tibble rather than a list of tibbles?
 }
-
-
-
-
 
 get_domain_fa <- function(file_name, opts) {
   Rfa::FAdomain(Rfa::FAframe(Rfa::FAread_meta(filename=file_name)))
