@@ -2,6 +2,7 @@
 #'
 #' @param fa_type The kind of model file: "arome", "alaro", "surfex"... Mainly important for precipitation fields.
 #' @param fa_vector TRUE if the wind variable (speed, direction) must be calculated from components U & V
+#         OBSOLETE! We now distinguish by using a different parameter name, e.g. "S" vs "WS"
 #' @param rotate_wind TRUE means wind U,V (along axes of the grid) should be rotated to actual N.
 #' @param meta If TRUE, the time and grid details are also decoded. This is slower.
 #' @param ... Any non-standard options that don't have default values.
@@ -13,14 +14,19 @@ fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE
 
 # Read a field from an FA file
 #
-# @param filename The FA file name. "file@arch" signifies a file inside a tar archive.
+# @param file_name The FA file name. "file@arch" signifies a file inside a tar archive.
 #        It may also be a \code{FAfile} object.
-# @param parameter The parameter(s) to read. Standard HARP names are used, but full FA field names will also
-#        work.
+# @param parameter The parameter(s) to read. Standard HARP names are used, 
+#        but full FA field names will also work.
+# @param is_forecast
+# @param date_times Vector of requested forecast dates. Note that FA files can only contain 1 date.
+#        Normally, this date should correspond to the internal date of the FA file.
+#        UNIX date (i.e. numerical).
 # @param lead_time Mostly ignored. FA files contain only 1 lead time. But added to the output.
-# @param members Does not influence data, but may be added a a column to output. As a FA file can only contain 1 model,
+# @param members Does not influence data, but may be added a a column to output. 
+#        As a FA file can only contain 1 model,
 #        this must be NULL or a single integer value, not a vector.
-# @param vertical_coordinate For extracting 3D data
+# @param vertical_coordinate For extracting 3D data.
 # @param transformation The transformation to apply to the gridded data. Can be
 #   "none", "interpolate", "regrid", or "xsection".
 # @param transformation_opts = Options for the the transformation. Depends on the
@@ -35,8 +41,8 @@ fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE
 #   All transformations can include the logical keep_raw_data. If this is set to
 #   TRUE, the raw gridded data will be kept. If FALSE, or not set the raw gridded
 #   data will be discarded.
-
 # @param format_opts Extra options for reading FA files. See fa_opts() for details.
+# @param_defs
 # @param show_progress Verbosity. Ignored.
 # @param ... Ignored
 # @return A data frame with columns of metadata taken from the file and a list
@@ -140,10 +146,18 @@ read_fa <- function(
 #        and you just apply the decoding per row.
   # create a list (data.frame) with 1 entry (row) per parameter/level
   fa_all_fields <- do.call(c, lapply(1:length(parameter), function(i) filter_fa_info(
-                                parameter[[i]],
-                                param_info[[i]],
-                                fafile)
+                                parameter   = parameter[[i]],
+                                fa_info     = param_info[[i]],
+                                fafile      = fafile,
+                                date_times  = date_times,
+                                lead_time   = lead_time,
+                                members     = members,
+                                is_forecast = is_forecast,
+                                opts        = opts
+                                )
   ))
+  #parameter, fa_info, fafile, date_times,
+  #lead_time, members, is_forecast=TRUE, opts=NULL
 
   # are there any fields that can be decoded?
   missing_fields <- vapply(fa_all_fields,
@@ -155,7 +169,7 @@ read_fa <- function(
     fa_all_fields <- fa_all_fields[!missing_fields]
   }
   if (length(fa_all_fields) == 0) {
-    stop("None of the requested data could be read from FA file ", attr(fafile, "filename"))
+    stop("None of the requested data could be read from FA file\n", attr(fafile, "filename"))
   }
 
   # prepare the transformation (interpolation, regrid...):
@@ -301,6 +315,38 @@ filter_fa_info <- function(
 #    namlist <- lapply(fa_info$name,
 #                      function(x) sprintf(fa_info$fa_template, fa_info$level, x))
 
+  }
+  # check that date & time from the file are correct!
+  fcdate <- as.numeric(attr(fafile, "time")$basedate)
+  ldt <- attr(fafile, "time")$leadtime
+
+  # TODO: Is it possible that date_times is a vector rather than a single element?
+  #       FA can not handle it, but read_grid may pass it that way? It would be an error,
+  #       of course.
+  if (!is.null(date_times)) {
+    if (! fcdate %in% date_times) {
+      warning("File ", attr(fafile, "filename"),
+  	    "does not contain data for requested dates:\n",
+  	    paste(date_times, collapse=","))
+      return(list())
+    } else if (length(date_times) > 1) {
+      warning("File ", attr(fafile, "filename"), " does not contain data for some dates:\n",
+  	    paste(date_times[date_times != fcdate], collapse=","))
+      date_times <- fcdate
+    }
+  }
+
+  if (!is.null(lead_time)) {
+    if (!ldt %in% lead_time) {
+      warning("File ", attr(fafile, "filename"),
+              "does not contain data for requested lead times:\n",
+      paste(lead_time, collapse=","))
+      return(list())
+    } else if (length(lead_time) > 1) {
+      warning("File ", attr(fafile, "filename"), " does not contain data for some lead times:\n",
+  	    paste(lead_time[lead_time != ldt], collapse=","))
+      lead_time <- ldt
+    }
   }
 
   # "-999" means "all available levels"
