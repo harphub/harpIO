@@ -83,8 +83,9 @@ read_fa <- function(
     stop("For fa files, parameter = '<parameter>' must be passed.", call. = FALSE)
   }
 
-  if (!is.null(members) && length(members) > 1) stop("FA files can not contain multiple members.")
-
+  if (!is.null(members) && length(members) > 1) {
+    stop("FA files can not contain multiple members.")
+  }
   # make sure the format options are complete
   format_opts <- do.call(fa_opts, format_opts)
 
@@ -106,7 +107,8 @@ read_fa <- function(
   }
 
   # make a list of all parameters
-  # NOTE: if the parameter is already in "harp_parameter" format (i.e. a list), wrap it into a list
+  # NOTE: if the parameter is already in "harp_parameter" format (i.e. a list),
+  #       wrap it into a list
   #       otherwise the lapply() will give weird results.
   if (is.list(parameter) && inherits(parameter, "harp_parameter"))  {
     parameter <- list(parameter)
@@ -124,15 +126,6 @@ read_fa <- function(
 
   #unknown_params <- which(sapply(param_info, function(x) any(is.na(x$fa_name))))
 
-  #FIXME
-  # fa_info should be a list (1 entry per parameter) of full descriptors
-  # fa_info[[1]]$name $func, where $name is itself a vector or list (?) ...
-#  fa_info <- lapply(param_info, get_fa_param_info,
-#                    fa_type     = format_opts$fa_type,
-#                    fa_vector   = format_opts$fa_vector,
-#                    rotate_wind = format_opts$rotate_wind)
-
-  # a temporary hack. not very pretty.
   # we need to add fcdate & validdate  in unixdate, leadtime in hours
   # and while we're at it, we also add "members" (which is NULL or a single integer)
   info_list <- list(fcdate    = as.numeric(attr(fafile, "time")$basedate),
@@ -140,10 +133,6 @@ read_fa <- function(
                 leadtime  = attr(fafile, "time")$leadtime,
                 member = members)
 
-#  prm_list <- lapply(1:length(param_info),
-#                     function(i) c(blist, param_info[[i]], fa_info[[i]]))
-# NOTE:  fa_info is preferably a data.frame: then it is easy to add constant columns
-#        and you just apply the decoding per row.
   # create a list (data.frame) with 1 entry (row) per parameter/level
   fa_all_fields <- do.call(c, lapply(1:length(parameter), function(i) filter_fa_info(
                                 parameter   = parameter[[i]],
@@ -156,8 +145,6 @@ read_fa <- function(
                                 opts        = opts
                                 )
   ))
-  #parameter, fa_info, fafile, date_times,
-  #lead_time, members, is_forecast=TRUE, opts=NULL
 
   # are there any fields that can be decoded?
   missing_fields <- vapply(fa_all_fields,
@@ -330,8 +317,10 @@ filter_fa_info <- function(
   	    paste(date_times, collapse=","))
       return(list())
     } else if (length(date_times) > 1) {
-      warning("File ", attr(fafile, "filename"), " does not contain data for some dates:\n",
-  	    paste(date_times[date_times != fcdate], collapse=","))
+      warning("File ",
+              attr(fafile, "filename"),
+              " does not contain data for some dates:\n",
+  	      paste(date_times[date_times != fcdate], collapse=","))
       date_times <- fcdate
     }
   }
@@ -343,8 +332,10 @@ filter_fa_info <- function(
       paste(lead_time, collapse=","))
       return(list())
     } else if (length(lead_time) > 1) {
-      warning("File ", attr(fafile, "filename"), " does not contain data for some lead times:\n",
-  	    paste(lead_time[lead_time != ldt], collapse=","))
+      warning("File ",
+              attr(fafile, "filename"),
+              " does not contain data for some lead times:\n",
+  	      paste(lead_time[lead_time != ldt], collapse=","))
       lead_time <- ldt
     }
   }
@@ -392,14 +383,14 @@ filter_fa_info <- function(
     levlist <- fa_info$level
   }
   result <- lapply(levlist,
-                   function(lev) list(
-                      name = lapply(pnam, function(nn) sprintf(fa_info$fa_template, lev, nn)),
-                      #fa_info = fa_info,
-                      level   = lev,
-                      level_type = fa_info$level_type,
-                      units = fa_info$units,
-                      func    = fa_info[["func"]]
-                      )
+    function(lev) list(
+      name = lapply(pnam, function(nn) sprintf(fa_info$fa_template, lev, nn)),
+      #fa_info = fa_info,
+      level   = lev,
+      level_type = fa_info$level_type,
+      units = fa_info$units,
+      func    = fa_info[["func"]]
+      )
   )
   # %>%  lapply(function(x) x$level <- x$fa_lev)
   # TODO: is there a simple way to change $level in every entry without an explicit loop? Does it matter?
