@@ -19,7 +19,9 @@ interpolate_opts(
   clim_param = "sfc_geo",
   use_mask = FALSE,
   weights = NULL,
-  keep_raw_data = FALSE
+  keep_raw_data = FALSE,
+  correct_ps = TRUE,
+  keep_model_ps = FALSE
 )
 
 regrid_opts(
@@ -93,6 +95,14 @@ that 'stations' has an 'lsm' column and clim_file includes a land-sea mask.}
 
 \item{keep_raw_data}{Logical. Whether to keep the untransformed full gridded
 data field. The default is FALSE.}
+
+\item{correct_ps}{Logical. Whether to make a height correction to surface
+pressure to account for differences between the model elevation and the
+station elevation. This correction also requires uncorrected T2m.
+Only relevant when reading vfld and/or converting to sqlite.}
+
+\item{keep_model_ps}{Logical. Whether to keep the uncorrected surface pressure
+if \code{correct_ps = TRUE}.}
 
 \item{new_domain}{A geofield or geodomain object on the grid to which the
 data should be regridded.}

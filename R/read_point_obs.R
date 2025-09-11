@@ -13,8 +13,9 @@
 #'   forecast data frames using \code{\link[harpCore]{unique_valid_dttm}}.
 #' @param parameter Which parameter to read. This will normally be a harp
 #'   parameter name.
-#' @param obs_path The path to the OBSTABLE files
-#' @param obsfile_template The template for the OBSTABLE file name.
+#' @param file_path The path to the observation files / dataset
+#' @param file_template The template for the observations file name.
+#' @param file_format The format of the files storing the observations.
 #' @param gross_error_check Logical of whether to perform a gross error check.
 #' @param min_allowed The minimum value of observation to allow in the gross
 #'   error check. If set to NULL the default value for the parameter is used.
@@ -30,6 +31,9 @@
 #'   `start_date`, `end_date` and `by` is no longer supported. `dttm` together
 #'   with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 #'   spaced date-times.
+#' @param obs_path,obsfile_template `r lifecycle::badge("deprecated")` These
+#'   arguments have been renamed `file_path` and `file_template` for consistency
+#'   with other harpIO functions. Please use the new argument names.
 #'
 #' @return A tibble with columns for valid_dttm, SID and the parameter.
 #' @export
@@ -75,8 +79,9 @@
 read_point_obs <- function(
   dttm,
   parameter,
-  obs_path            = ".",
-  obsfile_template    = "obstable",
+  file_path           = ".",
+  file_template       = "obstable",
+  file_format         = "obstable",
   gross_error_check   = TRUE,
   min_allowed         = NULL,
   max_allowed         = NULL,
@@ -84,7 +89,9 @@ read_point_obs <- function(
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   start_date          = NULL,
   end_date            = NULL,
-  by                  = "1h"
+  by                  = "1h",
+  obs_path            = NULL,
+  obsfile_template    = NULL
 ) {
 
   if (missing(dttm)) {
@@ -105,8 +112,29 @@ read_point_obs <- function(
     dttm <- harpCore::seq_dttm(start_date, end_date, by)
   }
 
+  if (!is.null(obs_path)) {
+    lifecycle::deprecate_warn(
+      "0.3.0",
+      "read_point_obs(obs_path)",
+      "read_point_obs(file_path)"
+    )
+    file_path <- obs_path
+  }
+
+  if (!is.null(obsfile_template)) {
+    lifecycle::deprecate_warn(
+      "0.3.0",
+      "read_point_obs(obsfile_template)",
+      "read_point_obs(file_template)"
+    )
+    file_template <- obsfile_template
+  }
+
   vertical_coordinate <- match.arg(vertical_coordinate)
 
+  if (file_format == "obsparquet") {
+    obsfile_template <- ""
+  }
   obs_files <- generate_filenames(
     obs_path,
     file_date     = dttm,
@@ -144,8 +172,9 @@ read_point_obs <- function(
 
   dttm <- harpCore::as_unixtime(dttm)
 
+  read_func <- get(paste0("read_", file_format))
   message("Getting ", parameter, ".")
-  obs <- read_obstable(
+  obs <- read_func(
     available_files,
     !!obs_param,
     sqlite_table,
@@ -162,7 +191,7 @@ read_point_obs <- function(
 
     metadata_cols <- rlang::syms(colnames(obs)[colnames(obs) != parameter])
     #message("Attempting to derive 6h precipitation from 12h precipitation")
-    obs <- derive_6h_precip(obs, available_files, dttm, stations)
+    obs <- derive_6h_precip(obs, available_files, dttm, stations, file_format)
     if (parameter %in% c("AccPcp12h","AccPcp24h")) {
       #message("Attempting to derive 12h precipitation from 6h precipitation")
       obs <- derive_12h_precip(obs)
@@ -213,10 +242,11 @@ read_point_obs <- function(
   colnames(obs)[colnames(obs) == harp_param[["basename"]]] <- harp_param[["fullname"]]
 
   if (gross_error_check && is.data.frame(obs_removed) && nrow(obs_removed) > 0) {
-    warning(
-      nrow(obs_removed), " observations removed due to gross error check.",
-      call. = FALSE
-    )
+    cli::cli_warn(c(
+      "{nrow(obs_removed)} observation{?s} removed due to gross error check.",
+      "i" = "Use {.code attr(x, \"bad_obs\")} to see removed observations.",
+      "i" = "where {.code x} is the output of {.fn read_point_obs}."
+    ))
   }
 
   if (nrow(obs) > 0) {
@@ -334,7 +364,7 @@ read_obstable <- function(
 }
 
 # Derive 6h precipitation from 12h precipitation
-derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
+derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids, file_format) {
 
   pcp_AccPcp6h  <- NULL
   pcp_AccPcp12h <- NULL
@@ -350,13 +380,14 @@ derive_6h_precip <- function(pcp_data, obs_files, dttm, station_ids) {
     "AccPcp24h" = acc  <- c("AccPcp6h", "AccPcp12h")
   )
 
+  read_func <- get(paste0("read_", file_format))
   for (pcp_acc in acc) {
     acc_sym <- rlang::sym(pcp_acc)
     assign(
       paste0("pcp_", pcp_acc),
       dplyr::rename_with(
         suppressMessages(suppressWarnings(
-          read_obstable(obs_files, !!acc_sym, "SYNOP", dttm, station_ids),
+          read_func(obs_files, !!acc_sym, "SYNOP", dttm, station_ids),
         )),
         ~gsub("validdate", "valid_dttm", .x)
       )

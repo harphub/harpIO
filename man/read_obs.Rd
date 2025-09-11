@@ -13,7 +13,6 @@ read_obs(
   file_format = NULL,
   file_template = "vobs",
   file_format_opts = vfile_opts("vobs"),
-  output_format = "obstable",
   output_format_opts = obstable_opts(),
   return_data = FALSE,
   start_date = NULL,
@@ -65,17 +64,9 @@ file_path/template. Other substitutions can be passed via \code{...}}
 specified in \code{file_format}. Should be a named list, with names
 corresponding to argument for \code{read_<file_format>}.}
 
-\item{output_format}{The file format to re-write the data to. By default this
-is "obstable", which is an sqlite file desgined specifically for the harp
-ecosystem. If set to something else, \code{read_obs} will search the global
-environment for a function called \code{write_<file_format>} that it will
-use to write to the output file(s).}
-
-\item{output_format_opts}{Specific options for writing to \code{file_format}
-files. Must be a named list and at least include the names \code{"path"}
-and \code{"template"}. By setting \code{output_format_opts$path} to
-something other than NULL, \code{read_obs} will attempt to write out the
-data.}
+\item{output_format_opts}{Specific options for writing output to different
+formats. Use \code{\link{obstable_opts()}} to write to SQLite and
+\code{\link{obsparquet_opts()}} to write to a parquet dataset.}
 
 \item{return_data}{Logical - whether to return the data read in to the
 calling environment. Due to the potential for large volumes of data, this

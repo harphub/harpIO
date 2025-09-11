@@ -45,7 +45,7 @@ sqlite_opts <- function(
   index_cols        = c("fcst_dttm", "lead_time", "SID"),
   synchronous       = c("off", "normal", "full", "extra"),
   journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
-  dir_mode          = "0750",
+  dir_mode          = "0755",
   remove_model_elev = FALSE
 ) {
 
@@ -53,6 +53,7 @@ sqlite_opts <- function(
   journal_mode <- match.arg(journal_mode)
 
   list(
+    format            = "sqlite",
     path              = path,
     template          = template,
     index_cols        = index_cols,
@@ -73,7 +74,7 @@ fctable_opts <- function(
     index_cols        = c("fcst_dttm", "lead_time", "SID"),
     synchronous       = c("off", "normal", "full", "extra"),
     journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
-    dir_mode          = "0750",
+    dir_mode          = "0755",
     remove_model_elev = FALSE
 ) {
 
@@ -81,6 +82,7 @@ fctable_opts <- function(
   journal_mode <- match.arg(journal_mode)
 
   list(
+    format            = "fcatble",
     path              = path,
     template          = template,
     index_cols        = index_cols,
@@ -100,13 +102,14 @@ obstable_opts <- function(
     index_cols        = "auto",
     synchronous       = c("off", "normal", "full", "extra"),
     journal_mode      = c("delete", "truncate", "persist", "memory", "wal", "off"),
-    dir_mode          = "0750"
+    dir_mode          = "0755"
 ) {
 
   synchronous  <- match.arg(synchronous)
   journal_mode <- match.arg(journal_mode)
 
   list(
+    format            = "obstable",
     path              = path,
     template          = template,
     index_cols        = index_cols,

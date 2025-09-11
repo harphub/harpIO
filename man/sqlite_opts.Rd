@@ -12,7 +12,7 @@ sqlite_opts(
   index_cols = c("fcst_dttm", "lead_time", "SID"),
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
-  dir_mode = "0750",
+  dir_mode = "0755",
   remove_model_elev = FALSE
 )
 
@@ -22,7 +22,7 @@ fctable_opts(
   index_cols = c("fcst_dttm", "lead_time", "SID"),
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
-  dir_mode = "0750",
+  dir_mode = "0755",
   remove_model_elev = FALSE
 )
 
@@ -32,7 +32,7 @@ obstable_opts(
   index_cols = "auto",
   synchronous = c("off", "normal", "full", "extra"),
   journal_mode = c("delete", "truncate", "persist", "memory", "wal", "off"),
-  dir_mode = "0750"
+  dir_mode = "0755"
 )
 }
 \arguments{

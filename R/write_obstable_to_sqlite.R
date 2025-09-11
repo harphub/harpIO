@@ -54,6 +54,10 @@ write_obstable_to_sqlite <- function(
   real_cols    <- setdiff(col_names, integer_cols)
   col_types    <- c(rep("INTEGER", length(integer_cols)), rep("REAL", length(real_cols)))
 
+  if (is.character(obs_data[["SID"]])) {
+    col_types[col_names == "SID"] <- "VARCHAR"
+  }
+
   if (!is.null(params_table) && nrow(params_table) > 0) {
     params_cols  <- colnames(params_table)
     params_types <- toupper(unname(sapply(params_table, class)))

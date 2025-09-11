@@ -146,16 +146,30 @@ write_forecast <- function(df, opts) {
     df <- tidyr::nest(dplyr::group_by(df, .data[["file_name"]]))
   }
 
+  if (opts[["format"]] %in% c("sqlite", "fctable")) {
 
-  purrr::walk2(
-    df[["data"]],
-    df[["file_name"]],
-    write_fctable_to_sqlite,
-    primary_key       = opts[["index_cols"]],
-    synchronous       = opts[["synchronous"]],
-    journal_mode      = opts[["journal_mode"]],
-    remove_model_elev = opts[["remove_model_elev"]]
-  )
+    purrr::walk2(
+      df[["data"]],
+      df[["file_name"]],
+      write_fctable_to_sqlite,
+      primary_key       = opts[["index_cols"]],
+      synchronous       = opts[["synchronous"]],
+      journal_mode      = opts[["journal_mode"]],
+      remove_model_elev = opts[["remove_model_elev"]]
+    )
+
+  }
+
+  if (opts[["format"]] %in% c("fcparquet", "parquet")) {
+
+    purrr::walk2(
+      df[["data"]],
+      df[["file_name"]],
+      write_fctable_to_parquet,
+      hive_partitioning = opts[["partitioning"]]
+    )
+
+  }
 
 }
 
