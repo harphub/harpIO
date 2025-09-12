@@ -137,12 +137,12 @@ read_point_obs <- function(
   vertical_coordinate <- match.arg(vertical_coordinate)
 
   if (file_format == "obsparquet") {
-    obsfile_template <- ""
+    file_template <- ""
   }
   obs_files <- generate_filenames(
-    obs_path,
+    file_path,
     file_date     = dttm,
-    file_template = obsfile_template
+    file_template = file_template
   )
 
   available_files <- obs_files[file.exists(obs_files)]

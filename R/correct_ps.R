@@ -1,22 +1,22 @@
 
 # pmslcom function from Monitor (mod/module_functions.f90)
 pmslcom <- function(df) {
-  
+
   # Constants
   rair   <- 287.04
   gravit <- 9.80665
   tlapse <- 0.0065
-  
+
   tdf <- df %>% dplyr::mutate(zdiff = (model_elevation-elev)*gravit,
                               tstar = t2m,
                               alfa  = NA,
                               tzero = tstar + (tlapse*zdiff/gravit))
-  
+
   # Add logicals
   tdf <- tdf %>% dplyr::mutate(tstar_255 = tstar < 255.0,
                                tzero_290 = tzero > 290.5,
                                tstar_290 = tstar <= 290.5)
-  
+
   # Compute tstar
   tdf <- dplyr::mutate(tdf,
                        tstar = dplyr::case_when(
@@ -29,7 +29,7 @@ pmslcom <- function(df) {
                          )
                        )
   # Compute alfa
-  tdf <- mutate(tdf,
+  tdf <- dplyr::mutate(tdf,
                 alfa = dplyr::case_when(
                   tstar_255 ~ tlapse*rair/gravit,
                   .default = dplyr::case_when(
@@ -39,13 +39,13 @@ pmslcom <- function(df) {
                     .default = tlapse*rair/gravit)
                   )
                 )
-  
+
   tdf <- tdf %>%
     dplyr::mutate(arg = zdiff/rair/tstar,
                   station_data = station_data*exp(arg*(1-0.5*alfa*arg+(1/3)*(alfa*arg)**2)))
-  
+
   return(tdf)
-  
+
 }
 
 correct_ps <- function(data_df, opts) {
@@ -62,7 +62,7 @@ correct_ps <- function(data_df, opts) {
     message("Height correction for surface pressure NOT selected.")
     return(list(data_df = data_df, opts = opts))
   }
-  
+
   if (!is.element("T2m", unique(data_df[["parameter"]]))) {
     message("Did not find uncorrected T2m for height correction of surface pressure - skipping")
     return(list(data_df = data_df, opts = opts))
@@ -135,7 +135,7 @@ correct_ps <- function(data_df, opts) {
   data_ps <- dplyr::filter(data_df, tolower(.data[["parameter"]]) == "ps")
   data_t2m <- dplyr::filter(data_df, tolower(.data[["parameter"]]) == "t2m") %>%
     dplyr::rename(t2m = "station_data")
-  
+
   if (!is.element("elev", colnames(data_ps))) {
     data_ps <- dplyr::inner_join(data_ps, opts[["stations"]][c("SID", "elev")], by = "SID")
   }
@@ -144,14 +144,14 @@ correct_ps <- function(data_df, opts) {
   data_ps <- dplyr::filter(data_ps,
                            .data[["elev"]] > -9999,
                            .data[["elev"]] != -99)
-  
+
   # Merge ps and t2m
   data_ps <- dplyr::inner_join(
     data_ps,
     data_t2m %>% dplyr::select(-parameter,-units),
     by = dplyr::setdiff(colnames(data_ps),c("parameter","units","station_data","elev"))
   )
-  
+
   # Compute correction
   ps_cor <- pmslcom(data_ps)
 
