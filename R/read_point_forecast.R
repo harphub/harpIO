@@ -774,8 +774,8 @@ lag_and_join <- function(fcst_list, lags_df, meta_only) {
       dplyr::mutate(
         fc,
         {{fc_dttm_col}} := .data[[fc_dttm_col]] + lg,
-        {{lt_col}}      := as.integer(.data[[lt_col]] - lg_ld) #,
-        #fcst_cycle = strftime(.data[[fc_dttm_col]], "%H", tz = "UTC")
+        {{lt_col}}      := as.integer(.data[[lt_col]] - lg_ld),
+        fcst_cycle = strftime(.data[[fc_dttm_col]], "%H", tz = "UTC")
       )
     },
     fcst_list[non_zero_values],

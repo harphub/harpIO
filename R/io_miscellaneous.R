@@ -157,13 +157,11 @@ collect_dataset <- function(dataset, dataset_name = NULL, lead_time = NULL) {
 
   dataset <- dplyr::select(
     dataset,
-    dplyr::matches("^fcst_model$|^sub_model$|^anl_model$"),
-    .data[["fcst_dttm"]],
-    .data[["valid_dttm"]],
-    .data[["lead_time"]],
-    .data[["SID"]],
-    dplyr::matches("^parameter$"),
-    dplyr::matches("^p$"), dplyr::matches("^m$"), dplyr::matches("^z$"),
+    dplyr::any_of(c(
+      "fcst_model", "sub_model", "anl_model",
+      "fcst_dttm", "valid_dttm", "lead_time", "SID", "fcst_cycle",
+      "parameter", "p", "m", "z"
+    )),
     dplyr::matches("_det$"),
     dplyr::matches("_mbr[[:digit:]]+$"),
     dplyr::matches("_mbr[[:digit:]]+_lag[[:digit:]]*"),
