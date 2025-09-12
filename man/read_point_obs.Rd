@@ -27,8 +27,8 @@ read_point_obs(
 YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
 character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
 vector of equally spaced date-time strings. Alternatively valid date-times
-can be extracted from a forecast data frame or \code{harp_list} of
-forecast data frames using \code{\link[harpCore]{unique_valid_dttm}}.}
+can be extracted from a forecast data frame or \code{harp_list} of forecast
+data frames using \code{\link[harpCore]{unique_valid_dttm}}.}
 
 \item{parameter}{Which parameter to read. This will normally be a harp
 parameter name.}
@@ -37,7 +37,11 @@ parameter name.}
 
 \item{file_template}{The template for the observations file name.}
 
-\item{file_format}{The format of the files storing the observations.}
+\item{file_format}{The format of the files storing the observations. Can be
+"obstable" for \emph{SQLite} files with the same schema as that produced by
+\code{read_obs()} with \code{file_format_opts = obstable_opts()}, or "obsparquet" for
+an \emph{Arrow} dataset of _parquet_files with the same schema as that produced
+by \code{read_obs()} with \code{file_format_opts = obsparquet_opts()}.}
 
 \item{gross_error_check}{Logical of whether to perform a gross error check.}
 

@@ -42,9 +42,11 @@
 #' @param file_format_opts Specific options for reading the file format
 #'   specified in \code{file_format}. Should be a named list, with names
 #'   corresponding to argument for \code{read_<file_format>}.
-#' @param output_format_opts Specific options for writing output to different
-#'   formats. Use \code{\link{obstable_opts()}} to write to SQLite and
-#'   \code{\link{obsparquet_opts()}} to write to a parquet dataset.
+#' @param output_file_opts Options for output files. \code{read_obs} can output
+#'   data as SQLite (obstable) files or parquet (obsparquet) datasets. Use one
+#'   of the options functions to select the output file format -
+#'   \code{\link{obstable_opts()}} for SQLite fctable files (the default), or
+#'   \code{\link{obsparquet_opts()}} for a dataset of parquet files.
 #' @param return_data Logical - whether to return the data read in to the
 #'   calling environment. Due to the potential for large volumes of data, this
 #'   is set to FALSE by default.

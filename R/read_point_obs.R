@@ -9,13 +9,17 @@
 #'   YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
 #'   character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
 #'   vector of equally spaced date-time strings. Alternatively valid date-times
-#'   can be extracted from a forecast data frame or \code{harp_list} of
-#'   forecast data frames using \code{\link[harpCore]{unique_valid_dttm}}.
+#'   can be extracted from a forecast data frame or \code{harp_list} of forecast
+#'   data frames using \code{\link[harpCore]{unique_valid_dttm}}.
 #' @param parameter Which parameter to read. This will normally be a harp
 #'   parameter name.
 #' @param file_path The path to the observation files / dataset
 #' @param file_template The template for the observations file name.
-#' @param file_format The format of the files storing the observations.
+#' @param file_format The format of the files storing the observations. Can be
+#'   "obstable" for _SQLite_ files with the same schema as that produced by
+#'   `read_obs()` with `file_format_opts = obstable_opts()`, or "obsparquet" for
+#'   an _Arrow_ dataset of _parquet_files with the same schema as that produced
+#'   by `read_obs()` with `file_format_opts = obsparquet_opts()`.
 #' @param gross_error_check Logical of whether to perform a gross error check.
 #' @param min_allowed The minimum value of observation to allow in the gross
 #'   error check. If set to NULL the default value for the parameter is used.

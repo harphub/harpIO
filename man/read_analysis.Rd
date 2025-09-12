@@ -121,10 +121,11 @@ is used. Modifications and additions to this list can be made using
 respectively.}
 
 \item{output_file_opts}{Options for output files. \code{read_forecast} can
-output data \code{transformation = "interpolate"} as sqlite files. The
-options for the sqlite files can be set with \code{\link{sqlite_opts}}.
-Most inportantly, the path argument in \code{link{sqlite_opts}} must not be
-NULL for data to be output to sqlite files.}
+output data \code{transformation = "interpolate"} as SQLite (fctable) files
+or parquet (fcparquet) datasets. Use one of the options functions to
+select the output file format - \code{\link{fctable_opts()}} for SQLite
+fctable files (the default), or \code{\link{fcparquet_opts()}} for a
+dataset of parquet files.}
 
 \item{return_data}{By default \code{read_forecast} does not return any data,
 since many GB of data could be read in. Set to TRUE to return the data read

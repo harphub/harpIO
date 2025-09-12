@@ -38,12 +38,12 @@
 #'   named, the names must match the entries in \code{fcst_model}.
 #' @param file_format The format of the file to read. By default this is
 #'   "fctable", which is _SQLite_ files with a schema that is the same as that
-#'   in files produced by \code{\link{read_forecast()}} with an output format of
-#'   "fctable". Could also be "fc_dataset" which is an _Arrow_ dataset of
-#'   _parquet_ files with a schema that is the same as that in a dataset
-#'   produced by \code{\link{read_forecast()}} with an output format of
-#'   "fc_dataset". Otherwise the running environment will be be searched for a
-#'   function called `read_<file_format>()`.
+#'   in files produced by \code{\link{read_forecast()}} with `output_format_opts
+#'   = fctable_opts()`. Could also be "fcparquet" which is an _Arrow_ dataset
+#'   of_parquet_ files with a schema that is the same as that in a dataset
+#'   produced by \code{\link{read_forecast()}} with `output_format_opts =
+#'   fcparquet_opts()`. Otherwise the running environment will be be searched
+#'   for a function called `read_<file_format>()`.
 #' @param drop_any_na Set to TRUE (the default) to remove all cases where there
 #'   is at least one missing value. This ensures that when you come to analyse a
 #'   forecast, only those forecasts with a full set of ensmeble members / data

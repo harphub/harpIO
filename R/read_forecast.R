@@ -87,10 +87,11 @@
 #'   \code{\link{modify_param_def}} and \code{\link{add_param_def}}
 #'   respectively.
 #' @param output_file_opts Options for output files. \code{read_forecast} can
-#'   output data \code{transformation = "interpolate"} as sqlite files. The
-#'   options for the sqlite files can be set with \code{\link{sqlite_opts}}.
-#'   Most inportantly, the path argument in \code{link{sqlite_opts}} must not be
-#'   NULL for data to be output to sqlite files.
+#'   output data \code{transformation = "interpolate"} as SQLite (fctable) files
+#'   or parquet (fcparquet) datasets. Use one of the options functions to
+#'   select the output file format - \code{\link{fctable_opts()}} for SQLite
+#'   fctable files (the default), or \code{\link{fcparquet_opts()}} for a
+#'   dataset of parquet files.
 #' @param return_data By default \code{read_forecast} does not return any data,
 #'   since many GB of data could be read in. Set to TRUE to return the data read
 #'   in to the global environment.
@@ -204,7 +205,7 @@ read_forecast <- function(
   transformation       = c("none", "interpolate", "regrid", "xsection", "subgrid"),
   transformation_opts  = NULL,
   param_defs           = getExportedValue("harpIO", "harp_params"),
-  output_file_opts     = sqlite_opts(),
+  output_file_opts     = fctable_opts(),
   return_data          = FALSE,
   merge_lags           = TRUE,
   show_progress        = TRUE,
@@ -488,7 +489,7 @@ read_forecast <- function(
 
     # Modify the members to mbrXXX format
     data_df <- mbr_to_char(data_df, c("members", "members_out"))
-    
+
     # Do surface pressure correction if data are station data.
     # This requires uncorrected T2m, which is checked in correct_ps.
     if (

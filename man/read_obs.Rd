@@ -64,10 +64,6 @@ file_path/template. Other substitutions can be passed via \code{...}}
 specified in \code{file_format}. Should be a named list, with names
 corresponding to argument for \code{read_<file_format>}.}
 
-\item{output_format_opts}{Specific options for writing output to different
-formats. Use \code{\link{obstable_opts()}} to write to SQLite and
-\code{\link{obsparquet_opts()}} to write to a parquet dataset.}
-
 \item{return_data}{Logical - whether to return the data read in to the
 calling environment. Due to the potential for large volumes of data, this
 is set to FALSE by default.}
@@ -87,6 +83,12 @@ setting might be important to prevent data from being overwritten.}
 
 \item{...}{Other arguments to \code{generate_filenames} for getting the names
 of files to read.}
+
+\item{output_file_opts}{Options for output files. \code{read_obs} can output
+data as SQLite (obstable) files or parquet (obsparquet) datasets. Use one
+of the options functions to select the output file format -
+\code{\link{obstable_opts()}} for SQLite fctable files (the default), or
+\code{\link{obsparquet_opts()}} for a dataset of parquet files.}
 }
 \value{
 If \code{return_data = TRUE}, a list with data frames of
