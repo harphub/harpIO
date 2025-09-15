@@ -78,7 +78,7 @@ read_hdf5 <- function(
   # FIXME: calling Hopen for the domain is pretty slow
   #        if the domain never changes, you may want to skip this?
   if (transformation != "none") {
-    domain <- attr(Hopen(file_name), "domain")
+    domain <- attr(Hopen(file_name, iflag = format_opts$iflag), "domain")
   } else {
     domain <- NULL
   }
