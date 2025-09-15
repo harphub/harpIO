@@ -31,6 +31,7 @@ get_function <- function(
       return(func)
     }
     stop(
+      "Could not find function ", param_info[["func"]], "\n",
       "`func` must be a function or a string representing a function",
       call. = FALSE
     )
@@ -46,6 +47,7 @@ get_function <- function(
   }
 
   stop(
+    "Could not find function ", func, " in package ", param_info[["func_pkg"]], "\n",
     "`func` must be a function or a string representing a function",
     call. = FALSE
   )

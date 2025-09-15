@@ -40,7 +40,9 @@ read_fatar <- function(file_name,
   if (length(lead_time) < 1) {
     # either an error OR just default to taking all available lead times
     # FIXME: we could also extract /all/ lead times in this case, or the first file...
-    warning("For fatar files, lead time should be passed. Using 0.")
+    # But if you want e.g. only surface geopotential, 0 is fine.
+    # The warning is in fact VERY confusing in this case.
+    # warning("For fatar files, lead time should be passed. Using 0.")
     lead_time <- 0
   }
 

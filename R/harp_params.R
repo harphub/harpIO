@@ -1,5 +1,9 @@
 # Function to pad the end of a string - useful for FA param names that
 # must be 16 characters long.
+# AD: not very useful at this point: padding/trimming to 16 characters
+#     must happen after adding the level information like "Sxxx", "Pxxxxx" etc.
+#     So usually done (again) at a later stage anyway.
+#     Only relevant for e.g. surface fields.
 
 pad_string <- function(x, string_length, text = " ") {
   if (nchar(text) != 1) {
@@ -17,6 +21,12 @@ pad_string <- function(x, string_length, text = " ") {
 # harp_params is a list with all harp parameters and how they map
 # to different file formats. The functions below the data are used for
 # printing, adding or replacing harp entries in the harp_params list
+# NOTE: if you modify this function, make sure to also update the
+#       actual data table:
+# > harp_params=harpIO:::define_harp_params()
+# > save(harp_params, file="harp_params.rda")
+# 
+
 
 define_harp_params <- function() {
   list(
@@ -201,7 +211,7 @@ define_harp_params <- function() {
       ),
 
       fa = list(
-        name  = pad_string("TEMPERATURE", 16),
+        name  = "TEMPERATURE",
         units = "K"
       )
     ),
@@ -269,7 +279,7 @@ define_harp_params <- function() {
           rh = pad_string("HUMI_RELATIVE", 16)
         ),
         units = "K",
-        func  = "rh2dew"
+        func  = "rh2tdew"
       )
     ),
     ###
@@ -418,7 +428,9 @@ define_harp_params <- function() {
 
       func = function(u, v) {
         res <- sqrt(u ^ 2 + v ^ 2)
+        attr(res, "info") <- attr(u, "info")
         attr(res, "info")[["name"]] <- "Wind speed"
+        attr(res, "info")[["variable"]] <- "Wind speed"
         res
       }
 
@@ -454,7 +466,14 @@ define_harp_params <- function() {
         units = "m/s"
       ),
 
-      func = function(u, v) sqrt(u ^ 2 + v ^ 2)
+      func = function(u, v) {
+        res <- sqrt(u ^ 2 + v ^ 2)
+        # harpCore "Ops" methods emove all level & time data from the result
+        attr(res, "info") <- attr(u, "info")
+        attr(res, "info")[["name"]] <- "Wind speed"
+        attr(res, "info")[["variable"]] <- "Wind speed"
+        res
+      }
 
     ),
     ###
@@ -1353,7 +1372,11 @@ define_harp_params <- function() {
           )
         ),
         units = "kg/m^2",
-        func  = "sum"
+        func  = function(...) {
+          result <- sum(...)
+          attr(result, "info")[["name"]] <- "Total Accumulated Precipitation"
+          result
+        }
       )
 
     ),

@@ -32,7 +32,7 @@ get_param_info <- function(
     )
   }
 
-  list(
+  result <- list(
     param_info = param_defs[[list_element]][[file_format]],
     param_func = get_function(
       names(param_defs)[[list_element]],
@@ -40,7 +40,11 @@ get_param_info <- function(
       param_defs
     )
   )
-
+  # FIXME: if a function is defined for only 1 format
+  #        it will ALSO appear in param_info !
+  #        So eventually you may have 2 $func entries.
+  result$param_info$func <- NULL
+  result
 }
 
 param_from_other_names <- function(param, param_defs) {
