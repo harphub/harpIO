@@ -9,7 +9,7 @@ Description: Functions for reading and writing data in the harp framework.
     Readable formats include grib, netCDF, FA, vfld, vobs, SQLite FCTABLE files and
     writeable formats are SQLite FCTABLE files.
 Depends:
-    harpCore (>= 0.2.2),
+    harpCore (>= 0.3.0),
     R (>= 3.3.1)
 License: Apache License (>= 2.0)
 Encoding: UTF-8
