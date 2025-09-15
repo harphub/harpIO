@@ -155,11 +155,19 @@ collect_dataset <- function(dataset, dataset_name = NULL, lead_time = NULL) {
     ))
   )
 
+  if (
+    !is.element("fcst_cycle", colnames(dataset)) &&
+      is.element("fcst_dttm", colnames(dataset))
+  ) {
+    dataset[["fcst_cycle"]] <- format(dataset[["fcst_dttm"]], "%H")
+  }
+
+
   dataset <- dplyr::select(
     dataset,
     dplyr::any_of(c(
       "fcst_model", "sub_model", "anl_model",
-      "fcst_dttm", "valid_dttm", "lead_time", "SID", "fcst_cycle",
+      "fcst_dttm", "valid_dttm", "lead_time", "fcst_cycle", "SID",
       "parameter", "p", "m", "z"
     )),
     dplyr::matches("_det$"),
