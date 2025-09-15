@@ -202,11 +202,12 @@ generate_filenames <- function(
   }
   if (length(lead_time_col) > 0) {
     leads_list         <- split_time(file_names_df[[lead_time_col]], "lead_time")
-    lags_in_lead_units <- mapply(
-      function(x, y) char_to_time(x, "leadtime", unit = y),
-      paste0(file_names_df[["lag_seconds"]], "s"),
-      leads_list[["unit"]]
-    )
+    lags_in_lead_units <- file_names_df[["lag_seconds"]] / leads_list[["factor"]]
+    #   mapply(
+    #   function(x, y) char_to_time(x, "leadtime", unit = y),
+    #   paste0(file_names_df[["lag_seconds"]], "s"),
+    #   leads_list[["unit"]]
+    # )
     file_names_df[[lead_time_col]] <- leads_list[["time"]] + lags_in_lead_units
     file_names_df[["LDT"]]         <- file_names_df[[lead_time_col]]
   }
@@ -328,13 +329,19 @@ char_to_time <- function(x, var, unit = c("s", "m", "h", "d")) {
 
 split_time <- function(x, var) {
   if (is.numeric(x)) {
-    time_unit  <- rep("h", length(x))
-    time_value <- x
+    time_unit   <- rep("h", length(x))
+    time_value  <- x
+    time_factor <- rep(60 * 60, length(x))
   } else {
-    time_unit <- tolower(sub("[[:digit:]]+", "", x))
+    time_unit                       <- tolower(sub("[[:digit:]]+", "", x))
     time_unit[nchar(time_unit) < 1] <- "h"
-    time_value <- sub("[[:alpha:]]+", "", x)
+    time_value                      <- sub("[[:alpha:]]+", "", x)
+    time_factor                     <- rep(1, length(time_unit))
+    time_factor[time_unit == "m"]   <- 60
+    time_factor[time_unit == "h"]   <- 60 * 60
+    time_factor[time_unit == "d"]   <- 60 * 60 * 24
   }
+
   bad_units <- which(!time_unit %in% c("d", "h", "m", "s", "NA", "NAs", "nas"))
   if (length(bad_units) > 0) {
     stop(
@@ -344,5 +351,5 @@ split_time <- function(x, var) {
       call. = FALSE
     )
   }
-  list(time = time_value, unit = time_unit)
+  list(time = time_value, unit = time_unit, factor = time_factor)
 }

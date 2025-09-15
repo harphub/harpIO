@@ -42,16 +42,11 @@
 #' @param file_format_opts Specific options for reading the file format
 #'   specified in \code{file_format}. Should be a named list, with names
 #'   corresponding to argument for \code{read_<file_format>}.
-#' @param output_format The file format to re-write the data to. By default this
-#'   is "obstable", which is an sqlite file desgined specifically for the harp
-#'   ecosystem. If set to something else, \code{read_obs} will search the global
-#'   environment for a function called \code{write_<file_format>} that it will
-#'   use to write to the output file(s).
-#' @param output_format_opts Specific options for writing to \code{file_format}
-#'   files. Must be a named list and at least include the names \code{"path"}
-#'   and \code{"template"}. By setting \code{output_format_opts$path} to
-#'   something other than NULL, \code{read_obs} will attempt to write out the
-#'   data.
+#' @param output_file_opts Options for output files. \code{read_obs} can output
+#'   data as SQLite (obstable) files or parquet (obsparquet) datasets. Use one
+#'   of the options functions to select the output file format -
+#'   \code{\link{obstable_opts()}} for SQLite fctable files (the default), or
+#'   \code{\link{obsparquet_opts()}} for a dataset of parquet files.
 #' @param return_data Logical - whether to return the data read in to the
 #'   calling environment. Due to the potential for large volumes of data, this
 #'   is set to FALSE by default.
@@ -82,7 +77,6 @@ read_obs <- function(
   file_format        = NULL,
   file_template      = "vobs",
   file_format_opts   = vfile_opts("vobs"),
-  output_format      = "obstable",
   output_format_opts = obstable_opts(),
   return_data        = FALSE,
   start_date         = NULL,
@@ -267,6 +261,7 @@ read_obs <- function(
           )
         }
 
+        output_format <- output_format_opts[["format"]]
         output_func <- paste0("write_", output_format)
 
         if (output_format == "obstable") {

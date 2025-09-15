@@ -22,10 +22,22 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
 
   message("Accumulating forecast for ", accumulation_time, accumulation_unit, " accumulations")
 
-  fcst_cols  <- colnames(.fcst)
-  fcst_lead  <- intersect(c("lead_time", "leadtime"), fcst_cols)
-  fcst_dttm  <- intersect(c("fcst_dttm", "fcdate"), fcst_cols)
-  valid_dttm <- intersect(c("valid_dttm", "validdate"), fcst_cols)
+  data_cols  <- colnames(.fcst)
+  fcst_lead  <- intersect(c("lead_time", "leadtime"), data_cols)
+  fcst_dttm  <- intersect(c("fcst_dttm", "fcdate"), data_cols)
+  valid_dttm <- intersect(c("valid_dttm", "validdate"), data_cols)
+
+  fcst_cols <- grep(
+    "_det$|^fcst$|^forecast$|_mbr[0-9]{3}", data_cols, value = TRUE
+  )
+
+  lt_unit <- get_lead_units(.fcst)
+  accumulation_secs <- harpCore::to_seconds(
+    paste0(accumulation_time, accumulation_unit)
+  )
+  accumulation_time <- harpCore::extract_numeric(
+    harpCore::from_seconds(accumulation_secs, lt_unit)
+  )
 
   lead_times          <- sort(unique(.fcst[[fcst_lead]]))
   required_lead_times <- union((lead_times - accumulation_time), lead_times)
@@ -50,38 +62,52 @@ accumulate_forecast <- function(.fcst, accumulation_time, accumulation_unit, che
     return(first_accum_fcst)
   }
 
-  if (length(lead_times_res) > 1) {
+  if (length(lead_times_res) > 0) {
 
     warning("Lead times are not equally spaced. Accumulating could take some time\n", immediate. = TRUE, call. = FALSE)
 
     .fcst <- .fcst %>%
-      dplyr::mutate(lead_acc = .data[[fcst_lead]] + accumulation_time)
+      dplyr::mutate(
+        lead_acc       = .data[[fcst_lead]] + accumulation_time,
+        {{valid_dttm}} := .data[[valid_dttm]] + accumulation_secs
+      )
 
     if (nrow(.fcst) > 0) {
 
       fcst_lead_sym <- rlang::sym(fcst_lead)
 
       .fcst <- dplyr::inner_join(
-        .fcst,
+        dplyr::rename_with(
+          .fcst,
+          ~paste0(.x, "_acc"),
+          dplyr::all_of(fcst_cols)
+        ),
         dplyr::select(
           dplyr::filter(.fcst, .data[[fcst_lead]] >= accumulation_time),
           .data$SID,
           .data[[fcst_dttm]],
           lead_acc = .data[[fcst_lead]],
-          fcst_acc = .data$forecast,
-          .data$member
+          dplyr::all_of(fcst_cols)
         ),
-        by = c("SID", fcst_dttm, "lead_acc", "member")
+        by = c("SID", fcst_dttm, "lead_acc")
       ) %>%
         dplyr::mutate(
-          forecast = .data$fcst_acc - .data$forecast,
-          forecast = dplyr::case_when(.data$forecast < 0 ~ 0, TRUE ~ .data$forecast),
+          dplyr::across(dplyr::all_of(fcst_cols)) -
+            dplyr::across(dplyr::all_of(paste0(fcst_cols, "_acc"))),
           !!fcst_lead_sym := .data$lead_acc
         )
 
     }
 
-    .fcst <- dplyr::select(.fcst, -dplyr::contains("_acc"))
+    .fcst <- dplyr::mutate(
+      .fcst,
+      dplyr::across(
+        dplyr::all_of(fcst_cols),
+        ~dplyr::case_when(.x < 0 ~ 0, .default = .x)
+      )
+    )
+
+    .fcst <- dplyr::select(.fcst, -dplyr::matches("_acc$"))
 
   } else {
 

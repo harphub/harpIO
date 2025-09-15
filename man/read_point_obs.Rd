@@ -7,8 +7,9 @@
 read_point_obs(
   dttm,
   parameter,
-  obs_path = ".",
-  obsfile_template = "obstable",
+  file_path = ".",
+  file_template = "obstable",
+  file_format = "obstable",
   gross_error_check = TRUE,
   min_allowed = NULL,
   max_allowed = NULL,
@@ -16,7 +17,9 @@ read_point_obs(
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   start_date = NULL,
   end_date = NULL,
-  by = "1h"
+  by = "1h",
+  obs_path = NULL,
+  obsfile_template = NULL
 )
 }
 \arguments{
@@ -24,15 +27,21 @@ read_point_obs(
 YYYYMMDDhh, YYYYMMDDhhmm, or YYYYMMDDhhmmss format. Can be numeric or
 character. \code{\link[harpCore]{seq_dttm}} can be used to generate a
 vector of equally spaced date-time strings. Alternatively valid date-times
-can be extracted from a forecast data frame or \code{harp_list} of
-forecast data frames using \code{\link[harpCore]{unique_valid_dttm}}.}
+can be extracted from a forecast data frame or \code{harp_list} of forecast
+data frames using \code{\link[harpCore]{unique_valid_dttm}}.}
 
 \item{parameter}{Which parameter to read. This will normally be a harp
 parameter name.}
 
-\item{obs_path}{The path to the OBSTABLE files}
+\item{file_path}{The path to the observation files / dataset}
 
-\item{obsfile_template}{The template for the OBSTABLE file name.}
+\item{file_template}{The template for the observations file name.}
+
+\item{file_format}{The format of the files storing the observations. Can be
+"obstable" for \emph{SQLite} files with the same schema as that produced by
+\code{read_obs()} with \code{file_format_opts = obstable_opts()}, or "obsparquet" for
+an \emph{Arrow} dataset of _parquet_files with the same schema as that produced
+by \code{read_obs()} with \code{file_format_opts = obsparquet_opts()}.}
 
 \item{gross_error_check}{Logical of whether to perform a gross error check.}
 
@@ -54,6 +63,10 @@ height above ground /sea level.}
 \code{start_date}, \code{end_date} and \code{by} is no longer supported. \code{dttm} together
 with \code{\link[harpCore]{seq_dttm}} should be used to generate equally
 spaced date-times.}
+
+\item{obs_path, obsfile_template}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} These
+arguments have been renamed \code{file_path} and \code{file_template} for consistency
+with other harpIO functions. Please use the new argument names.}
 }
 \value{
 A tibble with columns for valid_dttm, SID and the parameter.

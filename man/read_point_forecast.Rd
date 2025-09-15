@@ -13,9 +13,12 @@ read_point_forecast(
   merge_lags = TRUE,
   file_path = ".",
   file_template = "fctable",
+  file_format = "fctable",
+  file_format_opts = list(),
   drop_any_na = TRUE,
   stations = NULL,
   members = NULL,
+  valid_dttm = NULL,
   accumulate = TRUE,
   vertical_coordinate = c(NA_character_, "pressure", "model", "height"),
   get_lat_and_lon = FALSE,
@@ -61,6 +64,13 @@ vector or list of the same length as \code{fcst_model}. If not named, the
 order of templates is assumed to be the same as in \code{fcst_model}. If
 named, the names must match the entries in \code{fcst_model}.}
 
+\item{file_format}{The format of the file to read. By default this is
+"fctable", which is \emph{SQLite} files with a schema that is the same as that
+in files produced by \code{\link{read_forecast()}} with \code{output_format_opts = fctable_opts()}. Could also be "fcparquet" which is an \emph{Arrow} dataset
+of_parquet_ files with a schema that is the same as that in a dataset
+produced by \code{\link{read_forecast()}} with \code{output_format_opts = fcparquet_opts()}. Otherwise the running environment will be be searched
+for a function called \verb{read_<file_format>()}.}
+
 \item{drop_any_na}{Set to TRUE (the default) to remove all cases where there
 is at least one missing value. This ensures that when you come to analyse a
 forecast, only those forecasts with a full set of ensmeble members / data
@@ -80,6 +90,9 @@ e.g. \cr \code{members = list(eps_model1 = seq(0, 3), eps_model2 = c(2,
 contain another named list with sub model name followed by the desired
 members, e.g. \cr \code{members = list(eps_model1 = list(sub_model1 =
   seq(0, 3), sub_model2 = c(2, 3)))}}
+
+\item{valid_dttm}{The valid date-times to retrieve in YYYYMMDD{hh}{mm}{ss}
+format. This is currently only available for \code{file_format = "fc_dataset"}.}
 
 \item{accumulate}{TRUE or FALSE. Whether to automatically accumulate
 parameters based on the accumulation time. Set to FALSE if the data to be

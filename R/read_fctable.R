@@ -7,12 +7,14 @@ read_fctable <- function(
   lead_time           = NULL,
   stations            = NULL,
   members             = NULL,
+  valid_dttm          = NULL,
   param               = NULL, # Passed as a parsed harp parameter
   get_latlon          = FALSE,
   force_param_name    = FALSE,
   use_dttm            = TRUE,
   meta_only           = FALSE,
-  complete_cases      = FALSE
+  complete_cases      = FALSE,
+  ...
 ) {
 
   if (is.null(param)) {
@@ -28,6 +30,7 @@ read_fctable <- function(
       "height"   = "z"
     )
   }
+
 
   fcst_out   <- list()
   list_count <- 0
@@ -88,8 +91,16 @@ read_fctable <- function(
         dplyr::filter(dplyr::between(.data[[fcst_dttm]], start_dttm, end_dttm))
     }
 
+    if (!is.null(valid_dttm)) {
+      vdttm <- harpCore::as_unixtime(valid_dttm)
+      fcst  <- dplyr::filter(fcst, .data[["valid_dttm"]] %in% vdttm)
+    }
+
     if (!is.null(lead_time)) {
-      lt <- lead_time
+      lt_unit <- get_lead_units(fcst)
+      lt <- harpCore::extract_numeric(
+        harpCore::from_seconds(lead_time, lt_unit)
+      )
       fcst <- dplyr::filter(fcst, .data[[fcst_lead]] %in% lt)
     }
 
@@ -145,6 +156,7 @@ read_fctable <- function(
 
     DBI::dbDisconnect(fcst_db)
 
+    # Should this be in read_point_forecast instead?
     if (!is.element("units", meta_cols)) {
       fcst_out[[list_count]] <- fcst_out[[list_count]] %>%
         dplyr::mutate(units = guess_units(fcst_out[[list_count]], param))
@@ -155,11 +167,16 @@ read_fctable <- function(
   }
 
   fcst_out <- dplyr::bind_rows(fcst_out)
-  if (nrow(fcst_out) > 0) {
-    fcst_out <- dplyr::mutate(
-      fcst_out,
-      fcst_cycle = substr(harpCore::as_YMDh(.data[[fcst_dttm]]), 9, 10)
-    )
+
+  # Get the column names consistent after reading old style data
+  fix_cols <- c(
+    "lead_time"  = "leadtime",
+    "fcst_dttm"  = "fcdate",
+    "valid_dttm" = "validdate"
+  )
+
+  for (i in 1:length(fix_cols)) {
+    colnames(fcst_out)[colnames(fcst_out) == fix_cols[i]] <- names(fix_cols)[i]
   }
 
   # Make the forecast data the last columns
@@ -174,6 +191,10 @@ read_fctable <- function(
     )
   )
 
-  fcst_out[c(other_cols, fcst_cols)]
+  list(
+    fcst = fcst_out[c(other_cols, fcst_cols)],
+    lead_unit = get_lead_units(fcst_out),
+    lead_has_zero = any(fcst_out[[fcst_lead]])
+  )
 
 }
