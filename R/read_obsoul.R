@@ -26,16 +26,13 @@ read_obsoul <- function(
   #]
 
   maxcol <- max(count.fields(file_name))
-  #print(param_defs)
   file_connection <- file(file_name, "r")
   on.exit(close(file_connection))
 
   #meta data
   #based on type, OBSOUL will be clasifict into TEMP or SYNOP (FOR NOW!!!)
   v_metadata <- scan(file_connection, nmax = 4, nlines = 2, quiet = TRUE)
-  #num_columns <- v_metadata[3]
   obsoul_obstype <- v_metadata[4]
-  print(obsoul_obstype)
   close(file_connection)
 
   # First line is date and time - time should by hms with leading zeroes
@@ -46,7 +43,6 @@ read_obsoul <- function(
   date_time_check    <- paste(date_time_check, collapse = "")
 
 
-  #if(num_rows <100){
   if(obsoul_obstype == 1){
   # Get obsoul parameters from parameter definitions
   param_defs <- list(
@@ -88,11 +84,10 @@ read_obsoul <- function(
                obsoul = list(name=41, units="m/s", harp_name = "S10m",common_name="wind")),
 
   d10m  = list(description = 'Wind direction',
-               obsoul = list(name=41, units="m/s", harp_name = "D10m",common_name="wind"))
+               obsoul = list(name=41, units="degree", harp_name = "D10m",common_name="wind"))
 )
   }
 
-  #if(num_rows >100){
   if(obsoul_obstype == 5){
    #temp fix
    param_defs <- list(
@@ -117,17 +112,16 @@ read_obsoul <- function(
    #s  = list(description = 'Wind speed of air', min = 0, max=200,
              obsoul = list(name=3, units="m/s", harp_name = "S",common_name="wind_upper")),
    d  = list(description = 'Wind direction of air',
-             obsoul = list(name=3, units="m/s", harp_name = "D",common_name="wind_upper")),
+             obsoul = list(name=3, units="degree", harp_name = "D",common_name="wind_upper")),
    s10m  = list(description = 'Wind speed 10m',
              obsoul = list(name=41, units="m/s", harp_name = "S10m",common_name="wind")),
    d10m  = list(description = 'Wind direction',
-             obsoul = list(name=41, units="m/s", harp_name = "D10m",common_name="wind"))
+             obsoul = list(name=41, units="degree", harp_name = "D10m",common_name="wind"))
   )
 
 }
 
-# Read the data and check for problems
-  #obs_df <- try(read.table(file_connection, fill = TRUE), silent = TRUE)
+  # Read the data and check for problems
   obs_df <- try(read.table(file_connection,col.names = paste0("V", seq_len(maxcol)), fill = TRUE), silent = TRUE)
   if (inherits(obs_df, "try-error")) {
     warning("Cannot read ", file_name, ".", call. = FALSE, immediate. = TRUE)
@@ -178,41 +172,39 @@ read_obsoul <- function(
   } else {
     synop = list(synop = NULL)
   }
-print(synop)
- # c(synop)
+  #print(synop)
+
 
   if (!is.null(obs_df[["temp"]]) && obsoul_obstype == 5) {
-    temp <- tidy_obsoul_temp(
-      obs_df[["temp"]], param_defs, max_obs
-    )
+  # Remove rows where xx is 10003036,20003036 [ship] 
+  filtered_temp <- obs_df$temp[!obs_df$temp$xx %in% c(10003036, 20003036), ]
+
+  
+  # Check if there are any rows left after filtering
+  if (nrow(filtered_temp) == 0) {
+    # No rows left: skip tidy_obsoul_temp and read another file
+    temp <- list(temp = NULL)
+  
   } else {
-    temp = list(temp = NULL)
+    # Rows exist: proceed with tidy_obsoul_temp
+    temp <- tidy_obsoul_temp(filtered_temp, param_defs, max_obs)
   }
-print(temp)
-#for now,becouse we implement two type
+  } else {
+    temp <- list(temp = NULL)
+}
 
+  if(obsoul_obstype == 1){
+    c(synop)
+  }else{
 
-if(obsoul_obstype == 1){
-  c(synop)
-}else{
-#if(obsoul_obstype == 5){
   c(temp)}
-
-
-#else{
-#  list(synop = NULL, temp = NULL)
-#}
-
 
 }
 
-#print(synop)
-#print(temp)
 ###
 # Function to tidy synop data
 ###
 tidy_obsoul_synop <- function(synop_df, param_defs, max_obs) {
-print("TIDY_OBSOUL_SYNOP")
   # Modify SID depending on country, set valid_dttm in unix time
   # and convert parameter codes to names
   synop_df <- dplyr::mutate(
@@ -351,10 +343,6 @@ tidy_obsoul_temp <- function(temp_df, param_defs, max_obs) {
     dplyr::filter(!is.na(.data[["obs_code"]]))
 
   temp_df <- temp_df %>% distinct()
-  #print(colnames(temp_df))
-  #print(temp_df %>% dplyr::summarise(n = dplyr::n(), .by = c(SID,lat,lon,elev,valid_dttm,obs_code,obs_1,obs_2,obs_3,obs_end)) %>%
-  #dplyr::filter(n > 1L))
-
 
   #prepare data TEMP
   wind_temp <- dplyr::bind_rows(
@@ -411,29 +399,20 @@ tidy_obsoul_temp <- function(temp_df, param_defs, max_obs) {
 
   #merge converted wind into dataframe & filter on 3680[surface data] and 2560[significant levels] -->FOR NOW!
   temp_df <- full_join(temp_df, wind_temp, by = c("SID", "lat", "lon", "elev", "valid_dttm", "param", "flag", "p", "obs")) %>%
-	filter(., flag %in% c(3680,2560))
+	filter(., flag %in% c(2560))
+	#filter(., flag %in% c(3680,2560))
 	#filter(., flag %in% c(3680,10304))
 
-#   temp_df <- bind_rows(temp_df, wind_temp)
-
-	#filter(., p %in% c(100000,92500,85000,70000,60000,50000,40000,30000,25000,20000,10000,5000))
-	#filter(., p %in% c(100000,92500,85000,70000,60000,50000,40000,30000))
-  #print(temp_df %>% dplyr::summarise(n = dplyr::n(), .by = c(SID, lat, lon, elev, valid_dttm, p, param,obs,flag)) %>%
-  #dplyr::filter(n > 1L))
 
   # The Pmsl is only Pmsl if it's positive - otherwise it's -surface
   # pressure and we don't want that for now... (probably)
-  # remove flag columns
   # convert pressure Pa -> hPa
   temp_df <- dplyr::filter(
     temp_df,
     !(.data[["param"]] == "Pmsl" & .data[["obs"]] < 0)
   )%>%
-  #  select(-flag) %>%
     mutate(across(p,~./100))
-  #print(duplicated(temp_df))
   # Pivot the observations to their own columns and generate
-  # the units data frame
 
   #clean,duplicates(can be found in TEMP file)!!!!
   #temp_df <- temp_df %>% distinct()
@@ -448,21 +427,10 @@ tidy_obsoul_temp <- function(temp_df, param_defs, max_obs) {
   temp_df <- ungroup(temp_df)
 
   temp_df <- temp_df %>% distinct()
+  temp_df[['p']] <- as.integer(round(temp_df[['p']]))  # Fix to round some p levle, 249.9 -> 250
 
- # print(temp_df %>% dplyr::summarise(n = dplyr::n(), .by = c(SID, lat, lon, elev, valid_dttm, p, param)) %>%
- # dplyr::filter(n > 1L))
-
-  #select only Europe
-#  lat_min = 35.0
-#  lat_max = 71.0
-#  lon_min = -16.0
-#  lon_max = 45.0
-
-#  temp_df <- temp_df %>%
-#  	filter (lat >= lat_min & lat <= lat_max & lon >= lon_min & lon <= lon_max)
-
-  print(temp_df %>% dplyr::summarise(n = dplyr::n(), .by = c(SID, lat, lon, elev, valid_dttm, p, param)) %>%
-  	dplyr::filter(n > 1L))
+  #print(temp_df %>% dplyr::summarise(n = dplyr::n(), .by = c(SID, lat, lon, elev, valid_dttm, p, param)) %>%
+  #	dplyr::filter(n > 1L))
 
   params <- unique(temp_df[["param"]])
 
@@ -540,28 +508,6 @@ obsoul_param_code_to_name <- function(x, param_defs) {
   )
 
 }
-
-
-
-
-###
-# Function to add a country indicator to site IDs
-# modify_sid <- function(x) {
-
-  # x <- gsub("^AT","90",
-       # gsub("^CR","91",
-       # gsub("^CZ","92",
-       # gsub("^HU","93",
-       # gsub("^PL","94",
-       # gsub("^RO","95",
-       # gsub("^SI","96",
-       # gsub("^SK","97", x ))))))))
-
-       # as.numeric(x)
-
-# }
-
-
 
 modify_sid <- function(x) {
   # Define a named vector for country code mappings
