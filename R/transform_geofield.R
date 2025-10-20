@@ -52,6 +52,12 @@ transform_geofield <- function(data, transformation, opts) {
   if (transformation == "xsection") {
     fun <- function(x, opts) {
       stopifnot(meteogrid::is.geofield(x))
+      xs_endpoints <- data.frame(do.call(rbind, opts[c("a", "b")]))
+      xs_endpoints[["end"]] <- row.names(xs_endpoints)
+      colnames(xs_endpoints) <- c("lon", "lat", "end")
+      xs_endpoints <- harpCore::geo_reproject(xs_endpoints, x)
+      xs_endpoints <- xs_endpoints[c("end", "lon", "lat", "x", "y")]
+      dom <- harpCore::get_domain(x)
       x <- meteogrid::point.interp(x, weights = opts[["weights"]])
       x <- tibble::tibble(
         distance = seq(
@@ -59,9 +65,9 @@ transform_geofield <- function(data, transformation, opts) {
         ),
         value = x
       )
-      attr(x, "point_a") <- opts[["a"]]
-      attr(x, "point_b") <- opts[["b"]]
-      attr(x, "dx")      <- opts[["horizontal_res"]]
+      attr(x, "dx")         <- opts[["horizontal_res"]]
+      attr(x, "domain")     <- dom
+      attr(x, "end_points") <- xs_endpoints
       x
     }
   }

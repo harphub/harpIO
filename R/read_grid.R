@@ -227,6 +227,10 @@ read_grid <- function(
 
     if (length(all_attrs) == 1) {
 
+      xs_attrs <- all_attrs[[1]][
+        !names(all_attrs[[1]]) %in% c("class", "row.names", "names")
+      ]
+
       gridded_data <- tidyr::unnest(gridded_data, .data[[data_col]]) %>%
         dplyr::group_by_at(
           dplyr::vars(-.data[["level"]], -.data[["distance"]], -.data[["value"]])
@@ -255,7 +259,10 @@ read_grid <- function(
 
       gridded_data[[data_col]] <- lapply(
         gridded_data[[data_col]],
-        function(x) structure(x, class = c("harp_xs", class(x)))
+        function(x) do.call(
+          structure,
+          c(list(.Data = x, class = c("harp_xs", class(x))), xs_attrs)
+        )
       )
 
       class(gridded_data[[data_col]]) <- c("harp_xs_list", class(gridded_data[[data_col]]))
