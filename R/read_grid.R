@@ -168,11 +168,18 @@ read_grid <- function(
   }
 
   if (!is_forecast) {
-    gridded_data <- dplyr::select(
-      gridded_data,
-      -.data[["lead_time"]],
-      -.data[["fcdate"]]
-    )
+    if ("lead_time" %in% names(gridded_data)) {
+      gridded_data <- dplyr::select(
+        gridded_data,
+        -.data[["lead_time"]]
+      )
+    }
+    if ("fcdate" %in% names(gridded_data)) {
+      gridded_data <- dplyr::select(
+        gridded_data,
+        -.data[["fcdate"]]
+      )
+    }
   }
 
   data_col <- switch(
