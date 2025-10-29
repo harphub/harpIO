@@ -147,15 +147,20 @@ generate_filenames <- function(
 
   for (i in seq_along(args)) {
 
+    unnest_col <- FALSE
+
     arg <- args[[i]]
 
-    unnest_col <- FALSE
+    if (names(args[i]) %in% c("lead_time", "parameter") && !is.list(arg)) {
+      arg <- list(arg)
+      unnest_col <- TRUE
+    }
+
     if (length(arg) != nrow(file_names_df)) {
       if (!is.list(arg)) {
         if (is.null(arg)) arg <- NA
         arg <- list(arg)
       }
-      unnest_col <- TRUE
     }
 
     if (inherits(arg, "harp_parameter")) {
@@ -175,7 +180,9 @@ generate_filenames <- function(
         }
       }
       arg <- list(arg)
+      unnest_col <- TRUE
     }
+
     file_names_df[[names(args)[i]]] <- arg
 
     if (unnest_col) {

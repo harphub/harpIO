@@ -500,6 +500,7 @@ read_obsparquet <- function(
     dplyr::any_of(c(meta_cols, obs_param))
   )
 
+  # Maybe this should happen after filtering?
   obs_data <- dplyr::filter(obs_data, !is.na(.data[[obs_param]]))
 
   if (!is.null(dttm)) {
