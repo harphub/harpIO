@@ -54,7 +54,7 @@ correct_t2m <- function(data_df, opts) {
     if (opts[["clim_param"]] %in% height_params) {
       elev_multiplier <- 1
     } else if (opts[["clim_param"]] %in% geo_params) {
-      elev_multiplier <- 1 / 9.08665
+      elev_multiplier <- 1 / 9.80665
     } else {
       stop(
         "Don't know how to correct 2m temperature with clim_param = '",
