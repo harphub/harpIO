@@ -13,15 +13,25 @@
 # get hdf5 parameter names according to ODIM standard
 get_hdf5_param_info <- function(param,pcp_quant="ACRR") {
   param <- parse_harp_parameter(param)
-  result <- switch(tolower(param$basename),
-                     "pcp" = list(quantity=pcp_quant, units="mm"),
-                     "rr"  = list(quantity="RATE", units="mm/h"),
-                     "u"   = list(quantity="UWIND", units="m/s"),
-                     "v"   = list(quantity="VWIND", units="m/s"),
-                     "s"   = list(quantity="ff", units="mm"),
-                     "d"   = list(quantity="dd", units=""),
-                     "ref" = list(quantity="DBHZ", units="dBZ"),
-                     list(quantity="unknown", units="unknown"))
+  known_params <- list("pcp" = list(quantity=pcp_quant, units="mm"),
+                       "rr"  = list(quantity="RATE", units="mm/h"),
+                       "u"   = list(quantity="UWIND", units="m/s"),
+                       "v"   = list(quantity="VWIND", units="m/s"),
+                       "s"   = list(quantity="ff", units="mm"),
+                       "d"   = list(quantity="dd", units=""),
+                       "ref" = list(quantity="DBHZ", units="dBZ"))
+  if (tolower(param$basename) %in% names(known_params)) {
+    result <- known_params[[tolower(param$basename)]]
+  } else {
+    # Check if the parameter name is one of the quantities.
+    # If so, use this instead.
+    all_quants <- sapply(known_params, function(x) x$quantity) %>% unname()
+    if (param$basename %in% all_quants) {
+      result <- known_params[[which(all_quants == param$basename)]]
+    } else {
+      result <- list(quantity="unknown", units="unknown")
+    }
+  }
   result
 }
 
@@ -145,6 +155,7 @@ read_hdf5 <- function(
       gridded_data = list(Hdec(hdf5file, prm_list$data_path[row_num],
                                odim=format_opts$odim, meta=format_opts$meta,
 			                         invert_data=format_opts$invert_data,
+			                         flip_y=format_opts$flip_y,
 			                         iflag=format_opts$iflag))
     )
 
@@ -276,7 +287,7 @@ Hopen <- function(file_name, odim=TRUE, meta=TRUE, iflag = NULL) {
 }
 
 # Main HDF5 decoding: filename & single data_path
-Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, invert_data=TRUE, iflag=NULL, ...) {
+Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, invert_data=TRUE, flip_y=FALSE, iflag=NULL, ...) {
 #    data="dataset1/data1/data", meta=TRUE, ...) {
   if (!requireNamespace("hdf5r", quietly=TRUE)) {
     stop("The hdf5r package is not installed!", "Please install from CRAN.")
@@ -327,9 +338,13 @@ Hdec <- function(file_name, data_path="dataset1/data1/data", meta=TRUE, invert_d
 	  my_data <- hf[[data_path]]$read()
 	  if (!is.null(iflag)) {
 	    if (isTRUE(all_where$flip_y)) {
-	      my_data <- my_data[, ncol(my_data):1]
+	      flip_y <- TRUE # Force flipping
 	    }
 	  }
+	  if (flip_y) {
+	    my_data <- my_data[, ncol(my_data):1]
+	  }
+	  
   }
   # ODIM-specific?
 

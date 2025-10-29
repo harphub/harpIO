@@ -28,6 +28,8 @@
 #'   standard is assumed. 
 #' @param pcp_quant The name used for precipitation in the hdf5 file. Defaults 
 #'   to ACCR i.e. the ODIM standard.
+#' @param flip_y Logical. Should the data be put upside-down? Only used
+#'   if invert_data = FALSE.
 #' @param pinfo Logical. Print some info from \code{read_hdf5} for debugging. 
 #'
 #' @return A list of options for reading hdf5 files.
@@ -43,6 +45,7 @@ hdf5_opts <- function(
     invert_data = TRUE,
     iflag       = NULL,
     pcp_quant   = "ACRR",
+    flip_y      = FALSE,
     pinfo       = FALSE
 ) {
   
@@ -53,6 +56,7 @@ hdf5_opts <- function(
     invert_data = invert_data,
     iflag       = iflag,
     pcp_quant   = pcp_quant,
+    flip_y      = flip_y,
     pinfo       = pinfo
   )
   
