@@ -135,6 +135,13 @@ parse_harp_parameter <- function(
     basename   <- fullname
   }
 
+  # Override automatic level type if vertical_coordinate is given, but level_type
+  # has been set as unkown
+
+  if (!is.na(vertical_coordinate) && level_type == "unknown") {
+    level_type <- vertical_coordinate
+  }
+
   result <- list(fullname = fullname, basename = basename,
        level = level, level_type = level_type,
        accum = accum, acc_unit = acc_unit)

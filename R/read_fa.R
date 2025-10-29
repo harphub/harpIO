@@ -16,14 +16,14 @@ fa_opts <- function(meta=TRUE, fa_type="arome", fa_vector=TRUE, rotate_wind=TRUE
 #
 # @param file_name The FA file name. "file@arch" signifies a file inside a tar archive.
 #        It may also be a \code{FAfile} object.
-# @param parameter The parameter(s) to read. Standard HARP names are used, 
+# @param parameter The parameter(s) to read. Standard HARP names are used,
 #        but full FA field names will also work.
 # @param is_forecast
 # @param date_times Vector of requested forecast dates. Note that FA files can only contain 1 date.
 #        Normally, this date should correspond to the internal date of the FA file.
 #        UNIX date (i.e. numerical).
 # @param lead_time Mostly ignored. FA files contain only 1 lead time. But added to the output.
-# @param members Does not influence data, but may be added a a column to output. 
+# @param members Does not influence data, but may be added a a column to output.
 #        As a FA file can only contain 1 model,
 #        this must be NULL or a single integer value, not a vector.
 # @param vertical_coordinate For extracting 3D data.
@@ -73,8 +73,8 @@ read_fa <- function(
 ## or use the same trick as meteogrid for e.g. .Last.domain()
   if (!requireNamespace("Rfa", quietly = TRUE)) {
     stop(
-      "read_grib requires the Rfa package. Install with the following command:\n",
-      "remotes::install_github(\"harphub/Rfa\")",
+      "Reading FA files requires the Rfa package. Install with the following",
+      "command:\nremotes::install_github(\"harphub/Rfa\")",
       call. = FALSE
     )
   }
@@ -214,7 +214,7 @@ read_fa <- function(
       parameter    = fa_info$parameter,
       members      = info_list$members,
       level_type   = fa_info$level_type,
-      level        = fa_info$fa_level,
+      level        = fa_info$level,
       units        = fa_info$units,
     # NOTE: using the index rather than name may be a bit faster...
       gridded_data = list(lapply(
@@ -258,6 +258,19 @@ read_fa <- function(
       show_after = 1
     )
   }
+
+  fa_all_fields <- mapply(
+    function(x, y) {
+      x$parameter <- sub("\\s+[[:graph:]]*", "", y)
+      if (!is.null(x$level)) {
+        x$level <- as.numeric(x$level)
+      }
+      x
+    },
+    fa_all_fields,
+    names(fa_all_fields),
+    SIMPLIFY = FALSE
+  )
 
   fa_data <- purrr::map(
     fa_all_fields,
@@ -311,16 +324,21 @@ filter_fa_info <- function(
   #       FA can not handle it, but read_grid may pass it that way? It would be an error,
   #       of course.
   if (!is.null(date_times)) {
+    date_times <- unique(date_times)
     if (! fcdate %in% date_times) {
       warning("File ", attr(fafile, "filename"),
   	    "does not contain data for requested dates:\n",
-  	    paste(date_times, collapse=","))
+  	    paste(harpCore::unixtime_to_str_dttm(date_times), collapse=","))
       return(list())
     } else if (length(date_times) > 1) {
       warning("File ",
-              attr(fafile, "filename"),
-              " does not contain data for some dates:\n",
-  	      paste(date_times[date_times != fcdate], collapse=","))
+        attr(fafile, "filename"),
+        " does not contain data for some dates:\n",
+  	    paste(
+  	      harpCore::unixtime_to_str_dttm(date_times[date_times != fcdate]),
+  	      collapse=","
+  	    )
+      )
       date_times <- fcdate
     }
   }
