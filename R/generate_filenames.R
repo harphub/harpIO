@@ -151,9 +151,14 @@ generate_filenames <- function(
 
     arg <- args[[i]]
 
-    if (names(args[i]) %in% c("lead_time", "parameter") && !is.list(arg)) {
-      arg <- list(arg)
-      unnest_col <- TRUE
+    args_to_check <- c(
+      "lead_time", "parameter", "fcst_model", "sub_model", "anl_model"
+    )
+    if (names(args[i]) %in% args_to_check && !is.list(arg)) {
+      if (!is.null(arg)) {
+        arg <- list(arg)
+        unnest_col <- TRUE
+      }
     }
 
     if (length(arg) != nrow(file_names_df)) {

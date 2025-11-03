@@ -82,7 +82,7 @@ fctable_opts <- function(
   journal_mode <- match.arg(journal_mode)
 
   list(
-    format            = "fcatble",
+    format            = "fctable",
     path              = path,
     template          = template,
     index_cols        = index_cols,
