@@ -15,7 +15,7 @@
 #'   fields).
 #' @export
 get_fa_param_info <- function(
-  param, vertical_coordinate = NA_character_, 
+  param, vertical_coordinate = NA_character_,
   param_defs = getExportedValue("harpIO", "harp_params")
 ) {
 
@@ -69,7 +69,7 @@ get_fa_param_info <- function(
   # NOTE: We assume "CLS", "SURF" or other surface indicators are included inthe base name!
   fa_info[["fa_template"]] <- switch(fa_info[["level_type"]],
                         "model"    = "S%03i%-12.12s",
-                        "height"   = if (fa_info$level %in% c(2,10)) "%.0s%-16.16s" else "H%05i%-10.10s" ,
+                        "height"   = if (fa_info$level %in% c(0, 2, 10)) "%.0s%-16.16s" else "H%05i%-10.10s" ,
                         "pressure" = "P%05i%-10.10s",
                         "isotherm" = "KB%03i%-11.11s",
                         "surface"  = "%.0s%-16.16s",

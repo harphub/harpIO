@@ -197,7 +197,7 @@ read_forecast <- function(
   members              = NULL,
   members_out          = members,
   lags                 = NULL,
-  vertical_coordinate  = c("pressure", "model", "height", NA),
+  vertical_coordinate  = c(NA, "pressure", "model", "height"),
   file_path            = getwd(),
   file_format          = NULL,
   file_template        = "vfld",
@@ -233,6 +233,10 @@ read_forecast <- function(
       "read_forecast(dttm)"
     )
     dttm <- harpCore::seq_dttm(start_date, end_date, by)
+  }
+
+  if (any(is.na(vertical_coordinate))) {
+    vertical_coordinate <- as.character(vertical_coordinate)
   }
 
   vertical_coordinate <- match.arg(vertical_coordinate)

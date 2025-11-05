@@ -79,7 +79,7 @@ read_grid <- function(
   dttm                = NULL,
   file_format         = NULL,
   file_format_opts    = list(),
-  vertical_coordinate = c("pressure", "model", "height", NA),
+  vertical_coordinate = c(NA,"pressure", "model", "height"),
   lead_time           = NULL,
   members             = NULL,
   transformation      = c("none", "interpolate", "regrid", "xsection", "subgrid"),
@@ -101,7 +101,9 @@ read_grid <- function(
     dttm <- str_datetime_to_unixtime(dttm)
   }
 
-  if (any(is.na(vertical_coordinate))) vertical_coordinate <- as.character(vertical_coordinate)
+  if (any(is.na(vertical_coordinate))) {
+    vertical_coordinate <- as.character(vertical_coordinate)
+  }
   vertical_coordinate <- match.arg(vertical_coordinate)
   transformation      <- match.arg(transformation)
   transformation_opts <- check_opts(transformation, transformation_opts)
@@ -110,6 +112,11 @@ read_grid <- function(
 
   if (is.null(file_format)) {
     file_format <- guess_format(file_name)
+  }
+
+  # For vfld, vertical_coordinate should always be pressure
+  if (file_format == "vfld" && is.na(vertical_coordinate)) {
+    vertical_coordinate <- "pressure"
   }
 
   if (length(file_format) > 1) {
