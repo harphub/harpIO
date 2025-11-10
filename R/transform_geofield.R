@@ -43,7 +43,19 @@ transform_geofield <- function(data, transformation, opts) {
     fun <- function(x, opts) {
       stopifnot(meteogrid::is.geofield(x))
       geofield_info <- attr(x, "info")
-      x <- meteogrid::regrid(x, weights = opts[["weights"]])
+      method <- switch(
+        attr(opts[["weights"]], "method"),
+        "bilin"   = "bilinear",
+        "closest" = "nearest",
+        "bicubic" = "bicubic",
+        "upscale" = "upscale"
+      )
+      x <- harpCore::geo_regrid(
+        x,
+        new_grid = attr(opts[["weights"]], "newdomain"),
+        method   = method,
+        weights  = opts[["weights"]]
+      )
       attr(x, "info") <- geofield_info
       x
     }

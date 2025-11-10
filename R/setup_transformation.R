@@ -199,10 +199,12 @@ get_weights <- function(trans, opts) {
     if (inherits(new_domain, "try-error")) {
       stop("'new_domain' in 'transformation_opts' must be a geofield or geodomain.", call. = FALSE)
     }
-    opts[["weights"]] <- meteogrid::regrid.init(
-      olddomain = old_domain,
-      newdomain = new_domain,
-      method    = opts[["method"]]
+    opts[["weights"]] <- harpCore::geo_weights_regrid(
+      x = old_domain,
+      new_grid  = new_domain,
+      method    = opts[["method"]],
+      mask      = opts[["mask"]],
+      new_mask  = opts[["use_mask"]]
     )
   }
 
