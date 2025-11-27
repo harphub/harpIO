@@ -33,17 +33,13 @@ show_param_defs <- function(
       stop("Nothing found for file format: ", file_format, call. = FALSE)
     }
 
-    if (file_format == "fa") {
-      stop("Doesn't work for FA params yet", call. = FALSE)
-    }
-
     params <- dplyr::arrange(
       tibble::tibble(
         name     = names(params),
         fmt_name = vapply(
           params,
-          function(x) gsub("\"", "", deparse(x[["name"]])),
-          "a",
+          function(x) gsub("\"", "", paste(deparse(x[["name"]]), collapse = "")),
+          character(1),
           USE.NAMES = FALSE
         )
       ),
