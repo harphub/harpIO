@@ -195,6 +195,7 @@ is_temp <- function(prm, vertical_coordinate = NA_character_, param_defs = getEx
     function(x) !is.null(x$v) && tolower(x$v$type) == "temp",
     logical(1)
   )]
+  par.atmo <- unique(c(par.atmo,"z"))
   if (!inherits(prm, "harp_parameter")) prm <- parse_harp_parameter(prm, vertical_coordinate)
   atmo <- switch(prm$level_type,
                 "sea"      =,
