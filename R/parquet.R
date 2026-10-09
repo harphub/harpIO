@@ -121,7 +121,7 @@ read_fcparquet <- function(
   }
 
   # Filter to vertical level
-  if (!is.null(level_col)) {
+  if (!is.null(level_col) && param$level != -999) {
     fcst <- dplyr::filter(fcst, .data[[level_col]] %in% param$level)
   }
 
@@ -165,16 +165,16 @@ read_fcparquet <- function(
     )
   }
 
+  message(" ", cli::col_br_green(cli::symbol$tick))
+  
+  fcst <- collect_dataset(fcst)
+  
   if (complete_cases) {
     fcst <- dplyr::filter(
       fcst,
       dplyr::if_all(dplyr::matches(paste(fcst_cols, sep = "|")), ~!is.na(.x))
     )
   }
-
-  message(" ", cli::col_br_green(cli::symbol$tick))
-
-  fcst <- collect_dataset(fcst)
 
   if (nrow(fcst) < 1) {
     message(" ", cli::col_yellow(cli::symbol$cross))
