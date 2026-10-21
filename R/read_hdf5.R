@@ -497,7 +497,25 @@ get_iflag_whatwhere <- function(df,data_path,iflag,ww = "what") {
         dy <- abs(dy)
         flip_y <- TRUE
       }
-    
+      
+      # As of 2026/08/17/09, the projection in the hdf5 files changed from:
+      # "+proj=stere +lat_0=90 +lon_0=0 +lat_ts=60 +a=6378.14 +b=6356.75 +x_0=0 y_0=0"
+      # to:
+      # "+proj=stere +lat_0=90 +lon_0=0 +lat_ts=60 +a=6378137 +b=6356752 +x_0=0 +y_0=0 +units=km"
+      # Note old projection a/b were in KM, new projection are in M (default convention), 
+      # but dx/dy are still in KM. As such change dx/dy based on units check.
+      if (!is.null(pp)) {
+        projection <- meteogrid::proj4.str2list(pp)
+        if (!is.null(projection$units)) {
+          if ((tolower(projection$units) == "km") && (round(dx) == 1) && (round(dy) == 1)) {
+            dx <- 1000*dx
+            dy <- 1000*dy
+            # Drop units from the proj string now that everything is in m
+            pp <- gsub(" \\+units=km","",pp,ignore.case = T)
+          }
+        }
+      }
+      
       return(list("projdef" = pp,
                   "xscale"  = dx,
                   "yscale"  = dy,
