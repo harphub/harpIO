@@ -262,18 +262,20 @@ dttm_components <- function(unixtime) {
 # Write a dataset of parquet files for forecast data - called by read_forecast()
 # when transformation = "intperpolate" or "points"
 
-write_fctable_to_parquet <- function(data, file_name, hive_partitioning) {
+write_fctable_to_parquet <- function(data, file_name, hive_partitioning, run_pivot=TRUE) {
 
   if (missing(hive_partitioning) || is.null(hive_partitioning)) {
     hive_partitioning = paste0("fcst_", c("hour", "year", "month", "day"))
   }
 
   message(cli::col_blue("Preparing data"), appendLF = FALSE)
-  data <- tidyr::pivot_wider(
-    data,
-    names_from  = dplyr::one_of("member"),
-    values_from = dplyr::one_of("forecast")
-  )
+  if (run_pivot) {
+    data <- tidyr::pivot_wider(
+      data,
+      names_from  = dplyr::one_of("member"),
+      values_from = dplyr::one_of("forecast")
+    )
+  }
 
   data[["fcst_dttm"]] <- harpCore::unixtime_to_dttm(data[["fcst_dttm"]])
 
